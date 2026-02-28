@@ -7,13 +7,21 @@ function NavBar() {
   const { auth, setAuth } = useAuth();
 
   return (
-    <div>
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/login">Login</Link>
+    <div className="min-h-screen flex flex-col">
+      <nav className="flex gap-4 p-4 border-b border-gray-200 bg-white">
+        <Link to="/" className="font-medium text-blue-600 hover:text-blue-700">
+          Home
+        </Link>
+        <Link
+          to="/login"
+          className="font-medium text-blue-600 hover:text-blue-700"
+        >
+          Login
+        </Link>
       </nav>
-      {/* React Router will pass components into the <Outlet /> based on the path */}
-      <Outlet />
+      <main className="flex-1 flex items-center justify-center p-8">
+        <Outlet />
+      </main>
     </div>
   );
 }

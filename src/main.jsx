@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./components/AuthProvider.jsx";
 
+import "./index.css";
+
 // Here we import our layout and pages
 import NavBar from "./components/Navbar.jsx";
 import HomePage from "./pages/HomePage.jsx";
