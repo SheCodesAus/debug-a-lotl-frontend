@@ -9,6 +9,7 @@ import "./index.css";
 import NavBar from "./components/Navbar.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
 
 // Here we create our router: NavBar wraps all pages and renders the current page in its <Outlet />
 const router = createBrowserRouter([
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "login", element: <LoginPage /> },
+      { path: "register", element: <RegisterPage /> },
     ],
   },
 ]);
