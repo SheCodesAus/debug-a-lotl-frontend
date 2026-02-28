@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Base layout: full viewport, centered content */
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-width: 320px;
+}
+
+#root {
+  min-height: 100vh;
+}

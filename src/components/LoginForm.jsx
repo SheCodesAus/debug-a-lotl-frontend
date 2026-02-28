@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import postLogin from "../api/post-login";
-import "./LoginForm.css";
 
 // Simple controlled login form that tracks username and password in local state
 function LoginForm() {
+  const navigate = useNavigate();
   const { setAuth } = useAuth();
   // Group both fields in a single state object so we can update them together
   const [credentials, setCredentials] = useState({
@@ -49,16 +50,16 @@ function LoginForm() {
   };
 
   return (
-    <div className="login-form-card">
-      <h2 className="login-form-title">Log In</h2>
+    <div className="w-[360px] mx-auto my-[60px] px-12 pt-10 pb-12 bg-white rounded-3xl shadow-xl font-sans">
+      <h2 className="m-0 mb-6 text-2xl font-bold text-gray-900">Log In</h2>
 
-      <form className="login-form" onSubmit={handleSubmit}>
-        <div className="login-form-field">
-          <label className="login-form-label" htmlFor="username">
+      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-medium text-gray-500" htmlFor="username">
             Your email
           </label>
           <input
-            className="login-form-input"
+            className="px-3 py-2.5 rounded-[10px] border border-gray-200 bg-gray-50 text-sm outline-none transition focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 placeholder:text-gray-400"
             type="text"
             id="username"
             placeholder="Enter username"
@@ -66,12 +67,12 @@ function LoginForm() {
           />
         </div>
 
-        <div className="login-form-field">
-          <label className="login-form-label" htmlFor="password">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-medium text-gray-500" htmlFor="password">
             Your password
           </label>
           <input
-            className="login-form-input"
+            className="px-3 py-2.5 rounded-[10px] border border-gray-200 bg-gray-50 text-sm outline-none transition focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 placeholder:text-gray-400"
             type="password"
             id="password"
             placeholder="Password"
@@ -79,7 +80,10 @@ function LoginForm() {
           />
         </div>
 
-        <button className="login-form-button" type="submit">
+        <button
+          className="mt-2.5 w-full py-3 px-4 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-white text-[15px] font-semibold cursor-pointer shadow-lg shadow-blue-600/35 transition hover:-translate-y-px hover:shadow-xl hover:shadow-blue-600/45 active:translate-y-0 active:shadow-md"
+          type="submit"
+        >
           Log In
         </button>
       </form>
