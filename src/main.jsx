@@ -10,6 +10,9 @@ import NavBar from "./components/Navbar.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import ClubPage from "./pages/ClubPage.jsx";
+import ClubListPage from "./pages/ClubListPage.jsx";
+import CreateClubPage from "./pages/CreateClubPage.jsx"
 
 // Here we create our router: NavBar wraps all pages and renders the current page in its <Outlet />
 const router = createBrowserRouter([
@@ -20,6 +23,9 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "login", element: <LoginPage /> },
       { path: "register", element: <RegisterPage /> },
+      { path: "register", element: <ClubPage /> },
+      { path: "register", element: <ClubListPage /> },
+      { path: "register", element: <CreateClubPage /> },
     ],
   },
 ]);

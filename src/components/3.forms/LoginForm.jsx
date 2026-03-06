@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/use-auth";
-import postLogin from "../api/post-login";
+import { useAuth } from "../../hooks/use-auth";
+import postLogin from "../../api/post-login";
 
 // Simple controlled login form that tracks username and password in local state
 function LoginForm() {
