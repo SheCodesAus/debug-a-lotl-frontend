@@ -2,7 +2,8 @@
 // returns either the parsed JSON response or throws a helpful error.
 async function postLogin(username, password) {
   // Build the full API URL using the base URL from Vite environment variables
-  const url = `${import.meta.env.VITE_API_URL}/api-token-auth/`;
+  const baseUrl = import.meta.env.VITE_API_URL ?? "";
+  const url = `${baseUrl}/api-token-auth/`;
 
   // Send the username and password to the server as JSON using the Fetch API
   const response = await fetch(url, {
