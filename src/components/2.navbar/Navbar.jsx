@@ -1,6 +1,6 @@
 import { Link, Outlet } from "react-router-dom";
 
-import { useAuth } from "../hooks/use-auth"; // ✅ named import
+import { useAuth } from "../../hooks/use-auth"; // ✅ named import
 
 function NavBar() {
   const { auth, setAuth } = useAuth();
