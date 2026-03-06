@@ -20,6 +20,9 @@ function NavBar() {
         <Link to="/" className="font-medium text-blue-600 hover:text-blue-700">
           Home
         </Link>
+        <Link to="/clubs" className="font-medium text-blue-600 hover:text-blue-700">
+          Book clubs
+        </Link>
         <div className="ml-auto flex gap-2 items-center">
           {isLoggedIn ? (
             <>
