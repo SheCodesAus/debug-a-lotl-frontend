@@ -7,6 +7,7 @@ import postLogin from "../api/post-login";
 function LoginForm() {
   const navigate = useNavigate();
   const { setAuth } = useAuth();
+
   // Group both fields in a single state object so we can update them together
   const [credentials, setCredentials] = useState({
     username: "",
@@ -23,6 +24,11 @@ function LoginForm() {
     }));
   };
 
+  // Handle the login button click / form submission:
+  // 1. Prevent the browser's default form submit (page reload)
+  // 2. Call postLogin to send the credentials to the backend
+  // 3. If successful and we get both token and username, persist them, update auth, and navigate home
+  // 4. If the response is missing token/username or the request fails, show an error
   const handleSubmit = (event) => {
     event.preventDefault();
     setError(null);
@@ -35,9 +41,12 @@ function LoginForm() {
           setError("Invalid response from server. Please try again.");
           return;
         }
+        // Persist the returned token and username so the user stays logged in on refresh
         window.localStorage.setItem("token", response.token);
         window.localStorage.setItem("username", response.username);
+        // Update the global auth context so the rest of the app knows we're logged in
         setAuth({ token: response.token, username: response.username });
+        // Redirect the user to the home page after a successful login
         navigate("/");
       })
       .catch((err) => {
