@@ -1,10 +1,12 @@
+import RegisterForm from "../components/RegisterForm";
+
 function RegisterPage() {
   return (
     <div className="text-center w-full">
       <h1 className="text-2xl font-semibold text-gray-700 mb-6">
-        Register page
+        Create an account
       </h1>
-      <p className="text-gray-600">Registration form coming soon.</p>
+      <RegisterForm />
     </div>
   );
 }
