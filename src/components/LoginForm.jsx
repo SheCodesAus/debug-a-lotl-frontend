@@ -12,6 +12,7 @@ function LoginForm() {
     username: "",
     password: "",
   });
+  const [error, setError] = useState(null);
 
   // Generic change handler that updates whichever input field was edited
   const handleChange = (event) => {
@@ -22,31 +23,26 @@ function LoginForm() {
     }));
   };
 
-  // Handle the login button click / form submission
-  // 1. Stop the browser's default form submit (page reload)
-  // 2. Make sure both username and password have been filled in
-  // 3. Call our `postLogin` helper to send the credentials to the backend
-  // 4. If successful, save the token, update auth state, and navigate home
   const handleSubmit = (event) => {
-    // Prevent the browser from doing a full page reload on form submit
     event.preventDefault();
+    setError(null);
 
-    // Only attempt to log in if both fields have some value
-    if (credentials.username && credentials.password) {
-      // Send the username/password to the login API helper
-      postLogin(credentials.username, credentials.password).then((response) => {
-        // Persist the returned token in localStorage so the user stays logged in on refresh
+    if (!credentials.username || !credentials.password) return;
+
+    postLogin(credentials.username, credentials.password)
+      .then((response) => {
+        if (!response.token || !response.username) {
+          setError("Invalid response from server. Please try again.");
+          return;
+        }
         window.localStorage.setItem("token", response.token);
-
-        // Update the global auth context so the rest of the app knows we're logged in
-        setAuth({
-          token: response.token,
-        });
-
-        // Redirect the user to the home page after a successful login
+        window.localStorage.setItem("username", response.username);
+        setAuth({ token: response.token, username: response.username });
         navigate("/");
+      })
+      .catch((err) => {
+        setError(err.message || "Login failed. Please try again.");
       });
-    }
   };
 
   return (
@@ -54,6 +50,11 @@ function LoginForm() {
       <h2 className="m-0 mb-6 text-2xl font-bold text-gray-900">Log In</h2>
 
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        {error && (
+          <div className="px-3 py-2.5 rounded-[10px] bg-red-50 border border-red-200 text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-medium text-gray-500" htmlFor="username">
             Your email

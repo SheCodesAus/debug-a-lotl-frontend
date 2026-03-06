@@ -43,8 +43,13 @@ function RegisterForm() {
       });
 
       const response = await postLogin(fields.username, fields.password);
+      if (!response.token || !response.username) {
+        setError("Invalid response from server. Please try again.");
+        return;
+      }
       window.localStorage.setItem("token", response.token);
-      setAuth({ token: response.token });
+      window.localStorage.setItem("username", response.username);
+      setAuth({ token: response.token, username: response.username });
       navigate("/");
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.");
