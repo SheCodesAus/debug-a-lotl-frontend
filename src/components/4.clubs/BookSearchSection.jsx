@@ -57,6 +57,43 @@ async function handleAddClick(book) {
     }  
 }
 
+return (
+    <section>
+        <h2>Search New Books</h2>
+
+        <form onSubmit={handleSearch}>
+            <input
+            type="text"
+            placeholder="Search by title or author"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}/>
+            <button type="submit" disabed={isLoading}>
+                {isLoading ? "Searching..": "Search"}
+            </button>
+        </form>
+
+        {error && <p>{error}</p>}
+
+        <div>
+            {results.map((book) => {
+                const alreadyAdded = isAlreadyAdded(book.google_books_id);
+                return(
+                    <article key={book.google_books_id}>
+                        <img src={book.cover_image} alt = {book.title} width="60"/>
+                        <h3>{book.title}</h3>
+                        <p>{book.author}</p>
+
+                        <button 
+                        type="button"
+                        onClick={() => handleAddClick(book)}
+                        disabled={alreadyAdded}>
+                        </button>
+                    </article>
+                );
+            })}
+        </div>
+    </section>
+);
 }
 
 export default BookSearchSection;
