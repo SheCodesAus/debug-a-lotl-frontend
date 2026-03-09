@@ -11,8 +11,9 @@ function CreateClubPage() {
     description: "",
     banner_image: "",
     is_public: true,
-    meeting_type: "virtual",
-    location: "",
+    max_members: "",
+    club_meeting_mode: "virtual",
+    club_location: "",
   });
   const [error, setError] = useState(null);
 
@@ -29,11 +30,11 @@ function CreateClubPage() {
     }));
   };
 
-  const handleMeetingTypeChange = (value) => {
+  const handleMeetingModeChange = (value) => {
     setFormData((prev) => ({
       ...prev,
-      meeting_type: value,
-      ...(value === "virtual" ? { location: "" } : {}),
+      club_meeting_mode: value,
+      ...(value === "virtual" ? { club_location: "" } : {}),
     }));
   };
 
@@ -52,8 +53,8 @@ function CreateClubPage() {
     }
 
     if (
-      formData.meeting_type === "in-person" &&
-      !formData.location?.trim()
+      formData.club_meeting_mode === "in_person" &&
+      !formData.club_location?.trim()
     ) {
       setError("Location is required when the club meets in person.");
       return;
@@ -74,7 +75,7 @@ function CreateClubPage() {
   };
 
   const isLoggedIn = Boolean(auth?.token);
-  const isInPerson = formData.meeting_type === "in-person";
+  const isInPerson = formData.club_meeting_mode === "in_person";
   const inputClass =
     "px-3 py-2.5 rounded-[10px] border border-gray-200 bg-gray-50 text-sm outline-none transition focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 placeholder:text-gray-400";
   const labelClass = "text-[13px] font-medium text-gray-500";
@@ -176,16 +177,31 @@ function CreateClubPage() {
               </div>
             </fieldset>
 
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass} htmlFor="max_members">
+                Max members (optional)
+              </label>
+              <input
+                className={inputClass}
+                type="number"
+                id="max_members"
+                min={1}
+                placeholder="No limit"
+                value={formData.max_members}
+                onChange={handleChange}
+              />
+            </div>
+
             <fieldset className="flex flex-col gap-2">
               <span className={labelClass}>Meeting type</span>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
-                    name="meeting_type"
-                    value="in-person"
-                    checked={formData.meeting_type === "in-person"}
-                    onChange={(e) => handleMeetingTypeChange(e.target.value)}
+                    name="club_meeting_mode"
+                    value="in_person"
+                    checked={formData.club_meeting_mode === "in_person"}
+                    onChange={(e) => handleMeetingModeChange(e.target.value)}
                     className="text-blue-600"
                   />
                   <span className="text-sm">In person</span>
@@ -193,10 +209,10 @@ function CreateClubPage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
-                    name="meeting_type"
+                    name="club_meeting_mode"
                     value="virtual"
-                    checked={formData.meeting_type === "virtual"}
-                    onChange={(e) => handleMeetingTypeChange(e.target.value)}
+                    checked={formData.club_meeting_mode === "virtual"}
+                    onChange={(e) => handleMeetingModeChange(e.target.value)}
                     className="text-blue-600"
                   />
                   <span className="text-sm">Virtual</span>
@@ -206,15 +222,15 @@ function CreateClubPage() {
 
             {isInPerson && (
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass} htmlFor="location">
+                <label className={labelClass} htmlFor="club_location">
                   Location <span className="text-red-500">*</span>
                 </label>
                 <input
                   className={inputClass}
                   type="text"
-                  id="location"
+                  id="club_location"
                   placeholder="e.g. Central Library, Meeting Room A"
-                  value={formData.location}
+                  value={formData.club_location}
                   onChange={handleChange}
                   required={isInPerson}
                 />

@@ -8,8 +8,13 @@ async function postCreateClub(token, payload) {
     description: payload.description?.trim() ?? "",
     banner_image: payload.banner_image?.trim() ?? "",
     is_public: Boolean(payload.is_public),
-    meeting_type: payload.meeting_type === "in-person" ? "in-person" : "virtual",
-    location: payload.location?.trim() ?? "",
+    max_members:
+      payload.max_members !== "" && payload.max_members != null
+        ? Number(payload.max_members)
+        : null,
+    club_meeting_mode:
+      payload.club_meeting_mode === "in_person" ? "in_person" : "virtual",
+    club_location: payload.club_location?.trim() ?? "",
   };
 
   const response = await fetch(url, {
