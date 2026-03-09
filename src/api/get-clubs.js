@@ -1,8 +1,15 @@
-// GET list of clubs. Optional token: when provided, returns public clubs + clubs user owns/is member of.
+/**
+ * Fetches the list of book clubs from the API.
+ * - With token: returns public clubs plus clubs the user owns or is a member of.
+ * - Without token: returns only public clubs.
+ * @param {string|null} token - Optional auth token (e.g. from useAuth).
+ * @returns {Promise<Array>} List of club objects.
+ */
 async function getClubs(token = null) {
   const baseUrl = import.meta.env.VITE_API_URL ?? "";
   const url = `${baseUrl}/clubs/`;
 
+  // Send Authorization header only when logged in, so the backend can filter accordingly
   const headers = {};
   if (token) {
     headers.Authorization = `Token ${token}`;

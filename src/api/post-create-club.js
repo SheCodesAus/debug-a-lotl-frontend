@@ -3,17 +3,21 @@ async function postCreateClub(token, payload) {
   const baseUrl = import.meta.env.VITE_API_URL ?? "";
   const url = `${baseUrl}/clubs/`;
 
+  // Build request body to match backend Club model (owner is set by backend from token)
   const body = {
     name: payload.name?.trim() ?? "",
     description: payload.description?.trim() ?? "",
     banner_image: payload.banner_image?.trim() ?? "",
     is_public: Boolean(payload.is_public),
+    // Optional cap on members; send null when left empty so backend allows unlimited
     max_members:
       payload.max_members !== "" && payload.max_members != null
         ? Number(payload.max_members)
         : null,
+    // Backend expects "virtual" | "in_person" (underscore, not hyphen)
     club_meeting_mode:
       payload.club_meeting_mode === "in_person" ? "in_person" : "virtual",
+    // Required by backend when club_meeting_mode is "in_person"; empty string otherwise
     club_location: payload.club_location?.trim() ?? "",
   };
 
