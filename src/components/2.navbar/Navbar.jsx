@@ -10,7 +10,8 @@ function NavBar() {
   const handleLogout = () => {
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("username");
-    setAuth({ token: null, username: null });
+    window.localStorage.removeItem("user_id");
+    setAuth({ token: null, user_id: null, username: null });
     navigate("/");
   };
 
@@ -23,6 +24,11 @@ function NavBar() {
         <Link to="/clubs" className="font-medium text-blue-600 hover:text-blue-700">
           Book clubs
         </Link>
+        {isLoggedIn && (
+          <Link to="/profile" className="font-medium text-blue-600 hover:text-blue-700">
+            Profile
+          </Link>
+        )}
         <div className="ml-auto flex gap-2 items-center">
           {isLoggedIn ? (
             <>
@@ -55,7 +61,7 @@ function NavBar() {
           )}
         </div>
       </nav>
-      <main className="flex-1 flex items-center justify-center p-8">
+      <main className="flex-1 bg-[#fffaf6] overflow-y-auto">
         <Outlet />
       </main>
     </div>

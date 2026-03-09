@@ -5,35 +5,34 @@ async function postLogin(username, password) {
   const baseUrl = import.meta.env.VITE_API_URL ?? "";
   const url = `${baseUrl}/api-token-auth/`;
 
-  // Send the username and password to the server as JSON using the Fetch API
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      // Tell the server that the request body contains JSON
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      username: username,
-      password: password,
-    }),
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+      }),
+    });
+  } catch (err) {
+    const baseUrl = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
+    throw new Error(
+      `Could not connect to the server. Make sure the backend is running at ${baseUrl} (e.g. \`python manage.py runserver\` in the backend project).`
+    );
+  }
 
-  // If the HTTP status code is not in the 200–299 range, handle it as an error
   if (!response.ok) {
     const fallbackError = `Error trying to login`;
-
-    // Try to read the error details from the response body.
-    // If parsing fails (e.g. the body is empty or not JSON), throw a generic error instead.
     const data = await response.json().catch(() => {
       throw new Error(fallbackError);
     });
-
-    // Prefer an error message from the backend (`detail`), otherwise use the generic one.
     const errorMessage = data?.detail ?? fallbackError;
     throw new Error(errorMessage);
   }
 
-  // For successful responses, parse and return the JSON data (e.g. auth token)
   return await response.json();
 }
 

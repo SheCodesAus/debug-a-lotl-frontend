@@ -8,30 +8,36 @@ export const AuthContext = createContext();
 export const AuthProvider = (props) => {
   // Using an object for the state here, this way we can add more properties to the state later on like user id.
   const [auth, setAuth] = useState({
-    // Here we initialize the context with the token and username from local storage, this way if the user refreshes the page we can still have them in memory.
+    // Here we initialize the context with the token, user_id and username from local storage, this way if the user refreshes the page we can still have them in memory.
     token: window.localStorage.getItem("token"),
+    user_id: window.localStorage.getItem("user_id")
+      ? Number(window.localStorage.getItem("user_id"))
+      : null,
     username: window.localStorage.getItem("username"),
   });
 
-  // When we have a token but no username (e.g. old session or page refresh), fetch the current user
+  // When we have a token but missing username or user_id (e.g. old session or page refresh), fetch the current user
   useEffect(() => {
-    if (!auth.token || auth.username) return;
+    if (!auth.token || (auth.username && auth.user_id != null)) return;
 
     getCurrentUser(auth.token)
       .then((data) => {
         const username = data.username ?? null;
-        if (username) {
-          window.localStorage.setItem("username", username);
-          setAuth((prev) => ({ ...prev, username }));
+        const user_id = data.id ?? null;
+        if (username != null || user_id != null) {
+          if (username != null) window.localStorage.setItem("username", username);
+          if (user_id != null) window.localStorage.setItem("user_id", String(user_id));
+          setAuth((prev) => ({ ...prev, username, user_id }));
         }
       })
       .catch(() => {
         // Token may be invalid; clear auth so the user can log in again
         window.localStorage.removeItem("token");
         window.localStorage.removeItem("username");
-        setAuth({ token: null, username: null });
+        window.localStorage.removeItem("user_id");
+        setAuth({ token: null, user_id: null, username: null });
       });
-  }, [auth.token, auth.username]);
+  }, [auth.token, auth.username, auth.user_id]);
 
   return (
     <AuthContext.Provider value={{ auth, setAuth }}>

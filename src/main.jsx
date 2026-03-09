@@ -13,6 +13,7 @@ import RegisterPage from "./pages/RegisterPage.jsx";
 import ClubPage from "./pages/ClubPage.jsx";
 import ClubListPage from "./pages/ClubListPage.jsx";
 import CreateClubPage from "./pages/CreateClubPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 // Here we create our router: NavBar wraps all pages and renders the current page in its <Outlet />
 const router = createBrowserRouter([
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
       { path: "club", element: <ClubPage /> },
       { path: "clubs", element: <ClubListPage /> },
       { path: "clubs/create", element: <CreateClubPage /> },
+      { path: "profile", element: <ProfilePage /> },
     ],
   },
 ]);

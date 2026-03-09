@@ -41,11 +41,13 @@ function LoginForm() {
           setError("Invalid response from server. Please try again.");
           return;
         }
-        // Persist the returned token and username so the user stays logged in on refresh
+        const user_id = response.user_id ?? null;
+        // Persist the returned token, user_id and username so the user stays logged in on refresh
         window.localStorage.setItem("token", response.token);
         window.localStorage.setItem("username", response.username);
+        if (user_id != null) window.localStorage.setItem("user_id", String(user_id));
         // Update the global auth context so the rest of the app knows we're logged in
-        setAuth({ token: response.token, username: response.username });
+        setAuth({ token: response.token, user_id, username: response.username });
         // Redirect the user to the home page after a successful login
         navigate("/");
       })

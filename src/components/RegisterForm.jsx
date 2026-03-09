@@ -47,9 +47,11 @@ function RegisterForm() {
         setError("Invalid response from server. Please try again.");
         return;
       }
+      const user_id = response.user_id ?? null;
       window.localStorage.setItem("token", response.token);
       window.localStorage.setItem("username", response.username);
-      setAuth({ token: response.token, username: response.username });
+      if (user_id != null) window.localStorage.setItem("user_id", String(user_id));
+      setAuth({ token: response.token, user_id, username: response.username });
       navigate("/");
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.");
