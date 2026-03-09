@@ -94,7 +94,7 @@ function NavBar() {
         style={{ backgroundColor: PRIMARY }}
         aria-hidden
       />
-      <nav className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-200 bg-white">
+      <nav className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 bg-[#f9f6f2]">
         {/* Logo + title */}
         <Link
           to="/"
@@ -157,18 +157,18 @@ function NavBar() {
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div
-          className="md:hidden border-b border-gray-200 bg-white px-4 py-4 flex flex-col gap-4"
+          className="md:hidden bg-[#f9f6f2] px-4 py-4 flex flex-col gap-4"
           role="dialog"
           aria-label="Mobile navigation"
         >
           {navLinks}
-          <div className="pt-2 border-t border-gray-100">
+          <div className="pt-2 border-t border-gray-200/60">
             {authSection}
           </div>
         </div>
       )}
 
-      <main className="flex-1 bg-[#fffaf6] overflow-y-auto">
+      <main className="flex-1 bg-[#f9f6f2] overflow-y-auto">
         <Outlet />
       </main>
     </div>
