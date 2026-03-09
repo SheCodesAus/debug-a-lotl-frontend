@@ -10,7 +10,7 @@ import { useState } from "react";
 
 function BookSearchSection ({isOwner, clubBooks, onAddBook}){
 //What user types in the search box
-const [query, setQuery] = useState("");
+cons [query, setQuery] = useState("");
 //Results we receive from Google Books
 cons [results, setResults] = useState([]);
 //Loading state while waiting for API result
@@ -28,7 +28,7 @@ function isAlreadyAdded(googleBookId){
 
 //runs when user submits search form
 async function handleSearch(event){
-    event.PreventDefault(); //stops full page reload
+    event.preventDefault(); //stops full page reload
     setError("");
 
     const cleanQuery = query.trim();
@@ -38,7 +38,7 @@ async function handleSearch(event){
     }
 
     try {
-        setisLoading(true);
+        setIsLoading(true);
         const books = await getGoogleBooks(cleanQuery);
         setResults(books);
     }catch (err) {
@@ -67,8 +67,8 @@ return (
             placeholder="Search by title or author"
             value={query}
             onChange={(event) => setQuery(event.target.value)}/>
-            <button type="submit" disabed={isLoading}>
-                {isLoading ? "Searching..": "Search"}
+            <button type="submit" disabled={isLoading}>
+                {isLoading ? "Searching...": "Search"}
             </button>
         </form>
 
@@ -87,6 +87,7 @@ return (
                         type="button"
                         onClick={() => handleAddClick(book)}
                         disabled={alreadyAdded}>
+                        {alreadyAdded ? "Already Added" : "Add to Club"}
                         </button>
                     </article>
                 );
