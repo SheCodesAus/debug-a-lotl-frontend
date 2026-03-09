@@ -1,4 +1,16 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Nunito+Sans:wght@400;600;700&display=swap");
+
+@layer utilities {
+  .font-lora {
+    font-family: "Lora", ui-serif, Georgia, "Times New Roman", serif;
+  }
+
+  .font-nunito {
+    font-family: "Nunito Sans", system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+  }
+}
 
 /* Base layout: full viewport, centered content */
 body {

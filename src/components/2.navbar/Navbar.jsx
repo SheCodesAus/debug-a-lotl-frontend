@@ -61,7 +61,7 @@ function NavBar() {
           )}
         </div>
       </nav>
-      <main className="flex-1 flex items-center justify-center p-8">
+      <main className="flex-1 bg-[#fffaf6] overflow-y-auto">
         <Outlet />
       </main>
     </div>

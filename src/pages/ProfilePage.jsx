@@ -42,43 +42,58 @@ function ProfilePage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="text-center w-full max-w-md mx-auto">
-        <h1 className="text-2xl font-semibold text-gray-700 mb-4">
-          Profile
-        </h1>
-        <p className="text-gray-600 mb-4">
-          You need to be logged in to view your profile.
-        </p>
-        <Link
-          to="/login"
-          className="inline-block px-4 py-2 rounded-md font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-        >
-          Log in
-        </Link>
+      <div className="w-full">
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          <div className="rounded-3xl p-8 sm:p-10 font-nunito text-center space-y-5">
+            <h1 className="text-3xl sm:text-4xl font-lora text-[#3f2a28] leading-snug">
+              Profile
+            </h1>
+            <p className="text-base text-[#8c6b5c]">
+              You need to be logged in to view your profile.
+            </p>
+            <Link
+              to="/login"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full font-semibold text-white bg-[#e07a5f] hover:bg-[#cc664b] shadow-sm transition-colors"
+            >
+              Log in
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="text-center w-full">
-        <p className="text-gray-600">Loading your profile…</p>
+      <div className="w-full">
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          <div className="rounded-3xl border border-[#f0dac8] shadow-[0_18px_40px_rgba(60,32,20,0.12)] p-9 sm:p-10 font-nunito text-center space-y-4">
+            <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-[#f0dac8] border-t-[#e07a5f]" />
+            <p className="text-base text-[#8c6b5c]">Loading your profile…</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center w-full max-w-md mx-auto">
-        <h1 className="text-2xl font-semibold text-gray-700 mb-4">Profile</h1>
-        <p className="text-red-600 mb-4">{error}</p>
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="px-4 py-2 rounded-md font-medium text-blue-600 border border-blue-600 hover:bg-blue-50"
-        >
-          Back to home
-        </button>
+      <div className="w-full">
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          <div className="rounded-3xl border border-red-200/80 shadow-[0_18px_40px_rgba(60,32,20,0.12)] p-8 sm:p-10 font-nunito text-center space-y-5">
+            <h1 className="text-3xl sm:text-4xl font-lora text-[#3f2a28] leading-snug">
+              Profile
+            </h1>
+            <p className="text-base text-red-600">{error}</p>
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="px-5 py-2.5 rounded-full font-semibold text-[#3f2a28] border border-[#f0dac8] bg-[#fffaf6] hover:bg-[#f7e6d7] transition-colors"
+            >
+              Back to home
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -92,38 +107,63 @@ function ProfilePage() {
     : null;
 
   return (
-    <div className="w-full max-w-lg mx-auto text-center">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Your profile</h1>
+    <div className="w-full">
+      <div className="max-w-2xl mx-auto px-5 py-10 sm:px-10 sm:py-16 space-y-8 font-nunito">
+        {/* Top section: avatar + greeting (mobile-first) */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between gap-6">
+            {/* Avatar: on top for mobile, to the right on desktop */}
+            <div className="order-1 sm:order-2 self-center sm:self-auto">
+              {profile?.profile_picture ? (
+                <img
+                  src={profile.profile_picture}
+                  alt=""
+                  className="w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-2 border-[#f0dac8] shrink-0"
+                />
+              ) : (
+                <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-[#f3dfcf] flex items-center justify-center text-[#8c6b5c] text-4xl sm:text-5xl font-semibold shrink-0">
+                  {profile?.username?.charAt(0)?.toUpperCase() ?? "?"}
+                </div>
+              )}
+            </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col items-center gap-4">
-        {profile?.profile_picture ? (
-          <img
-            src={profile.profile_picture}
-            alt=""
-            className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-          />
-        ) : (
-          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl font-medium">
-            {profile?.username?.charAt(0)?.toUpperCase() ?? "?"}
+            {/* Greeting + metadata */}
+            <div className="order-2 sm:order-1 text-center sm:text-left">
+              <p className="text-5xl sm:text-6xl font-lora text-[#111111] leading-tight">
+                Hello,
+              </p>
+              <p className="text-5xl sm:text-6xl font-lora text-[#e07a5f] leading-tight">
+                {profile?.username}
+              </p>
+              {profile?.email && (
+                <p className="text-lg text-[#8c6b5c] truncate">
+                  {profile.email}
+                </p>
+              )}
+              {joinedDate && (
+                <p className="text-base text-[#b18973]">
+                  Member since {joinedDate}
+                </p>
+              )}
+            </div>
           </div>
-        )}
 
-        <div className="space-y-1">
-          <p className="text-xl font-medium text-gray-900">{profile?.username}</p>
-          {profile?.email && (
-            <p className="text-gray-600">{profile.email}</p>
+          {profile?.bio && (
+            <p className="text-lg leading-relaxed text-[#4f342f] whitespace-pre-wrap w-full">
+              {profile.bio}
+            </p>
           )}
-        </div>
+        </section>
 
-        {profile?.bio && (
-          <p className="text-gray-700 text-left w-full border-t border-gray-100 pt-4 mt-2">
-            {profile.bio}
+        {/* Second section: white card on beige background for book clubs (mobile-friendly) */}
+        <section className="mt-10 rounded-3xl bg-white shadow-[0_18px_40px_rgba(60,32,20,0.18)] p-6 sm:p-8 space-y-3">
+          <h2 className="text-xl font-lora text-[#3f2a28] leading-snug">
+            Your book clubs
+          </h2>
+          <p className="text-base text-[#8c6b5c]">
+            You&apos;ll be able to see your book clubs here soon.
           </p>
-        )}
-
-        {joinedDate && (
-          <p className="text-sm text-gray-500">Member since {joinedDate}</p>
-        )}
+        </section>
       </div>
     </div>
   );
