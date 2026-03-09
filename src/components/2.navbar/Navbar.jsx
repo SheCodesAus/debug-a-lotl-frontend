@@ -24,6 +24,11 @@ function NavBar() {
         <Link to="/clubs" className="font-medium text-blue-600 hover:text-blue-700">
           Book clubs
         </Link>
+        {isLoggedIn && (
+          <Link to="/profile" className="font-medium text-blue-600 hover:text-blue-700">
+            Profile
+          </Link>
+        )}
         <div className="ml-auto flex gap-2 items-center">
           {isLoggedIn ? (
             <>
