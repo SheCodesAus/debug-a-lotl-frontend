@@ -3,6 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import postCreateClub from "../api/post-create-club";
 
+const ACCENT = "#C45D3E";
+const MUTED_COLOR = "#8A7E74";
+const INPUT_BORDER = "#E8E0D8";
+const INPUT_BG = "#FAF6F1";
+const TEXT_COLOR = "#1A1410";
+
 function CreateClubPage() {
   const navigate = useNavigate();
   const { auth } = useAuth();
@@ -30,14 +36,6 @@ function CreateClubPage() {
     }));
   };
 
-  const handleMeetingModeChange = (value) => {
-    setFormData((prev) => ({
-      ...prev,
-      club_meeting_mode: value,
-      ...(value === "virtual" ? { club_location: "" } : {}),
-    }));
-  };
-
   const handleSubmit = (event) => {
     event.preventDefault();
     setError(null);
@@ -49,14 +47,6 @@ function CreateClubPage() {
 
     if (!formData.description?.trim()) {
       setError("Description is required.");
-      return;
-    }
-
-    if (
-      formData.club_meeting_mode === "in_person" &&
-      !formData.club_location?.trim()
-    ) {
-      setError("Location is required when the club meets in person.");
       return;
     }
 
@@ -75,177 +65,215 @@ function CreateClubPage() {
   };
 
   const isLoggedIn = Boolean(auth?.token);
-  const isInPerson = formData.club_meeting_mode === "in_person";
-  const inputClass =
-    "px-3 py-2.5 rounded-[10px] border border-gray-200 bg-gray-50 text-sm outline-none transition focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 placeholder:text-gray-400";
-  const labelClass = "text-[13px] font-medium text-gray-500";
 
-  return (
-    <div className="text-center w-full">
-      <h1 className="text-2xl font-semibold text-gray-700 mb-6">
-        Create a book club
-      </h1>
+  const labelStyle = {
+    fontSize: 13,
+    color: MUTED_COLOR,
+    letterSpacing: "0.5px",
+    marginBottom: 20,
+  };
 
-      {!isLoggedIn ? (
-        <p className="text-gray-600">
+  const inputStyle = {
+    padding: "12px 16px",
+    borderRadius: 8,
+    border: `1.5px solid ${INPUT_BORDER}`,
+    backgroundColor: INPUT_BG,
+    fontSize: 14,
+    color: TEXT_COLOR,
+  };
+
+  const inputClassName =
+    "w-full rounded-lg outline-none box-border transition focus:border-[#1A1410]/40 focus:ring-1 focus:ring-[#1A1410]/20 text-left";
+
+  if (!isLoggedIn) {
+    return (
+      <div
+        className="min-h-full flex flex-col items-center justify-center px-4 py-12 font-source-sans"
+        style={{ backgroundColor: "#fffaf6" }}
+      >
+        <p className="text-[#1A1410]" style={{ color: MUTED_COLOR }}>
           Please log in to create a book club.
         </p>
-      ) : (
-        <div className="w-[400px] max-w-[95vw] mx-auto my-[60px] px-12 pt-10 pb-12 bg-white rounded-3xl shadow-xl font-sans text-left">
-          <h2 className="m-0 mb-6 text-xl font-bold text-gray-900">
-            New book club
-          </h2>
+      </div>
+    );
+  }
 
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            {error && (
-              <div className="px-3 py-2.5 rounded-[10px] bg-red-50 border border-red-200 text-sm text-red-700">
-                {error}
-              </div>
-            )}
+  return (
+    <div
+      className="min-h-full flex flex-col items-center px-4 py-12 font-source-sans"
+      style={{ backgroundColor: "#fffaf6" }}
+    >
+      <div className="w-full max-w-[520px] flex flex-col">
+        <h1
+          className="font-playfair font-bold text-[26px] text-left w-full m-0 mb-8"
+          style={{ color: TEXT_COLOR }}
+        >
+          Create a New Club
+        </h1>
 
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} htmlFor="name">
-                Club name <span className="text-red-500">*</span>
-              </label>
-              <input
-                className={inputClass}
-                type="text"
-                id="name"
-                placeholder="e.g. Mystery Lovers"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
+        <div
+          className="w-full rounded-2xl bg-white flex flex-col"
+        style={{
+          padding: 56,
+          boxShadow: "rgba(26, 20, 16, 0.08) 0px 8px 32px",
+        }}
+      >
+        <form
+          className="flex flex-col w-full text-left"
+          style={{ gap: 16 }}
+          onSubmit={handleSubmit}
+        >
+          {error && (
+            <div className="px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+              {error}
             </div>
+          )}
 
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} htmlFor="description">
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                className={`${inputClass} min-h-[80px] resize-y`}
-                id="description"
-                placeholder="What's your club about?"
-                value={formData.description}
-                onChange={handleChange}
-                rows={3}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} htmlFor="banner_image">
-                Banner image URL
-              </label>
-              <input
-                className={inputClass}
-                type="url"
-                id="banner_image"
-                placeholder="https://..."
-                value={formData.banner_image}
-                onChange={handleChange}
-              />
-            </div>
-
-            <fieldset className="flex flex-col gap-2">
-              <span className={labelClass}>Visibility</span>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="is_public"
-                    checked={formData.is_public === true}
-                    onChange={() =>
-                      setFormData((prev) => ({ ...prev, is_public: true }))
-                    }
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm">Public</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="is_public"
-                    checked={formData.is_public === false}
-                    onChange={() =>
-                      setFormData((prev) => ({ ...prev, is_public: false }))
-                    }
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm">Private</span>
-                </label>
-              </div>
-            </fieldset>
-
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} htmlFor="max_members">
-                Max members (optional)
-              </label>
-              <input
-                className={inputClass}
-                type="number"
-                id="max_members"
-                min={1}
-                placeholder="No limit"
-                value={formData.max_members}
-                onChange={handleChange}
-              />
-            </div>
-
-            <fieldset className="flex flex-col gap-2">
-              <span className={labelClass}>Meeting type</span>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="club_meeting_mode"
-                    value="in_person"
-                    checked={formData.club_meeting_mode === "in_person"}
-                    onChange={(e) => handleMeetingModeChange(e.target.value)}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm">In person</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="club_meeting_mode"
-                    value="virtual"
-                    checked={formData.club_meeting_mode === "virtual"}
-                    onChange={(e) => handleMeetingModeChange(e.target.value)}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm">Virtual</span>
-                </label>
-              </div>
-            </fieldset>
-
-            {isInPerson && (
-              <div className="flex flex-col gap-1.5">
-                <label className={labelClass} htmlFor="club_location">
-                  Location <span className="text-red-500">*</span>
-                </label>
-                <input
-                  className={inputClass}
-                  type="text"
-                  id="club_location"
-                  placeholder="e.g. Central Library, Meeting Room A"
-                  value={formData.club_location}
-                  onChange={handleChange}
-                  required={isInPerson}
-                />
-              </div>
-            )}
-
-            <button
-              className="mt-2.5 w-full py-3 px-4 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-white text-[15px] font-semibold cursor-pointer shadow-lg shadow-blue-600/35 transition hover:-translate-y-px hover:shadow-xl hover:shadow-blue-600/45 active:translate-y-0 active:shadow-md"
-              type="submit"
+          <div className="w-full">
+            <label
+              className="block uppercase font-semibold w-full"
+              style={labelStyle}
+              htmlFor="name"
             >
-              Create club
-            </button>
-          </form>
+              Club name <span className="text-red-500">*</span>
+            </label>
+            <input
+              className={inputClassName}
+              style={inputStyle}
+              type="text"
+              id="name"
+              placeholder="e.g. The Night Owls Book Club"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="w-full">
+            <label
+              className="block uppercase font-semibold w-full"
+              style={labelStyle}
+              htmlFor="description"
+            >
+              Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              className={`${inputClassName} min-h-[100px] resize-y`}
+              style={inputStyle}
+              id="description"
+              placeholder="What is this club about?"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+              required
+            />
+          </div>
+
+          <div className="w-full">
+            <label
+              className="block uppercase font-semibold w-full"
+              style={labelStyle}
+              htmlFor="banner_image"
+            >
+              Banner image URL
+            </label>
+            <input
+              className={inputClassName}
+              style={inputStyle}
+              type="url"
+              id="banner_image"
+              placeholder="https://..."
+              value={formData.banner_image}
+              onChange={handleChange}
+            />
+          </div>
+
+          <fieldset className="w-full flex flex-col">
+            <span
+              className="block uppercase font-semibold w-full"
+              style={labelStyle}
+            >
+              Visibility
+            </span>
+            <div className="flex gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, is_public: false }))}
+                className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
+                style={
+                  formData.is_public === false
+                    ? {
+                        backgroundColor: INPUT_BG,
+                        borderColor: ACCENT,
+                        color: ACCENT,
+                      }
+                    : {
+                        backgroundColor: "#fff",
+                        borderColor: INPUT_BORDER,
+                        color: TEXT_COLOR,
+                      }
+                }
+              >
+                Private (Request to Join)
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, is_public: true }))}
+                className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
+                style={
+                  formData.is_public === true
+                    ? {
+                        backgroundColor: INPUT_BG,
+                        borderColor: ACCENT,
+                        color: ACCENT,
+                      }
+                    : {
+                        backgroundColor: "#fff",
+                        borderColor: INPUT_BORDER,
+                        color: TEXT_COLOR,
+                      }
+                }
+              >
+                Public (Anyone Can Join)
+              </button>
+            </div>
+          </fieldset>
+
+          <div className="w-full">
+            <label
+              className="block uppercase font-semibold w-full"
+              style={labelStyle}
+              htmlFor="max_members"
+            >
+              Max members (optional)
+            </label>
+            <input
+              className={inputClassName}
+              style={inputStyle}
+              type="number"
+              id="max_members"
+              min={1}
+              placeholder="No limit"
+              value={formData.max_members}
+              onChange={handleChange}
+            />
+          </div>
+
+          <button
+            className="w-full rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 mt-2"
+            style={{
+              padding: 12,
+              borderRadius: 8,
+              backgroundColor: ACCENT,
+              fontSize: 15,
+            }}
+            type="submit"
+          >
+            Create Club
+          </button>
+        </form>
         </div>
-      )}
+      </div>
     </div>
   );
 }
