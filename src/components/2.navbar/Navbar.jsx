@@ -141,16 +141,16 @@ function NavBar() {
           <span className="font-semibold text-gray-900 text-lg">Open Book</span>
         </Link>
 
-        {/* Desktop: center nav + right auth */}
-        <div className="hidden md:flex md:items-center md:gap-8 md:flex-1 md:justify-center md:mr-6">
+        {/* Desktop: center nav + right auth (lg and up) */}
+        <div className="hidden lg:flex lg:items-center lg:gap-8 lg:flex-1 lg:justify-center lg:mr-6">
           {navLinks}
         </div>
-        <div className="hidden md:flex md:items-center md:ml-auto">
+        <div className="hidden lg:flex lg:items-center lg:ml-auto">
           {authSection}
         </div>
 
-        {/* Mobile: burger button */}
-        <div className="md:hidden ml-auto">
+        {/* Mobile/tablet: burger button (below lg) */}
+        <div className="lg:hidden ml-auto">
           <button
             type="button"
             onClick={() => setMobileMenuOpen((open) => !open)}
@@ -174,7 +174,7 @@ function NavBar() {
         {/* Mobile menu dropdown – inside header so it sticks with nav */}
         {mobileMenuOpen && (
           <div
-            className="md:hidden px-4 py-4 flex flex-col gap-4 border-t border-black/10"
+            className="lg:hidden px-4 py-4 flex flex-col gap-4 border-t border-black/10"
             style={{ backgroundColor: isScrolled ? HEADER_BG : HEADER_BG_TOP }}
             role="dialog"
             aria-label="Mobile navigation"
