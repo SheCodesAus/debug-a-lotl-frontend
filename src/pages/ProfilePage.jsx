@@ -2,11 +2,25 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import getCurrentUser from "../api/get-current-user.js";
+import getClubs from "../api/get-clubs.js";
+import BookClubCard from "../components/4.clubs/BookClubCard.jsx";
+
+const PAGE_BG = "#F8F6F1";
+const CARD_BG = "#FFFFFF";
+const AVATAR_BG = "#e07a5f";
+const STAT_NUMBER = "#e07a5f";
+const TITLE_COLOR = "#333333";
+const EMAIL_JOIN_COLOR = "#666666";
+const DESCRIPTION_COLOR = "#777777";
+
+const PLACEHOLDER_DESCRIPTION =
+  "Sci-fi enthusiast, coffee addict, and recovering procrastinator. Always reading two books at once.";
 
 function ProfilePage() {
   const navigate = useNavigate();
   const { auth } = useAuth();
   const [profile, setProfile] = useState(null);
+  const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,9 +34,13 @@ function ProfilePage() {
     let cancelled = false;
     async function load() {
       try {
-        const data = await getCurrentUser(auth.token);
+        const [profileData, clubsData] = await Promise.all([
+          getCurrentUser(auth.token),
+          getClubs(auth.token),
+        ]);
         if (!cancelled) {
-          setProfile(data);
+          setProfile(profileData);
+          setClubs(Array.isArray(clubsData) ? clubsData : []);
         }
       } catch (err) {
         if (!cancelled) {
@@ -42,18 +60,14 @@ function ProfilePage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full">
-        <div className="max-w-2xl mx-auto px-4 py-6">
-          <div className="rounded-3xl p-8 sm:p-10 font-nunito text-center space-y-5">
-            <h1 className="text-3xl sm:text-4xl font-lora text-[#3f2a28] leading-snug">
-              Profile
-            </h1>
-            <p className="text-base text-[#8c6b5c]">
-              You need to be logged in to view your profile.
-            </p>
+      <div className="min-h-full font-nunito" style={{ backgroundColor: PAGE_BG }}>
+        <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
+          <div className="rounded-2xl bg-white shadow-sm p-8 sm:p-10 text-center space-y-5">
+            <h1 className="text-3xl sm:text-4xl font-lora text-[#3f2a28]">Profile</h1>
+            <p className="text-base text-[#8c6b5c]">You need to be logged in to view your profile.</p>
             <Link
               to="/login"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full font-semibold text-white bg-[#e07a5f] hover:bg-[#cc664b] shadow-sm transition-colors"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-semibold text-white bg-[#e07a5f] hover:opacity-90 transition-opacity"
             >
               Log in
             </Link>
@@ -65,10 +79,10 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="w-full">
-        <div className="max-w-2xl mx-auto px-4 py-6">
-          <div className="rounded-3xl border border-[#f0dac8] shadow-[0_18px_40px_rgba(60,32,20,0.12)] p-9 sm:p-10 font-nunito text-center space-y-4">
-            <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-[#f0dac8] border-t-[#e07a5f]" />
+      <div className="min-h-full font-nunito" style={{ backgroundColor: PAGE_BG }}>
+        <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
+          <div className="rounded-2xl bg-white shadow-sm p-9 sm:p-10 text-center space-y-4">
+            <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-gray-200 border-t-[#e07a5f]" />
             <p className="text-base text-[#8c6b5c]">Loading your profile…</p>
           </div>
         </div>
@@ -78,17 +92,15 @@ function ProfilePage() {
 
   if (error) {
     return (
-      <div className="w-full">
-        <div className="max-w-2xl mx-auto px-4 py-6">
-          <div className="rounded-3xl border border-red-200/80 shadow-[0_18px_40px_rgba(60,32,20,0.12)] p-8 sm:p-10 font-nunito text-center space-y-5">
-            <h1 className="text-3xl sm:text-4xl font-lora text-[#3f2a28] leading-snug">
-              Profile
-            </h1>
+      <div className="min-h-full font-nunito" style={{ backgroundColor: PAGE_BG }}>
+        <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
+          <div className="rounded-2xl bg-white shadow-sm p-8 sm:p-10 text-center space-y-5">
+            <h1 className="text-3xl font-lora text-[#3f2a28]">Profile</h1>
             <p className="text-base text-red-600">{error}</p>
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="px-5 py-2.5 rounded-full font-semibold text-[#3f2a28] border border-[#f0dac8] bg-[#fffaf6] hover:bg-[#f7e6d7] transition-colors"
+              className="px-5 py-2.5 rounded-lg font-semibold text-[#3f2a28] border border-gray-300 bg-white hover:bg-gray-50"
             >
               Back to home
             </button>
@@ -98,71 +110,133 @@ function ProfilePage() {
     );
   }
 
-  const joinedDate = profile?.date_joined
-    ? new Date(profile.date_joined).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+  const userId = profile?.id;
+  const clubsOwned = userId != null ? clubs.filter((c) => c.owner === userId) : [];
+  const clubsMemberOf = userId != null ? clubs.filter((c) => c.owner !== userId) : [];
+
+  const joinedFormatted = profile?.date_joined
+    ? new Date(profile.date_joined).toLocaleDateString(undefined, { month: "short", year: "numeric" })
     : null;
 
+  const displayName = profile?.username ?? "User";
+  const initials = displayName
+    .split(/\s+/)
+    .map((w) => w.charAt(0))
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
-    <div className="w-full">
-      <div className="max-w-2xl mx-auto px-5 py-10 sm:px-10 sm:py-16 space-y-8 font-nunito">
-        {/* Top section: avatar + greeting (mobile-first) */}
-        <section className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between gap-6">
-            {/* Avatar: on top for mobile, to the right on desktop */}
-            <div className="order-1 sm:order-2 self-center sm:self-auto">
-              {profile?.profile_picture ? (
-                <img
-                  src={profile.profile_picture}
-                  alt=""
-                  className="w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-2 border-[#f0dac8] shrink-0"
-                />
-              ) : (
-                <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-[#f3dfcf] flex items-center justify-center text-[#8c6b5c] text-4xl sm:text-5xl font-semibold shrink-0">
-                  {profile?.username?.charAt(0)?.toUpperCase() ?? "?"}
-                </div>
-              )}
-            </div>
+    <div className="min-h-full font-nunito" style={{ backgroundColor: PAGE_BG }}>
+      <div className="max-w-2xl mx-auto px-4 py-8 sm:px-8 sm:py-10 space-y-8">
+        <h1 className="text-2xl sm:text-3xl font-lora font-bold" style={{ color: TITLE_COLOR }}>
+          Your Profile
+        </h1>
 
-            {/* Greeting + metadata */}
-            <div className="order-2 sm:order-1 text-center sm:text-left">
-              <p className="text-5xl sm:text-6xl font-lora text-[#111111] leading-tight">
-                Hello,
-              </p>
-              <p className="text-5xl sm:text-6xl font-lora text-[#e07a5f] leading-tight">
-                {profile?.username}
-              </p>
-              {profile?.email && (
-                <p className="text-lg text-[#8c6b5c] truncate">
-                  {profile.email}
-                </p>
-              )}
-              {joinedDate && (
-                <p className="text-base text-[#b18973]">
-                  Member since {joinedDate}
-                </p>
-              )}
+        {/* Primary profile card: small avatar top-left, name + text below centre-aligned */}
+        <section
+          className="rounded-2xl p-10 sm:p-14 flex flex-col sm:flex-row gap-8 sm:gap-12 items-start"
+          style={{ backgroundColor: CARD_BG, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
+        >
+          {profile?.profile_picture ? (
+            <img
+              src={profile.profile_picture}
+              alt=""
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold uppercase shrink-0"
+              style={{ backgroundColor: AVATAR_BG }}
+            >
+              {initials || "?"}
             </div>
-          </div>
-
-          {profile?.bio && (
-            <p className="text-lg leading-relaxed text-[#4f342f] whitespace-pre-wrap w-full">
-              {profile.bio}
+          )}
+          <div className="min-w-0 flex-1 text-center py-2">
+            <h2 className="font-lora text-2xl sm:text-3xl font-semibold" style={{ color: TITLE_COLOR }}>
+              {displayName}
+            </h2>
+            <p className="text-sm sm:text-base mt-3" style={{ color: EMAIL_JOIN_COLOR }}>
+              {profile?.email && <span>{profile.email}</span>}
+              {profile?.email && joinedFormatted && " · "}
+              {joinedFormatted && <span>Joined {joinedFormatted}</span>}
             </p>
+            <p className="text-sm sm:text-base mt-6 leading-relaxed" style={{ color: DESCRIPTION_COLOR }}>
+              {profile?.bio?.trim() || PLACEHOLDER_DESCRIPTION}
+            </p>
+          </div>
+        </section>
+
+        {/* Stats: three white rounded cards */}
+        <section className="grid grid-cols-3 gap-5 sm:gap-6">
+          {[
+            { value: clubs.length, label: "Clubs" },
+            { value: 0, label: "Books Read" },
+            { value: 0, label: "Discussions" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-2xl p-8 sm:p-10 text-center"
+              style={{ backgroundColor: CARD_BG, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
+            >
+              <p className="text-2xl sm:text-3xl font-bold" style={{ color: STAT_NUMBER }}>
+                {stat.value}
+              </p>
+              <p className="text-sm mt-2" style={{ color: DESCRIPTION_COLOR }}>
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </section>
+
+        {/* Book clubs you are a member of */}
+        <section>
+          <h3
+            className="text-xs font-semibold uppercase tracking-wider mb-4"
+            style={{ color: DESCRIPTION_COLOR }}
+          >
+            Book clubs you are a member of
+          </h3>
+          {clubsMemberOf.length === 0 ? (
+            <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
+              You&apos;re not a member of any clubs yet. Discover clubs to join.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-4">
+              {clubsMemberOf.map((club) => (
+                <li key={club.id}>
+                  <Link to={`/clubs/${club.id}`} className="block">
+                    <BookClubCard club={club} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
 
-        {/* Second section: white card on beige background for book clubs (mobile-friendly) */}
-        <section className="mt-10 rounded-3xl bg-white shadow-[0_18px_40px_rgba(60,32,20,0.18)] p-6 sm:p-8 space-y-3">
-          <h2 className="text-xl font-lora text-[#3f2a28] leading-snug">
-            Your book clubs
-          </h2>
-          <p className="text-base text-[#8c6b5c]">
-            You&apos;ll be able to see your book clubs here soon.
-          </p>
+        {/* Book clubs you own */}
+        <section>
+          <h3
+            className="text-xs font-semibold uppercase tracking-wider mb-4"
+            style={{ color: DESCRIPTION_COLOR }}
+          >
+            Book clubs you own
+          </h3>
+          {clubsOwned.length === 0 ? (
+            <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
+              You haven&apos;t created any clubs yet.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-4">
+              {clubsOwned.map((club) => (
+                <li key={club.id}>
+                  <Link to={`/clubs/${club.id}`} className="block">
+                    <BookClubCard club={club} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
     </div>
