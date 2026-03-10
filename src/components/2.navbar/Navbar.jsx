@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/use-auth";
 
 const PRIMARY = "#b46a4f";
+const HEADER_BG = "#e3bd74"; /* golden yellow on scroll */
+const HEADER_BG_TOP = "rgb(253,252,250)"; /* hero colour when at top */
 
 function NavBar() {
   const navigate = useNavigate();
   const { auth, setAuth } = useAuth();
   const isLoggedIn = Boolean(auth?.token && auth?.username);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    handleScroll(); // in case we're already scrolled (e.g. refresh)
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLogout = () => {
     window.localStorage.removeItem("token");
@@ -27,14 +37,14 @@ function NavBar() {
       <Link
         to="/"
         onClick={closeMobileMenu}
-        className="font-medium text-gray-500 hover:text-gray-800 transition-colors"
+        className={`font-medium transition-colors ${isScrolled ? "text-gray-800 hover:text-gray-900" : "text-gray-500 hover:text-gray-800"}`}
       >
         Discover
       </Link>
       <Link
         to="/clubs"
         onClick={closeMobileMenu}
-        className="font-medium text-gray-500 hover:text-gray-800 transition-colors"
+        className={`font-medium transition-colors ${isScrolled ? "text-gray-800 hover:text-gray-900" : "text-gray-500 hover:text-gray-800"}`}
       >
         How It Works
       </Link>
@@ -42,7 +52,7 @@ function NavBar() {
         <Link
           to="/profile"
           onClick={closeMobileMenu}
-          className="font-medium text-gray-500 hover:text-gray-800 transition-colors"
+          className={`font-medium transition-colors ${isScrolled ? "text-gray-800 hover:text-gray-900" : "text-gray-500 hover:text-gray-800"}`}
         >
           Profile
         </Link>
@@ -54,7 +64,7 @@ function NavBar() {
     <div className="flex items-center gap-4">
       {isLoggedIn ? (
         <>
-          <span className="text-gray-600 font-medium">Hi, {auth.username}</span>
+          <span className={`font-medium ${isScrolled ? "text-gray-800" : "text-gray-600"}`}>Hi, {auth.username}</span>
           <button
             type="button"
             onClick={handleLogout}
@@ -88,26 +98,33 @@ function NavBar() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top accent bar */}
-      <div
-        className="h-1 w-full shrink-0"
-        style={{ backgroundColor: PRIMARY }}
-        aria-hidden
-      />
-      <nav className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 bg-[#f9f6f2]">
-        {/* Logo + title */}
-        <Link
-          to="/"
-          onClick={closeMobileMenu}
-          className="flex items-center gap-2 shrink-0"
-        >
-          <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-            style={{ backgroundColor: PRIMARY }}
-            aria-hidden
+      {/* Sticky header: hero colour at top, yellow on scroll */}
+      <header
+        className="sticky top-0 z-10 shrink-0 transition-[background-color,box-shadow] duration-200"
+        style={{
+          backgroundColor: isScrolled ? HEADER_BG : HEADER_BG_TOP,
+          boxShadow: isScrolled ? "0 1px 3px 0 rgb(0 0 0 / 0.1)" : "none",
+        }}
+      >
+        <div
+          className="h-1 w-full transition-colors duration-200"
+          style={{ backgroundColor: isScrolled ? "rgba(0,0,0,0.12)" : PRIMARY }}
+          aria-hidden
+        />
+        <nav className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4">
+          {/* Logo + title */}
+          <Link
+            to="/"
+            onClick={closeMobileMenu}
+            className="flex items-center gap-2 shrink-0"
           >
-            <svg
-              className="w-5 h-5 text-white"
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              style={{ backgroundColor: PRIMARY }}
+              aria-hidden
+            >
+              <svg
+                className="w-5 h-5 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -137,7 +154,7 @@ function NavBar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen((open) => !open)}
-            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+            className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${isScrolled ? "text-gray-800 hover:bg-black/10 focus:ring-gray-600" : "text-gray-600 hover:bg-gray-100 focus:ring-gray-400"}`}
             aria-expanded={mobileMenuOpen}
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
@@ -154,21 +171,23 @@ function NavBar() {
         </div>
       </nav>
 
-      {/* Mobile menu dropdown */}
-      {mobileMenuOpen && (
-        <div
-          className="md:hidden bg-[#f9f6f2] px-4 py-4 flex flex-col gap-4"
-          role="dialog"
-          aria-label="Mobile navigation"
-        >
-          {navLinks}
-          <div className="pt-2 border-t border-gray-200/60">
-            {authSection}
+        {/* Mobile menu dropdown – inside header so it sticks with nav */}
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden px-4 py-4 flex flex-col gap-4 border-t border-black/10"
+            style={{ backgroundColor: isScrolled ? HEADER_BG : HEADER_BG_TOP }}
+            role="dialog"
+            aria-label="Mobile navigation"
+          >
+            {navLinks}
+            <div className="pt-2 border-t border-black/10">
+              {authSection}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </header>
 
-      <main className="flex-1 bg-[#f9f6f2] overflow-y-auto">
+      <main className="flex-1 flex flex-col min-h-0 bg-[rgb(253,252,250)] overflow-y-auto">
         <Outlet />
       </main>
     </div>
