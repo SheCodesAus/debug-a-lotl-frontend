@@ -1,5 +1,18 @@
 /**
- * Club page header: gradient background, club name, subtitle (members · created by · visibility), Invite Members button.
+ * Club page hero/header: the top section of a single club's page.
+ *
+ * - Background: Uses the club's banner_image if set (with a dark overlay for
+ *   text legibility), otherwise a gradient.
+ * - Title: Club name as the main h1 (responsive type scale, white, truncates
+ *   on narrow screens).
+ * - Badge: Public/Private pill (green for public, orange for private).
+ * - Subtitle: Optional "Created by {creatorName}" when creatorName is passed.
+ *
+ * Layout uses the same horizontal padding and max-width as the page body
+ * (px-4 sm:px-6 max-w-6xl) so the hero title lines up with the content cards
+ * below on all breakpoints.
+ *
+ * Props: club (object), creatorName (string | null), memberCount (number, optional).
  */
 function ClubHeader({ club, creatorName, memberCount = 0 }) {
   if (!club) return null;
