@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import getCurrentUser from "../api/get-current-user.js";
 import getClubs from "../api/get-clubs.js";
-import BookClubCard from "../components/4.clubs/BookClubCard.jsx";
+import BookClubCard from "../components/clubs/BookClubCard.jsx";
 
 const PAGE_BG = "#F8F6F1";
 const CARD_BG = "#FFFFFF";

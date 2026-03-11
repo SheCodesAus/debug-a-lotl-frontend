@@ -3,9 +3,10 @@
  * Rendered at route /clubs.
  */
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import getClubs from "../api/get-clubs";
-import BookClubCard from "../components/4.clubs/BookClubCard";
+import BookClubCard from "../components/clubs/BookClubCard";
 
 function ClubListPage() {
   const { auth } = useAuth();
@@ -53,10 +54,15 @@ function ClubListPage() {
       {clubs.length === 0 ? (
         <p className="text-gray-500">No clubs yet. Create one to get started.</p>
       ) : (
-        <ul className="flex flex-col gap-4">
+        <ul className="flex flex-col gap-4 list-none p-0 m-0">
           {clubs.map((club) => (
             <li key={club.id}>
-              <BookClubCard club={club} />
+              <Link
+                to={`/clubs/${club.id}`}
+                className="block cursor-pointer no-underline"
+              >
+                <BookClubCard club={club} />
+              </Link>
             </li>
           ))}
         </ul>

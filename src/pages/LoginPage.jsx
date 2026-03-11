@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import LoginForm from "../components/3.forms/LoginForm.jsx";
+import LoginForm from "../components/forms/LoginForm.jsx";
 
 const ACCENT = "#C45D3E"; // rgb(196, 93, 62) from design
 

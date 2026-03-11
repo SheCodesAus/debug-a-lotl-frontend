@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/use-auth";
-import postRegister from "../api/post-register";
-import postLogin from "../api/post-login";
+import { useAuth } from "../../hooks/use-auth";
+import postRegister from "../../api/post-register";
+import postLogin from "../../api/post-login";
 
 const MUTED_COLOR = "#8A7E74";
 const INPUT_BORDER = "#E8E0D8";
