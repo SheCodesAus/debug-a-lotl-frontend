@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import RegisterForm from "../components/RegisterForm.jsx";
+import RegisterForm from "../components/forms/RegisterForm.jsx";
 
 const ACCENT = "#C45D3E"; // match login design
 

@@ -6,7 +6,7 @@ import { AuthProvider } from "./components/AuthProvider.jsx";
 import "./index.css";
 
 // Here we import our layout and pages
-import NavBar from "./components/2.navbar/Navbar.jsx";
+import NavBar from "./components/Navbar.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
