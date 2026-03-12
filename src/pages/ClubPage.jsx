@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/use-auth";
 
 import ClubHeader from "../components/clubs/ClubHeader";
 import BookSearchSection from "../components/clubs/BookSearchSection";
-import getClub from "../api/get-club";
+import getClub from "../api/get-club.js";
 import postClubBook from "../api/post-club-book";
 import useClubBooks from "../hooks/use-club-books";
 
