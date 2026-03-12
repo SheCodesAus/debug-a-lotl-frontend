@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import getClubs from "../api/get-clubs";
 import { useAuth } from "../hooks/use-auth";
+import BookClubCard from "../components/clubs/BookClubCard";
 
 const ACCENT = "#e07a5f";
 const DARK = "#303030";
@@ -164,25 +165,9 @@ function HomePage() {
               <Link
                 key={club.id}
                 to={`/clubs/${club.id}`}
-                className="block p-6 rounded-xl bg-white/80 shadow-sm hover:shadow-md transition-shadow text-left"
+                className="block"
               >
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl mb-4 bg-[#e07a5f]/10">
-                  📚
-                </div>
-                <h3 className="font-semibold text-[#303030] text-lg mb-2">
-                  {club.name}
-                </h3>
-                <p className="text-sm text-[#606060] line-clamp-3">
-                  {club.description || "No description."}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#606060]">
-                  <span>
-                    {club.club_meeting_mode === "in_person" ? "In person" : "Virtual"}
-                  </span>
-                  {club.is_public && (
-                    <span className="text-[#e07a5f]">Public</span>
-                  )}
-                </div>
+                <BookClubCard club={club} />
               </Link>
             ))}
           </div>
