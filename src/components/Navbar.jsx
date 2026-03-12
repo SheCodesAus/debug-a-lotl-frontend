@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../hooks/use-auth";
+import Footer from "./Footer";
 
 const PRIMARY = "#b46a4f";
 const HEADER_BG = "#e3bd74"; /* golden yellow on scroll */
@@ -207,6 +208,7 @@ function NavBar() {
       <main className="flex-1 flex flex-col min-h-0 bg-[rgb(253,252,250)] overflow-y-auto">
         <Outlet />
       </main>
+      <Footer />
     </div>
   );
 }
