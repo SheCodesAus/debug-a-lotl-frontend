@@ -99,7 +99,7 @@ function HomePage() {
             className="text-base sm:text-lg mb-8"
             style={{ color: PARAGRAPH }}
           >
-            Organize your book club, vote on your next read, track progress, and
+            Organise your book club, vote on your next read, track progress, and
             host discussions — all in one beautiful place.
           </p>
           <div className="flex flex-wrap gap-3 justify-center lg:justify-start">

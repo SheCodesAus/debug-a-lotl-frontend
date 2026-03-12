@@ -85,7 +85,7 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             }}
             type="text"
             id="username"
-            placeholder="you@example.com"
+            placeholder="username"
             value={credentials.username}
             onChange={handleChange}
           />
