@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import getCurrentUser from "../api/get-current-user.js";
+import patchCurrentUser from "../api/patch-current-user.js";
 import getClubs from "../api/get-clubs.js";
 import BookClubCard from "../components/clubs/BookClubCard.jsx";
 
@@ -13,9 +14,6 @@ const TITLE_COLOR = "#333333";
 const EMAIL_JOIN_COLOR = "#666666";
 const DESCRIPTION_COLOR = "#777777";
 
-const PLACEHOLDER_DESCRIPTION =
-  "Sci-fi enthusiast, coffee addict, and recovering procrastinator. Always reading two books at once.";
-
 function ProfilePage() {
   const navigate = useNavigate();
   const { auth } = useAuth();
@@ -23,8 +21,44 @@ function ProfilePage() {
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editProfilePicture, setEditProfilePicture] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [saveError, setSaveError] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const isLoggedIn = Boolean(auth?.token && auth?.username);
+
+  function startEditing() {
+    // Pre-fill with current profile so the user can tweak rather than re-type
+    setEditProfilePicture(profile?.profile_picture ?? "");
+    setEditBio(profile?.bio ?? "");
+    setSaveError(null);
+    setIsEditing(true);
+  }
+
+  function cancelEditing() {
+    setIsEditing(false);
+    setSaveError(null);
+  }
+
+  async function handleSaveProfile(e) {
+    e.preventDefault();
+    setSaveError(null);
+    setSaving(true);
+    try {
+      const updated = await patchCurrentUser(auth.token, {
+        profile_picture: editProfilePicture.trim() || undefined,
+        bio: editBio.trim() || undefined,
+      });
+      setProfile(updated);
+      setIsEditing(false);
+    } catch (err) {
+      setSaveError(err.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -60,11 +94,18 @@ function ProfilePage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-full font-nunito" style={{ backgroundColor: PAGE_BG }}>
+      <div
+        className="min-h-full font-nunito"
+        style={{ backgroundColor: PAGE_BG }}
+      >
         <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
           <div className="rounded-2xl bg-white shadow-sm p-8 sm:p-10 text-center space-y-5">
-            <h1 className="text-3xl sm:text-4xl font-lora text-[#3f2a28]">Profile</h1>
-            <p className="text-base text-[#8c6b5c]">You need to be logged in to view your profile.</p>
+            <h1 className="text-3xl sm:text-4xl font-lora text-[#3f2a28]">
+              Profile
+            </h1>
+            <p className="text-base text-[#8c6b5c]">
+              You need to be logged in to view your profile.
+            </p>
             <Link
               to="/login"
               className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-semibold text-white bg-[#e07a5f] hover:opacity-90 transition-opacity"
@@ -79,7 +120,10 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-full font-nunito" style={{ backgroundColor: PAGE_BG }}>
+      <div
+        className="min-h-full font-nunito"
+        style={{ backgroundColor: PAGE_BG }}
+      >
         <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
           <div className="rounded-2xl bg-white shadow-sm p-9 sm:p-10 text-center space-y-4">
             <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-gray-200 border-t-[#e07a5f]" />
@@ -92,7 +136,10 @@ function ProfilePage() {
 
   if (error) {
     return (
-      <div className="min-h-full font-nunito" style={{ backgroundColor: PAGE_BG }}>
+      <div
+        className="min-h-full font-nunito"
+        style={{ backgroundColor: PAGE_BG }}
+      >
         <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
           <div className="rounded-2xl bg-white shadow-sm p-8 sm:p-10 text-center space-y-5">
             <h1 className="text-3xl font-lora text-[#3f2a28]">Profile</h1>
@@ -111,11 +158,16 @@ function ProfilePage() {
   }
 
   const userId = profile?.id;
-  const clubsOwned = userId != null ? clubs.filter((c) => c.owner === userId) : [];
-  const clubsMemberOf = userId != null ? clubs.filter((c) => c.owner !== userId) : [];
+  const clubsOwned =
+    userId != null ? clubs.filter((c) => c.owner === userId) : [];
+  const clubsMemberOf =
+    userId != null ? clubs.filter((c) => c.owner !== userId) : [];
 
   const joinedFormatted = profile?.date_joined
-    ? new Date(profile.date_joined).toLocaleDateString(undefined, { month: "short", year: "numeric" })
+    ? new Date(profile.date_joined).toLocaleDateString(undefined, {
+        month: "short",
+        year: "numeric",
+      })
     : null;
 
   const displayName = profile?.username ?? "User";
@@ -127,117 +179,234 @@ function ProfilePage() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-full font-nunito" style={{ backgroundColor: PAGE_BG }}>
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:px-8 sm:py-10 space-y-8">
-        <h1 className="text-2xl sm:text-3xl font-lora font-bold" style={{ color: TITLE_COLOR }}>
+    <div
+      className="min-h-full font-nunito"
+      style={{ backgroundColor: PAGE_BG }}
+    >
+      <div className="max-w-6xl w-full mx-auto px-4 py-8 sm:px-6 sm:py-10 space-y-8">
+        <h1
+          className="text-2xl sm:text-3xl font-lora font-bold"
+          style={{ color: TITLE_COLOR }}
+        >
           Your Profile
         </h1>
 
-        {/* Primary profile card: small avatar top-left, name + text below centre-aligned */}
-        <section
-          className="rounded-2xl p-10 sm:p-14 flex flex-col sm:flex-row gap-8 sm:gap-12 items-start"
-          style={{ backgroundColor: CARD_BG, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
-        >
-          {profile?.profile_picture ? (
-            <img
-              src={profile.profile_picture}
-              alt=""
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover shrink-0"
-            />
-          ) : (
-            <div
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold uppercase shrink-0"
-              style={{ backgroundColor: AVATAR_BG }}
-            >
-              {initials || "?"}
-            </div>
-          )}
-          <div className="min-w-0 flex-1 text-center py-2">
-            <h2 className="font-lora text-2xl sm:text-3xl font-semibold" style={{ color: TITLE_COLOR }}>
-              {displayName}
-            </h2>
-            <p className="text-sm sm:text-base mt-3" style={{ color: EMAIL_JOIN_COLOR }}>
-              {profile?.email && <span>{profile.email}</span>}
-              {profile?.email && joinedFormatted && " · "}
-              {joinedFormatted && <span>Joined {joinedFormatted}</span>}
-            </p>
-            <p className="text-sm sm:text-base mt-6 leading-relaxed" style={{ color: DESCRIPTION_COLOR }}>
-              {profile?.bio?.trim() || PLACEHOLDER_DESCRIPTION}
-            </p>
-          </div>
-        </section>
-
-        {/* Stats: three white rounded cards */}
-        <section className="grid grid-cols-3 gap-5 sm:gap-6">
-          {[
-            { value: clubs.length, label: "Clubs" },
-            { value: 0, label: "Books Read" },
-            { value: 0, label: "Discussions" },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-2xl p-8 sm:p-10 text-center"
-              style={{ backgroundColor: CARD_BG, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
-            >
-              <p className="text-2xl sm:text-3xl font-bold" style={{ color: STAT_NUMBER }}>
-                {stat.value}
-              </p>
-              <p className="text-sm mt-2" style={{ color: DESCRIPTION_COLOR }}>
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </section>
-
-        {/* Book clubs you are a member of */}
-        <section>
-          <h3
-            className="text-xs font-semibold uppercase tracking-wider mb-4"
-            style={{ color: DESCRIPTION_COLOR }}
+        {/* Profile card full width; stats row below */}
+        <div className="space-y-6">
+          {/* Primary profile card: full row; left half = image, right half = content */}
+          <section
+            className="w-full rounded-2xl overflow-hidden flex flex-col sm:flex-row min-h-[280px] sm:min-h-[320px]"
+            style={{
+              backgroundColor: CARD_BG,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+            }}
           >
-            Book clubs you are a member of
-          </h3>
-          {clubsMemberOf.length === 0 ? (
-            <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
-              You&apos;re not a member of any clubs yet. Discover clubs to join.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-4">
-              {clubsMemberOf.map((club) => (
-                <li key={club.id}>
-                  <Link to={`/clubs/${club.id}`} className="block">
-                    <BookClubCard club={club} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            {isEditing ? (
+              <form onSubmit={handleSaveProfile} className="w-full flex-1 flex flex-col p-6 sm:p-8 space-y-5">
+                <div>
+                  <label
+                    htmlFor="profile_picture"
+                    className="block text-sm font-medium mb-1.5"
+                    style={{ color: TITLE_COLOR }}
+                  >
+                    Profile picture URL
+                  </label>
+                  <input
+                    id="profile_picture"
+                    type="url"
+                    value={editProfilePicture}
+                    onChange={(e) => setEditProfilePicture(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#e07a5f] focus:outline-none focus:ring-1 focus:ring-[#e07a5f]"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="profile_bio"
+                    className="block text-sm font-medium mb-1.5"
+                    style={{ color: TITLE_COLOR }}
+                  >
+                    Bio
+                  </label>
+                  <textarea
+                    id="profile_bio"
+                    rows={4}
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    placeholder="Tell us a bit about yourself here..."
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#e07a5f] focus:outline-none focus:ring-1 focus:ring-[#e07a5f] resize-y"
+                  />
+                </div>
+                {saveError && (
+                  <p className="text-sm text-red-600">{saveError}</p>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-4 py-2 rounded-lg font-semibold text-white bg-[#e07a5f] hover:opacity-90 transition-opacity disabled:opacity-60"
+                  >
+                    {saving ? "Saving…" : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEditing}
+                    disabled={saving}
+                    className="px-4 py-2 rounded-lg font-semibold border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-60"
+                    style={{ color: TITLE_COLOR }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                {/* Left half: profile image fills half the tile */}
+                <div className="w-full sm:w-1/2 min-h-[180px] sm:min-h-0 sm:h-auto flex-shrink-0 relative bg-gray-100 rounded-t-2xl sm:rounded-t-none sm:rounded-l-2xl overflow-hidden">
+                  {profile?.profile_picture ? (
+                    <img
+                      src={profile.profile_picture}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold uppercase"
+                      style={{ backgroundColor: AVATAR_BG }}
+                    >
+                      {initials || "?"}
+                    </div>
+                  )}
+                </div>
+                {/* Right half: name, email, bio */}
+                <div className="w-full sm:w-1/2 min-w-0 flex flex-col justify-center p-6 sm:p-8 text-center sm:text-left">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3">
+                    <h2
+                      className="font-lora text-2xl sm:text-3xl font-semibold"
+                      style={{ color: TITLE_COLOR }}
+                    >
+                      {displayName}
+                    </h2>
+                  </div>
+                  {joinedFormatted && (
+                    <p
+                      className="text-sm sm:text-base mt-2"
+                      style={{ color: EMAIL_JOIN_COLOR }}
+                    >
+                      Joined {joinedFormatted}
+                    </p>
+                  )}
+                  {profile?.bio?.trim() ? (
+                    <p
+                      className="text-sm sm:text-base mt-4 leading-relaxed"
+                      style={{ color: DESCRIPTION_COLOR }}
+                    >
+                      {profile.bio.trim()}
+                    </p>
+                  ) : null}
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={startEditing}
+                      className="text-sm font-semibold text-[#e07a5f] hover:underline"
+                    >
+                      Edit profile
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </section>
 
-        {/* Book clubs you own */}
-        <section>
-          <h3
-            className="text-xs font-semibold uppercase tracking-wider mb-4"
-            style={{ color: DESCRIPTION_COLOR }}
-          >
-            Book clubs you own
-          </h3>
-          {clubsOwned.length === 0 ? (
-            <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
-              You haven&apos;t created any clubs yet.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-4">
-              {clubsOwned.map((club) => (
-                <li key={club.id}>
-                  <Link to={`/clubs/${club.id}`} className="block">
-                    <BookClubCard club={club} />
+          {/* Stats: row of three cards below profile */}
+          <section className="grid grid-cols-3 gap-4 sm:gap-6">
+            {[
+              { value: clubs.length, label: "Clubs" },
+              { value: 0, label: "Books Read" },
+              { value: 0, label: "Discussions" },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-2xl p-5 sm:p-6 text-center"
+                style={{
+                  backgroundColor: CARD_BG,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                }}
+              >
+                <p
+                  className="text-2xl sm:text-3xl font-bold"
+                  style={{ color: STAT_NUMBER }}
+                >
+                  {stat.value}
+                </p>
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: DESCRIPTION_COLOR }}
+                >
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </section>
+        </div>
+
+        {/* Book clubs: two sections side by side on lg, each with a grid of compact cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Book clubs you are a member of */}
+          <section>
+            <h3
+              className="text-xs font-semibold uppercase tracking-wider mb-4"
+              style={{ color: DESCRIPTION_COLOR }}
+            >
+              Book clubs you are a member of
+            </h3>
+            {clubsMemberOf.length === 0 ? (
+              <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
+                You&apos;re not a member of any clubs yet. Discover clubs to
+                join.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                {clubsMemberOf.map((club) => (
+                  <Link
+                    key={club.id}
+                    to={`/clubs/${club.id}`}
+                    className="block"
+                  >
+                    <BookClubCard club={club} compact />
                   </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Book clubs you own */}
+          <section>
+            <h3
+              className="text-xs font-semibold uppercase tracking-wider mb-4"
+              style={{ color: DESCRIPTION_COLOR }}
+            >
+              Book clubs you own
+            </h3>
+            {clubsOwned.length === 0 ? (
+              <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
+                You haven&apos;t created any clubs yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                {clubsOwned.map((club) => (
+                  <Link
+                    key={club.id}
+                    to={`/clubs/${club.id}`}
+                    className="block"
+                  >
+                    <BookClubCard club={club} compact />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );
