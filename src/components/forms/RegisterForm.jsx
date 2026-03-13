@@ -17,6 +17,8 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
     email: "",
     password: "",
     passwordConfirm: "",
+    bio: "",
+    profile_picture: "",
   });
   const [error, setError] = useState(null);
 
@@ -45,6 +47,8 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
         username: fields.username,
         email: fields.email,
         password: fields.password,
+        bio: fields.bio.trim() || undefined,
+        profile_picture: fields.profile_picture.trim() || undefined,
       });
 
       const response = await postLogin(fields.username, fields.password);
@@ -129,6 +133,44 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             id="email"
             placeholder="you@example.com"
             value={fields.email}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="w-full">
+          <label
+            className="block uppercase font-semibold w-full"
+            style={labelStyle}
+            htmlFor="bio"
+          >
+            Bio (optional)
+          </label>
+          <textarea
+            className={inputClassName}
+            style={{ ...inputStyle, minHeight: 80, resize: "vertical" }}
+            id="bio"
+            placeholder="A short bit about you..."
+            value={fields.bio}
+            onChange={handleChange}
+            rows={3}
+          />
+        </div>
+
+        <div className="w-full">
+          <label
+            className="block uppercase font-semibold w-full"
+            style={labelStyle}
+            htmlFor="profile_picture"
+          >
+            Profile picture URL (optional)
+          </label>
+          <input
+            className={inputClassName}
+            style={inputStyle}
+            type="url"
+            id="profile_picture"
+            placeholder="https://..."
+            value={fields.profile_picture}
             onChange={handleChange}
           />
         </div>

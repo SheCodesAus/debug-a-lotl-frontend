@@ -1,19 +1,24 @@
 // POST request to backend user registration endpoint (/users/).
 // Returns the created user data or throws with a helpful error (including validation messages).
-async function postRegister({ username, email, password }) {
+// profile_picture and bio are optional.
+async function postRegister({ username, email, password, profile_picture, bio }) {
   const baseUrl = import.meta.env.VITE_API_URL ?? "";
   const url = `${baseUrl}/users/`;
+
+  const body = {
+    username,
+    email: email || "",
+    password,
+  };
+  if (profile_picture != null && profile_picture.trim() !== "") body.profile_picture = profile_picture.trim();
+  if (bio != null && bio.trim() !== "") body.bio = bio.trim();
 
   const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      username,
-      email: email || "",
-      password,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
