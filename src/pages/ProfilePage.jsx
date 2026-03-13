@@ -5,6 +5,7 @@ import getCurrentUser from "../api/get-current-user.js";
 import patchCurrentUser from "../api/patch-current-user.js";
 import getClubs from "../api/get-clubs.js";
 import BookClubCard from "../components/clubs/BookClubCard.jsx";
+import ProfileStats from "../components/ProfileStats.jsx";
 
 const PAGE_BG = "#F8F6F1";
 const CARD_BG = "#FFFFFF";
@@ -161,7 +162,7 @@ function ProfilePage() {
   const clubsOwned =
     userId != null ? clubs.filter((c) => c.owner === userId) : [];
   const clubsMemberOf =
-    userId != null ? clubs.filter((c) => c.owner !== userId) : [];
+    userId != null ? clubs : [];
 
   const joinedFormatted = profile?.date_joined
     ? new Date(profile.date_joined).toLocaleDateString(undefined, {
@@ -319,35 +320,14 @@ function ProfilePage() {
           </section>
 
           {/* Stats: row of three cards below profile */}
-          <section className="grid grid-cols-3 gap-4 sm:gap-6">
-            {[
-              { value: clubs.length, label: "Clubs" },
-              { value: 0, label: "Books Read" },
-              { value: 0, label: "Discussions" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-2xl p-5 sm:p-6 text-center"
-                style={{
-                  backgroundColor: CARD_BG,
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                }}
-              >
-                <p
-                  className="text-2xl sm:text-3xl font-bold"
-                  style={{ color: STAT_NUMBER }}
-                >
-                  {stat.value}
-                </p>
-                <p
-                  className="text-sm mt-1"
-                  style={{ color: DESCRIPTION_COLOR }}
-                >
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </section>
+          <ProfileStats
+            clubsCount={clubs.length}
+            upcomingMeetingsCount={0}
+            booksReadCount={0}
+            cardBg={CARD_BG}
+            statNumberColor={STAT_NUMBER}
+            descriptionColor={DESCRIPTION_COLOR}
+          />
         </div>
 
         {/* Book clubs: two sections side by side on lg, each with a grid of compact cards */}
