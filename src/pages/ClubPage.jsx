@@ -6,6 +6,7 @@ import ClubHeader from "../components/clubs/ClubHeader";
 import BookSearchSection from "../components/clubs/BookSearchSection";
 import getClub from "../api/get-club.js";
 import postClubBook from "../api/post-club-book";
+import patchClubBookStatus from "../api/patch-club-book-status";
 import useClubBooks from "../hooks/use-club-books";
 
 const ACCENT = "#C45D3E";
@@ -20,12 +21,8 @@ function ClubPage() {
   const [isLoadingClub, setIsLoadingClub] = useState(true);
   const [clubError, setClubError] = useState("");
 
-  const {
-    clubBooks,
-    isLoadingBooks,
-    booksError,
-    refetchClubBooks,
-  } = useClubBooks(clubId);
+  const { clubBooks, isLoadingBooks, booksError, refetchClubBooks } =
+    useClubBooks(clubId, auth?.token ?? null);
 
   useEffect(() => {
     async function loadClub() {
@@ -47,8 +44,10 @@ function ClubPage() {
   const creatorName = club?.owner_username ?? null;
   const memberCount = club?.member_count ?? 1;
 
+  const [isMarkingRead, setIsMarkingRead] = useState(false);
+
   async function handleAddBook(selectedBook) {
-    await postClubBook({
+    await postClubBook(auth?.token, {
       club_id: Number(clubId),
       google_books_id: selectedBook.google_books_id,
       title: selectedBook.title,
@@ -59,9 +58,20 @@ function ClubPage() {
     await refetchClubBooks();
   }
 
+  async function handleMarkAsRead(book) {
+    if (!book?.id || !auth?.token) return;
+    setIsMarkingRead(true);
+    try {
+      await patchClubBookStatus(auth.token, clubId, book.id, { status: "read" });
+      await refetchClubBooks();
+    } finally {
+      setIsMarkingRead(false);
+    }
+  }
+
   const books = Array.isArray(clubBooks) ? clubBooks : [];
-  const readingBooks = books.filter((book) => book.status === "READING");
-  const readBooks = books.filter((book) => book.status === "READ");
+  const readingBooks = books.filter((book) => book.status === "reading");
+  const readBooks = books.filter((book) => book.status === "read");
   const currentBook = readingBooks[0] ?? null;
 
   // Placeholder content for sections that are not yet wired to the backend
@@ -90,7 +100,13 @@ function ClubPage() {
     { id: "m-5", name: "Sophia L." },
   ];
 
-  const memberAvatarColors = ["#6b7b5c", "#C45D3E", "#7A5BA6", "#8A7E54", "#5C7387"];
+  const memberAvatarColors = [
+    "#6b7b5c",
+    "#C45D3E",
+    "#7A5BA6",
+    "#8A7E54",
+    "#5C7387",
+  ];
 
   function getInitials(name) {
     if (!name) return "";
@@ -103,13 +119,27 @@ function ClubPage() {
       .toUpperCase();
   }
 
+  function formatBookDate(dateString) {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return dateString;
+    return d.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
   if (isLoadingClub || isLoadingBooks) return <p className="p-6">Loading...</p>;
   if (clubError) return <p className="p-6 text-red-600">{clubError}</p>;
   if (booksError) return <p className="p-6 text-red-600">{booksError}</p>;
   if (!club) return <p className="p-6">Club not found.</p>;
 
   return (
-    <main className="min-h-full flex flex-col" style={{ backgroundColor: PAGE_BG }}>
+    <main
+      className="min-h-full flex flex-col"
+      style={{ backgroundColor: PAGE_BG }}
+    >
       <ClubHeader
         club={club}
         creatorName={creatorName}
@@ -122,6 +152,7 @@ function ClubPage() {
           isOwner={isOwner}
           clubBooks={books}
           onAddBook={handleAddBook}
+          token={auth?.token ?? null}
         />
 
         {/* Top row: on mobile About first, then Currently Reading, then Members; on lg Currently Reading (left 2 cols, full height) | About + Members (right col) */}
@@ -197,13 +228,13 @@ function ClubPage() {
                   <img
                     src={currentBook.cover_image}
                     alt=""
-                    className="w-full sm:w-32 h-48 sm:h-56 object-cover rounded-lg shrink-0"
+                    className="w-full sm:w-52 h-64 sm:h-80 object-cover rounded-lg shrink-0"
                   />
                 ) : (
                   <div
-                    className="w-full sm:w-32 shrink-0 rounded-lg overflow-hidden flex items-end text-white text-left p-3"
+                    className="w-full sm:w-52 shrink-0 rounded-lg overflow-hidden flex items-end text-white text-left p-3"
                     style={{
-                      minHeight: 200,
+                      minHeight: 320,
                       background:
                         "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)",
                     }}
@@ -223,17 +254,49 @@ function ClubPage() {
                     {currentBook.title}
                   </h3>
                   <p
-                    className="text-sm m-0 mb-3"
+                    className="text-sm m-0 mb-1"
                     style={{ color: MUTED_COLOR }}
                   >
                     {currentBook.author}
-                    {currentBook.page_count && ` · ${currentBook.page_count} pages`}
                     {currentBook.genre && ` · ${currentBook.genre}`}
+                    {currentBook.isbn && ` · ISBN ${currentBook.isbn}`}
                   </p>
+                  {(currentBook.start_date ||
+                    currentBook.finish_date ||
+                    currentBook.added_at) && (
+                    <p
+                      className="text-xs m-0 mb-3"
+                      style={{ color: MUTED_COLOR }}
+                    >
+                      {[
+                        currentBook.start_date &&
+                          `Started ${formatBookDate(currentBook.start_date)}`,
+                        currentBook.finish_date &&
+                          `Finished ${formatBookDate(currentBook.finish_date)}`,
+                        currentBook.added_at &&
+                          `Added ${formatBookDate(currentBook.added_at)}`,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  )}
                   {currentBook.description && (
                     <p className="text-sm text-[#1A1410] m-0 leading-relaxed">
                       {currentBook.description}
                     </p>
+                  )}
+                  {isOwner && (
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={() => handleMarkAsRead(currentBook)}
+                        disabled={isMarkingRead}
+                        className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 text-sm"
+                        style={{ backgroundColor: ACCENT }}
+                      >
+                        {isMarkingRead ? "Updating…" : "Mark as read"}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -261,7 +324,10 @@ function ClubPage() {
                 <li key={member.id} className="flex items-center gap-3">
                   <div
                     className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold shrink-0"
-                    style={{ backgroundColor: memberAvatarColors[index % memberAvatarColors.length] }}
+                    style={{
+                      backgroundColor:
+                        memberAvatarColors[index % memberAvatarColors.length],
+                    }}
                   >
                     {getInitials(member.name)}
                   </div>
@@ -312,16 +378,33 @@ function ClubPage() {
                 No finished books yet.
               </p>
             ) : (
-              <ol className="list-decimal list-inside space-y-1 text-sm text-[#1A1410] m-0">
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
                 {readBooks.map((book) => (
-                  <li key={book.id}>
-                    <span className="font-medium">{book.title}</span>
-                    {book.author && (
-                      <span style={{ color: MUTED_COLOR }}> · {book.author}</span>
+                  <div
+                    key={book.id}
+                    className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-100"
+                    title={[book.title, book.author].filter(Boolean).join(" · ")}
+                  >
+                    {book.cover_image ? (
+                      <img
+                        src={book.cover_image}
+                        alt={book.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-end p-2 text-white text-[10px] leading-tight"
+                        style={{
+                          background:
+                            "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)",
+                        }}
+                      >
+                        <span className="line-clamp-2">{book.title}</span>
+                      </div>
                     )}
-                  </li>
+                  </div>
                 ))}
-              </ol>
+              </div>
             )}
           </section>
 
@@ -344,10 +427,7 @@ function ClubPage() {
                 >
                   <div className="min-w-0">
                     <p className="m-0 text-[#1A1410]">{meeting.label}</p>
-                    <p
-                      className="m-0 text-xs"
-                      style={{ color: MUTED_COLOR }}
-                    >
+                    <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
                       {meeting.book}
                     </p>
                   </div>
@@ -381,16 +461,14 @@ function ClubPage() {
             Announcement&apos;s board
           </h2>
           <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-            No announcements yet. This space will show important updates from the
-            organiser once announcements are connected to the backend.
+            No announcements yet. This space will show important updates from
+            the organiser once announcements are connected to the backend.
           </p>
         </section>
 
         {/* Owner tools: add book and manage club books */}
         {isOwner && (
-          <section
-            className="space-y-6 rounded-2xl"
-          >
+          <section className="space-y-6 rounded-2xl">
             <section
               className="rounded-2xl bg-white p-6 shadow-sm"
               style={{
@@ -410,7 +488,9 @@ function ClubPage() {
                     key={member.id}
                     className="flex items-center justify-between gap-3"
                   >
-                    <span className="text-sm text-[#1A1410]">{member.name}</span>
+                    <span className="text-sm text-[#1A1410]">
+                      {member.name}
+                    </span>
                     <div className="flex gap-2 shrink-0">
                       <button
                         type="button"

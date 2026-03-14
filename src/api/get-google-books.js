@@ -1,6 +1,7 @@
 // Search books via backend proxy (Google Books API). No API key needed in frontend.
 // Use same base URL as other API calls; fallback to local backend when unset (e.g. dev).
-async function getGoogleBooks(query) {
+// Backend requires auth; pass token so the request is authorized.
+async function getGoogleBooks(query, token = null) {
   const trimmedQuery = query?.trim();
   if (!trimmedQuery) return [];
 
@@ -9,7 +10,9 @@ async function getGoogleBooks(query) {
   const encodedQuery = encodeURIComponent(trimmedQuery);
   const url = `${baseUrl.replace(/\/$/, "")}/books/search/?q=${encodedQuery}`;
 
-  const response = await fetch(url, { method: "GET" });
+  const headers = {};
+  if (token) headers.Authorization = `Token ${token}`;
+  const response = await fetch(url, { method: "GET", headers });
 
   if (!response.ok) {
     const fallbackError = "Error searching books.";
