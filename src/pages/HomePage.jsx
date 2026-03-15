@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import getClubs from "../api/get-clubs";
 import { useAuth } from "../hooks/use-auth";
 import BookClubCard from "../components/clubs/BookClubCard";
+import HomePageStats from "../components/HomePageStats";
 
 const ACCENT = "#e07a5f";
 const DARK = "#303030";
@@ -29,14 +30,6 @@ const desktopBooks = [
   { title: "Project Hail Mary", author: "A. Weir", bg: "#6d8396" },
   { title: "Piranesi", author: "S. Clarke", bg: "#7aaba1" },
   { title: "Midnight Library", author: "M. Haig", bg: "#e3bd74" },
-];
-
-/* Stats section: one color per stat, matching hero card palette */
-const statsData = [
-  { value: "40+", label: "Curated Genres", color: "#a18ead" },
-  { value: "70,000+", label: "Books Recommended", color: "#6d8396" },
-  { value: "95,000+", label: "Engaged Readers", color: "#7aaba1" },
-  { value: "2,300+", label: "Book Clubs", color: "#e3bd74" },
 ];
 
 function HomePage() {
@@ -175,43 +168,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Stats section – hero background; divider at top is section-above colour with sharp V */}
-      <section className="pt-0 pb-16 sm:pb-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[rgb(253,252,250)]">
-        {/* Divider: section-above colour, one pointy dip in the middle (deep V) */}
-        <div className="relative -mx-4 sm:-mx-6 lg:-mx-8" aria-hidden>
-          <svg
-            viewBox="0 0 1440 180"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-20 sm:h-28 md:h-36 block"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0 0 L1440 0 L1440 80 L720 170 L0 80 Z"
-              fill="rgb(247,244,240)"
-            />
-          </svg>
-        </div>
-        <div className="pt-8 sm:pt-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 text-center">
-            {statsData.map((stat) => (
-              <div key={stat.label}>
-                <p
-                  className="font-lora text-3xl sm:text-4xl md:text-5xl font-bold"
-                  style={{ color: stat.color }}
-                >
-                  {stat.value}
-                </p>
-                <p className="font-nunito mt-1 text-sm sm:text-base text-[#606060]">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-        </div>
-      </section>
+      <HomePageStats bookClubsCount={clubs.length} />
       </div>
     </div>
   );
