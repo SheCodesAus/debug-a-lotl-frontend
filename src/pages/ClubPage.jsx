@@ -54,6 +54,8 @@ function ClubPage() {
       author: selectedBook.author,
       description: selectedBook.description,
       cover_image: selectedBook.cover_image,
+      isbn: selectedBook.isbn,
+      genre: selectedBook.genre,
     });
     await refetchClubBooks();
   }
@@ -253,14 +255,28 @@ function ClubPage() {
                   <h3 className="font-playfair font-bold text-xl text-[#1A1410] m-0 mb-1">
                     {currentBook.title}
                   </h3>
-                  <p
-                    className="text-sm m-0 mb-1"
-                    style={{ color: MUTED_COLOR }}
-                  >
-                    {currentBook.author}
-                    {currentBook.genre && ` · ${currentBook.genre}`}
-                    {currentBook.isbn && ` · ISBN ${currentBook.isbn}`}
-                  </p>
+                  {currentBook.author && (
+                    <p
+                      className="text-sm m-0 mb-1"
+                      style={{ color: MUTED_COLOR }}
+                    >
+                      {currentBook.author}
+                    </p>
+                  )}
+                  {(currentBook.isbn || currentBook.genre) && (
+                    <p
+                      className="text-sm m-0 mb-1"
+                      style={{ color: MUTED_COLOR }}
+                    >
+                      {currentBook.isbn && (
+                        <span>ISBN: {currentBook.isbn}</span>
+                      )}
+                      {currentBook.isbn && currentBook.genre && " · "}
+                      {currentBook.genre && (
+                        <span>Genre: {currentBook.genre}</span>
+                      )}
+                    </p>
+                  )}
                   {(currentBook.start_date ||
                     currentBook.finish_date ||
                     currentBook.added_at) && (
