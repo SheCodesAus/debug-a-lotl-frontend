@@ -171,4 +171,3 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
 }
 
 export default EditClubForm;
-
