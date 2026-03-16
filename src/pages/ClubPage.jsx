@@ -370,7 +370,11 @@ function ClubPage() {
           </section>
         </div>
 
-        <ClubAnnouncmentBoard />
+        <ClubAnnouncmentBoard
+          clubId={clubId}
+          isOwner={isOwner}
+          token={auth?.token ?? null}
+        />
 
         {/* Owner tools: add book and manage club books */}
         {isOwner && (
