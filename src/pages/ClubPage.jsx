@@ -10,6 +10,7 @@ import patchClubBookStatus from "../api/patch-club-book-status";
 import useClubBooks from "../hooks/use-club-books";
 import JoinClubForm from "../components/forms/JoinClubForm";
 import ScheduleMeetingForm from "../components/forms/ScheduleMeetingForm";
+import EditClubForm from "../components/forms/EditClubForm";
 
 const ACCENT = "#C45D3E";
 const MUTED_COLOR = "#8A7E74";
@@ -22,6 +23,7 @@ function ClubPage() {
   const [club, setClub] = useState(null);
   const [isLoadingClub, setIsLoadingClub] = useState(true);
   const [clubError, setClubError] = useState("");
+  const [isEditingClub, setIsEditingClub] = useState(false);
 
   const { clubBooks, isLoadingBooks, booksError, refetchClubBooks } =
     useClubBooks(clubId, auth?.token ?? null);
@@ -150,11 +152,23 @@ function ClubPage() {
         memberCount={memberCount}
         isOwner={isOwner}
         onEditClub={() => {
-          window.alert("Edit club coming soon.");
+          if (isOwner) setIsEditingClub(true);
         }}
       />
 
       <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
+        {isOwner && isEditingClub && (
+          <EditClubForm
+            club={club}
+            token={auth?.token ?? null}
+            onSuccess={(updatedClub) => {
+              setClub(updatedClub);
+              setIsEditingClub(false);
+            }}
+            onCancel={() => setIsEditingClub(false)}
+          />
+        )}
+
         {/* Owner-only: book search directly under hero */}
         <BookSearchSection
           isOwner={isOwner}
