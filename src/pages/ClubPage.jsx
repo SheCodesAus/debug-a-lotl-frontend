@@ -7,6 +7,8 @@ import BookSearchSection from "../components/clubs/BookSearchSection";
 import getClub from "../api/get-club.js";
 import postClubBook from "../api/post-club-book";
 import useClubBooks from "../hooks/use-club-books";
+import JoinClubForm from "../components/forms/JoinClubForm";
+import ScheduleMeetingForm from "../components/forms/ScheduleMeetingForm";
 
 const ACCENT = "#C45D3E";
 const MUTED_COLOR = "#8A7E74";
@@ -178,6 +180,16 @@ function ClubPage() {
                 </div>
               </div>
             </div>
+
+            {!isOwner && auth?.token && (
+              <div className="mt-4">
+                <JoinClubForm
+                  clubId={clubId}
+                  isPrivate={!club.is_public}
+                  onSuccess={() => window.location.reload()}
+                />
+              </div>
+            )}
           </section>
 
           {/* Currently Reading: second on mobile, left (2 cols, span 2 rows) on lg so it matches right column height */}
@@ -360,12 +372,15 @@ function ClubPage() {
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              className="mt-4 w-full text-xs font-semibold px-3 py-2 rounded border border-dashed border-gray-300 hover:bg-gray-50"
-            >
-              book new meeting
-            </button>
+            {isOwner && (
+              <div className="mt-4">
+                <ScheduleMeetingForm
+                  clubId={clubId}
+                  onSuccess={() => window.location.reload()}
+                />
+              </div>
+            )}
+
           </section>
         </div>
 
