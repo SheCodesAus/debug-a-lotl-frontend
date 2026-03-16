@@ -148,6 +148,10 @@ function ClubPage() {
         club={club}
         creatorName={creatorName}
         memberCount={memberCount}
+        isOwner={isOwner}
+        onEditClub={() => {
+          window.alert("Edit club coming soon.");
+        }}
       />
 
       <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
