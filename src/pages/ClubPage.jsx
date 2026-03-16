@@ -68,7 +68,9 @@ function ClubPage() {
     if (!book?.id || !auth?.token) return;
     setIsMarkingRead(true);
     try {
-      await patchClubBookStatus(auth.token, clubId, book.id, { status: "read" });
+      await patchClubBookStatus(auth.token, clubId, book.id, {
+        status: "read",
+      });
       await refetchClubBooks();
     } finally {
       setIsMarkingRead(false);
@@ -429,7 +431,9 @@ function ClubPage() {
                   <div
                     key={book.id}
                     className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-100"
-                    title={[book.title, book.author].filter(Boolean).join(" · ")}
+                    title={[book.title, book.author]
+                      .filter(Boolean)
+                      .join(" · ")}
                   >
                     {book.cover_image ? (
                       <img
@@ -494,7 +498,6 @@ function ClubPage() {
                 />
               </div>
             )}
-
           </section>
         </div>
 
