@@ -13,6 +13,7 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
   const navigate = useNavigate();
   const { setAuth } = useAuth();
   const [fields, setFields] = useState({
+    name: "",
     username: "",
     email: "",
     password: "",
@@ -32,8 +33,8 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
     event.preventDefault();
     setError(null);
 
-    if (!fields.username || !fields.password) {
-      setError("Username and password are required.");
+    if (!fields.name || !fields.username || !fields.password) {
+      setError("Name, username and password are required.");
       return;
     }
 
@@ -44,6 +45,7 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
 
     try {
       await postRegister({
+        name: fields.name,
         username: fields.username,
         email: fields.email,
         password: fields.password,
@@ -59,7 +61,8 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
       const user_id = response.user_id ?? null;
       window.localStorage.setItem("token", response.token);
       window.localStorage.setItem("username", response.username);
-      if (user_id != null) window.localStorage.setItem("user_id", String(user_id));
+      if (user_id != null)
+        window.localStorage.setItem("user_id", String(user_id));
       setAuth({ token: response.token, user_id, username: response.username });
       navigate("/");
     } catch (err) {
@@ -103,9 +106,28 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
           <label
             className="block uppercase font-semibold w-full"
             style={labelStyle}
+            htmlFor="name"
+          >
+            Name
+          </label>
+          <input
+            className={inputClassName}
+            style={inputStyle}
+            type="text"
+            id="name"
+            placeholder="Your name"
+            value={fields.name}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="w-full">
+          <label
+            className="block uppercase font-semibold w-full"
+            style={labelStyle}
             htmlFor="username"
           >
-            Username
+            Username (how you want others to see you)
           </label>
           <input
             className={inputClassName}
