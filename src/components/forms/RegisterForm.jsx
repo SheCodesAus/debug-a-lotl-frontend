@@ -33,8 +33,8 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
     event.preventDefault();
     setError(null);
 
-    if (!fields.name || !fields.username || !fields.password) {
-      setError("Name, username and password are required.");
+    if (!fields.name || !fields.username || !fields.email || !fields.password) {
+      setError("Name, username, email and password are required.");
       return;
     }
 
@@ -108,7 +108,7 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             style={labelStyle}
             htmlFor="name"
           >
-            Name
+            Name <span className="text-red-500">*</span>
           </label>
           <input
             className={inputClassName}
@@ -127,7 +127,8 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             style={labelStyle}
             htmlFor="username"
           >
-            Username (how you want others to see you)
+            Username (how you want others to see you){" "}
+            <span className="text-red-500">*</span>
           </label>
           <input
             className={inputClassName}
@@ -146,7 +147,7 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             style={labelStyle}
             htmlFor="email"
           >
-            Email (optional)
+            Email <span className="text-red-500">*</span>
           </label>
           <input
             className={inputClassName}
@@ -203,7 +204,7 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             style={labelStyle}
             htmlFor="password"
           >
-            Password
+            Password <span className="text-red-500">*</span>
           </label>
           <input
             className={inputClassName}
@@ -222,7 +223,7 @@ function RegisterForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             style={labelStyle}
             htmlFor="passwordConfirm"
           >
-            Confirm password
+            Confirm password <span className="text-red-500">*</span>
           </label>
           <input
             className={inputClassName}
