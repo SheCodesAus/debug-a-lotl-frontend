@@ -69,7 +69,7 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token }) {
 
   return (
     <section
-      className="rounded-2xl bg-white p-6 shadow-sm"
+      className="rounded-2xl bg-white p-10 shadow-sm"
       style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
     >
       <h2
@@ -151,7 +151,7 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token }) {
               {visible.map((ann) => (
                 <li
                   key={ann.id}
-                  className="rounded-xl p-6"
+                  className="rounded-xl p-8"
                   style={{
                     border: `2px solid ${BORDER_GREEN}`,
                     backgroundColor: "rgba(107, 123, 92, 0.06)",

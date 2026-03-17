@@ -66,7 +66,7 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
 
   return (
     <form
-      className="rounded-2xl bg-white p-6 shadow-sm space-y-4"
+      className="rounded-2xl bg-white p-10 shadow-sm space-y-4"
       style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
       onSubmit={handleSubmit}
     >
