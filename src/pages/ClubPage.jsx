@@ -86,6 +86,7 @@ function ClubPage() {
   const readingBooks = books.filter((book) => book.status === "reading");
   const readBooks = books.filter((book) => book.status === "read");
   const currentBook = readingBooks[0] ?? null;
+  const meetings = Array.isArray(clubMeetings) ? clubMeetings : [];
 
   // Placeholder content for sections that are not yet wired to the backend
   const placeholderPendingApprovals = [
@@ -134,6 +135,18 @@ function ClubPage() {
       day: "numeric",
       month: "short",
       year: "numeric",
+    });
+  }
+
+  function formatMeetingTime(timeString) {
+    if (!timeString) return "";
+    // Backend is likely "HH:MM:SS" (or "HH:MM:SS.ssssss"). Keep it resilient.
+    const hhmmss = String(timeString).trim().slice(0, 8);
+    const d = new Date(`1970-01-01T${hhmmss}`);
+    if (Number.isNaN(d.getTime())) return String(timeString);
+    return d.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
@@ -466,25 +479,53 @@ function ClubPage() {
               Meetings
             </h2>
             <div className="space-y-3">
-              {placeholderMeetings.map((meeting) => (
-                <div
-                  key={meeting.id}
-                  className="flex items-center justify-between gap-3 text-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="m-0 text-[#1A1410]">{meeting.label}</p>
-                    <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
-                      {meeting.book}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0"
-                  >
-                    book
-                  </button>
-                </div>
-              ))}
+              {isLoadingMeetings ? (
+                <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+                  Loading meetings…
+                </p>
+              ) : meetingsError ? (
+                <p className="text-sm m-0 text-red-600">{meetingsError}</p>
+              ) : meetings.length === 0 ? (
+                <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+                  No meetings scheduled yet.
+                </p>
+              ) : (
+                meetings.map((meeting) => {
+                  const dateLabel = formatBookDate(meeting.meeting_date);
+                  const start = formatMeetingTime(meeting.start_time);
+                  const end = formatMeetingTime(meeting.end_time);
+                  const typeLabel =
+                    meeting.meeting_type === "in_person" ? "In person" : "Virtual";
+                  const where = meeting.location?.trim() ? ` · ${meeting.location}` : "";
+
+                  return (
+                    <div
+                      key={meeting.id}
+                      className="flex items-center justify-between gap-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="m-0 text-[#1A1410]">
+                          {meeting.title || "Meeting"}
+                        </p>
+                        <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
+                          {[dateLabel, start && end ? `${start}–${end}` : start || end]
+                            .filter(Boolean)
+                            .join(" · ")}
+                          {typeLabel ? ` · ${typeLabel}${where}` : where}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0"
+                        disabled
+                        title="Booking meetings not wired yet"
+                      >
+                        book
+                      </button>
+                    </div>
+                  );
+                })
+              )}
             </div>
             {isOwner && (
               <div className="mt-4">
