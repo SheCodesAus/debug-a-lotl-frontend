@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/use-auth";
 
 import ClubHeader from "../components/clubs/ClubHeader";
 import BookSearchSection from "../components/clubs/BookSearchSection";
+import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard";
 import getClub from "../api/get-club.js";
 import postClubBook from "../api/post-club-book";
 import patchClubBookStatus from "../api/patch-club-book-status";
@@ -480,6 +481,11 @@ function ClubPage() {
           </section>
         </div>
 
+        <ClubAnnouncmentBoard
+          clubId={clubId}
+          isOwner={isOwner}
+          token={auth?.token ?? null}
+        />
         {/* Announcement board */}
         <section
           className="rounded-2xl bg-white p-6 shadow-sm"
