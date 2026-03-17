@@ -9,6 +9,7 @@ import getClub from "../api/get-club.js";
 import postClubBook from "../api/post-club-book";
 import patchClubBookStatus from "../api/patch-club-book-status";
 import useClubBooks from "../hooks/use-club-books";
+import useClubMeetings from "../hooks/use-club-meetings";
 import JoinClubForm from "../components/forms/JoinClubForm";
 import ScheduleMeetingForm from "../components/forms/ScheduleMeetingForm";
 import EditClubForm from "../components/forms/EditClubForm";
@@ -28,6 +29,9 @@ function ClubPage() {
 
   const { clubBooks, isLoadingBooks, booksError, refetchClubBooks } =
     useClubBooks(clubId, auth?.token ?? null);
+
+  const { clubMeetings, isLoadingMeetings, meetingsError, refetchClubMeetings } =
+    useClubMeetings(clubId, auth?.token ?? null);
 
   useEffect(() => {
     async function loadClub() {
@@ -87,12 +91,6 @@ function ClubPage() {
   const placeholderPendingApprovals = [
     { id: "placeholder-1", name: "member #1" },
     { id: "placeholder-2", name: "member #2" },
-  ];
-
-  const placeholderMeetings = [
-    { id: "meeting-1", label: "Meeting 1", book: "TBD book" },
-    { id: "meeting-2", label: "Meeting 2", book: "TBD book" },
-    { id: "meeting-3", label: "Meeting 3", book: "TBD book" },
   ];
 
   const displayMemberCount = memberCount ?? 0;
