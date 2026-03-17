@@ -9,6 +9,7 @@ import getClub from "../api/get-club.js";
 import postClubBook from "../api/post-club-book";
 import patchClubBookStatus from "../api/patch-club-book-status";
 import useClubBooks from "../hooks/use-club-books";
+import useClubMeetings from "../hooks/use-club-meetings";
 import JoinClubForm from "../components/forms/JoinClubForm";
 import ScheduleMeetingForm from "../components/forms/ScheduleMeetingForm";
 import EditClubForm from "../components/forms/EditClubForm";
@@ -28,6 +29,9 @@ function ClubPage() {
 
   const { clubBooks, isLoadingBooks, booksError, refetchClubBooks } =
     useClubBooks(clubId, auth?.token ?? null);
+
+  const { clubMeetings, isLoadingMeetings, meetingsError, refetchClubMeetings } =
+    useClubMeetings(clubId, auth?.token ?? null);
 
   useEffect(() => {
     async function loadClub() {
@@ -89,12 +93,6 @@ function ClubPage() {
     { id: "placeholder-2", name: "member #2" },
   ];
 
-  const placeholderMeetings = [
-    { id: "meeting-1", label: "Meeting 1", book: "TBD book" },
-    { id: "meeting-2", label: "Meeting 2", book: "TBD book" },
-    { id: "meeting-3", label: "Meeting 3", book: "TBD book" },
-  ];
-
   const displayMemberCount = memberCount ?? 0;
 
   const memberList = [
@@ -137,6 +135,17 @@ function ClubPage() {
       month: "short",
       year: "numeric",
     });
+  }
+
+  /** Format meeting date and time for display (backend returns date + time strings). */
+  function formatMeetingDateTime(meetingDate, startTime, endTime) {
+    const dateStr = meetingDate
+      ? formatBookDate(meetingDate)
+      : "";
+    if (!startTime || !endTime) return dateStr;
+    return [dateStr, `${startTime.slice(0, 5)}–${endTime.slice(0, 5)}`]
+      .filter(Boolean)
+      .join(" · ");
   }
 
   if (isLoadingClub || isLoadingBooks) return <p className="p-6">Loading...</p>;
@@ -459,7 +468,7 @@ function ClubPage() {
             )}
           </section>
 
-          {/* Meetings - placeholder layout */}
+          {/* Meetings */}
           <section
             className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-1"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
@@ -470,32 +479,51 @@ function ClubPage() {
             >
               Meetings
             </h2>
-            <div className="space-y-3">
-              {placeholderMeetings.map((meeting) => (
-                <div
-                  key={meeting.id}
-                  className="flex items-center justify-between gap-3 text-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="m-0 text-[#1A1410]">{meeting.label}</p>
-                    <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
-                      {meeting.book}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0"
-                  >
-                    book
-                  </button>
-                </div>
-              ))}
-            </div>
+            {meetingsError && (
+              <p className="text-sm text-red-600 m-0 mb-3">{meetingsError}</p>
+            )}
+            {isLoadingMeetings ? (
+              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+                Loading meetings...
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {clubMeetings.length === 0 ? (
+                  <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+                    No meetings scheduled yet.
+                  </p>
+                ) : (
+                  clubMeetings.map((meeting) => (
+                    <div
+                      key={meeting.id}
+                      className="flex items-center justify-between gap-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="m-0 text-[#1A1410]">{meeting.title}</p>
+                        <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
+                          {formatMeetingDateTime(
+                            meeting.meeting_date,
+                            meeting.start_time,
+                            meeting.end_time
+                          ) || "—"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0"
+                      >
+                        book
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
             {isOwner && (
               <div className="mt-4">
                 <ScheduleMeetingForm
                   clubId={clubId}
-                  onSuccess={() => window.location.reload()}
+                  onSuccess={() => refetchClubMeetings()}
                 />
               </div>
             )}
