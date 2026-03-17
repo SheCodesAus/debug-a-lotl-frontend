@@ -2,16 +2,13 @@
 // Returns the meeting data or throws with a helpful error.
 async function postScheduleMeeting(clubId, meetingData, token) {
     const baseUrl = import.meta.env.VITE_API_URL ?? "";
-    // Backend meeting endpoints are mounted at `/clubs/<club_id>/meetings/`
-    // (no `/api` prefix), matching the rest of the club APIs.
-    const url = `${baseUrl}/clubs/${clubId}/meetings/`;
+    const url = `${baseUrl}/api/clubs/${clubId}/meetings/`;
 
     const response = await fetch(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            // DRF token auth expects this exact prefix, consistent with other calls.
-            Authorization: `Token ${token}`,
+            Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(meetingData),
     });
