@@ -25,8 +25,10 @@ export const AuthProvider = (props) => {
         const username = data.username ?? null;
         const user_id = data.id ?? null;
         if (username != null || user_id != null) {
-          if (username != null) window.localStorage.setItem("username", username);
-          if (user_id != null) window.localStorage.setItem("user_id", String(user_id));
+          if (username != null)
+            window.localStorage.setItem("username", username);
+          if (user_id != null)
+            window.localStorage.setItem("user_id", String(user_id));
           setAuth((prev) => ({ ...prev, username, user_id }));
         }
       })
