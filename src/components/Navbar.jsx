@@ -38,7 +38,7 @@ function NavBar() {
       <Link
         to="/clubs"
         onClick={closeMobileMenu}
-        className={`font-medium transition-colors ${isScrolled ? "text-gray-800 hover:text-gray-900" : "text-gray-500 hover:text-gray-800"}`}
+        className={`px-3 py-2 rounded-lg font-semibold text-lg transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${isScrolled ? "text-gray-900" : "text-gray-700"}`}
       >
         Discover Clubs
       </Link>
@@ -46,7 +46,7 @@ function NavBar() {
         <Link
           to="/profile"
           onClick={closeMobileMenu}
-          className={`font-medium transition-colors ${isScrolled ? "text-gray-800 hover:text-gray-900" : "text-gray-500 hover:text-gray-800"}`}
+          className={`px-3 py-2 rounded-lg font-semibold text-lg transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${isScrolled ? "text-gray-900" : "text-gray-700"}`}
         >
           Profile
         </Link>
@@ -55,18 +55,24 @@ function NavBar() {
   );
 
   const authSection = (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 text-lg">
       {isLoggedIn ? (
         <>
           <span
-            className={`font-medium ${isScrolled ? "text-gray-800" : "text-gray-600"}`}
+            className="inline-flex items-center gap-2 font-medium cursor-default select-none text-[#e07a5f]"
           >
+            <img
+              src="/img/hand-wave.png"
+              alt=""
+              className="h-6 w-auto object-contain"
+              aria-hidden="true"
+            />
             Hi, {auth.username}
           </span>
           <button
             type="button"
             onClick={handleLogout}
-            className="px-5 py-2.5 rounded-lg font-medium text-white transition-colors hover:opacity-90"
+            className="px-5 py-2.5 rounded-lg font-semibold text-white text-lg transition-colors hover:opacity-90"
             style={{ backgroundColor: "#e07a5f" }}
           >
             Logout
@@ -77,14 +83,14 @@ function NavBar() {
           <Link
             to="/login"
             onClick={closeMobileMenu}
-            className="px-5 py-2.5 rounded-lg font-medium text-[#333333] border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+            className="px-5 py-2.5 rounded-lg font-semibold text-lg text-[#333333] border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
           >
             Log In
           </Link>
           <Link
             to="/register"
             onClick={closeMobileMenu}
-            className="px-5 py-2.5 rounded-lg font-medium text-white transition-colors hover:opacity-90"
+            className="px-5 py-2.5 rounded-lg font-semibold text-lg text-white transition-colors hover:opacity-90"
             style={{ backgroundColor: PRIMARY }}
           >
             Get Started
@@ -104,12 +110,7 @@ function NavBar() {
           boxShadow: isScrolled ? "0 1px 3px 0 rgb(0 0 0 / 0.1)" : "none",
         }}
       >
-        <div
-          className="h-1 w-full transition-colors duration-200"
-          style={{ backgroundColor: isScrolled ? "rgba(0,0,0,0.12)" : PRIMARY }}
-          aria-hidden
-        />
-        <nav className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4">
+        <nav className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 text-lg">
           {/* Logo + title */}
           <Link
             to="/"
@@ -136,7 +137,7 @@ function NavBar() {
                 />
               </svg>
             </div>
-            <span className="font-semibold text-gray-900 text-lg">
+            <span className="font-semibold text-gray-900 text-xl">
               Open Book
             </span>
           </Link>
@@ -203,6 +204,9 @@ function NavBar() {
             <div className="pt-2 border-t border-black/10">{authSection}</div>
           </div>
         )}
+
+        {/* Yellow accent on bottom edge of header */}
+        <div className="h-px w-full" style={{ backgroundColor: HEADER_BG }} aria-hidden />
       </header>
 
       <main className="flex-1 flex flex-col min-h-0 bg-[rgb(253,252,250)] overflow-y-auto">
