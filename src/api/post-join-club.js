@@ -2,13 +2,13 @@
 // Returns the membership data or throws with a helpful error.
 async function postJoinClub(clubId, token) {
     const baseUrl = import.meta.env.VITE_API_URL ?? "";
-    const url = `${baseUrl}/api/clubs/${clubId}/join/`;
+    const url = `${baseUrl}/clubs/${clubId}/join/`;
 
     const response = await fetch(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Token ${token}`,
         },
     });
 
