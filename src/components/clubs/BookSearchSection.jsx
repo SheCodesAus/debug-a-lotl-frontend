@@ -75,7 +75,7 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
 
   return (
     <section
-      className="rounded-2xl bg-white p-6 shadow-sm"
+      className="rounded-2xl bg-white p-10 shadow-sm"
       style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
     >
       <h2
@@ -123,7 +123,7 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
             return (
               <article
                 key={book.google_books_id}
-                className="rounded-xl border border-gray-100 bg-white p-4 flex gap-3"
+                className="rounded-xl border border-gray-100 bg-white p-6 flex gap-3"
               >
                 {book.cover_image ? (
                   <img

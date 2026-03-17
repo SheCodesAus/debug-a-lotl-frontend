@@ -137,21 +137,10 @@ function ClubPage() {
     });
   }
 
-  /** Format meeting date and time for display (backend returns date + time strings). */
-  function formatMeetingDateTime(meetingDate, startTime, endTime) {
-    const dateStr = meetingDate
-      ? formatBookDate(meetingDate)
-      : "";
-    if (!startTime || !endTime) return dateStr;
-    return [dateStr, `${startTime.slice(0, 5)}–${endTime.slice(0, 5)}`]
-      .filter(Boolean)
-      .join(" · ");
-  }
-
-  if (isLoadingClub || isLoadingBooks) return <p className="p-6">Loading...</p>;
-  if (clubError) return <p className="p-6 text-red-600">{clubError}</p>;
-  if (booksError) return <p className="p-6 text-red-600">{booksError}</p>;
-  if (!club) return <p className="p-6">Club not found.</p>;
+  if (isLoadingClub || isLoadingBooks) return <p className="p-8 sm:p-10">Loading...</p>;
+  if (clubError) return <p className="p-8 sm:p-10 text-red-600">{clubError}</p>;
+  if (booksError) return <p className="p-8 sm:p-10 text-red-600">{booksError}</p>;
+  if (!club) return <p className="p-8 sm:p-10">Club not found.</p>;
 
   return (
     <main
@@ -168,7 +157,7 @@ function ClubPage() {
         }}
       />
 
-      <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
+      <div className="flex-1 px-6 sm:px-10 py-10 sm:py-12 max-w-6xl w-full mx-auto space-y-10 sm:space-y-12">
         {isOwner && isEditingClub && (
           <EditClubForm
             club={club}
@@ -181,7 +170,53 @@ function ClubPage() {
           />
         )}
 
-        {/* Owner-only: book search directly under hero */}
+        {/* Owner-only: pending approvals at top */}
+        {isOwner && (
+          <section
+            className="rounded-2xl bg-white p-10 shadow-sm"
+            style={{
+              boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px",
+              border: "2px solid #eab308",
+            }}
+          >
+            <h2
+              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
+              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
+            >
+              Pending approvals
+            </h2>
+            <ul className="list-none p-0 m-0 space-y-3">
+              {placeholderPendingApprovals.map((member) => (
+                <li
+                  key={member.id}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <span className="text-sm text-[#1A1410]">
+                    {member.name}
+                  </span>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      type="button"
+                      className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90"
+                      style={{ backgroundColor: "rgb(107, 123, 92)" }}
+                    >
+                      accept
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90"
+                      style={{ backgroundColor: "rgb(196, 93, 62)" }}
+                    >
+                      reject
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Owner-only: book search */}
         <BookSearchSection
           isOwner={isOwner}
           clubBooks={books}
@@ -189,11 +224,11 @@ function ClubPage() {
           token={auth?.token ?? null}
         />
 
-        {/* Top row: on mobile About first, then Currently Reading, then Members; on lg Currently Reading (left 2 cols, full height) | About + Members (right col) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[auto_auto] gap-6">
-          {/* About this club: first on mobile, right column row 1 on lg */}
+        {/* Top row: on mobile About, then Currently Reading, then Members; on lg About + Members (left 2 cols, more room) | Currently Reading (right 1 col) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[auto_auto] gap-8">
+          {/* About this club: first on mobile, left and wider on lg */}
           <section
-            className="order-1 lg:order-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 rounded-2xl bg-white p-6 shadow-sm"
+            className="order-1 lg:col-span-2 lg:row-start-1 rounded-2xl bg-white p-10 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2
@@ -255,9 +290,9 @@ function ClubPage() {
             )}
           </section>
 
-          {/* Currently Reading: second on mobile, left (2 cols, span 2 rows) on lg so it matches right column height */}
+          {/* Currently Reading: second on mobile, right (1 col, span 2 rows) on lg — less room than About */}
           <section
-            className="order-2 lg:order-1 lg:col-span-2 lg:row-span-2 lg:row-start-1 rounded-2xl bg-white p-6 shadow-sm"
+            className="order-2 lg:col-span-1 lg:col-start-3 lg:row-span-2 lg:row-start-1 rounded-2xl bg-white p-10 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2
@@ -267,18 +302,17 @@ function ClubPage() {
               Currently Reading
             </h2>
             {currentBook ? (
-              <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex flex-col gap-6">
                 {currentBook.cover_image ? (
                   <img
                     src={currentBook.cover_image}
                     alt=""
-                    className="w-full sm:w-52 h-64 sm:h-80 object-cover rounded-lg shrink-0"
+                    className="w-full max-w-52 aspect-[2/3] object-cover rounded-lg shrink-0"
                   />
                 ) : (
                   <div
-                    className="w-full sm:w-52 shrink-0 rounded-lg overflow-hidden flex items-end text-white text-left p-3"
+                    className="w-full max-w-52 aspect-[2/3] shrink-0 rounded-lg overflow-hidden flex items-end text-white text-left p-3"
                     style={{
-                      minHeight: 320,
                       background:
                         "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)",
                     }}
@@ -339,7 +373,7 @@ function ClubPage() {
                     </p>
                   )}
                   {currentBook.description && (
-                    <p className="text-sm text-[#1A1410] m-0 leading-relaxed">
+                    <p className="text-sm text-[#1A1410] m-0 leading-relaxed line-clamp-4">
                       {currentBook.description}
                     </p>
                   )}
@@ -366,9 +400,9 @@ function ClubPage() {
             )}
           </section>
 
-          {/* Members: third on mobile, right column row 2 on lg (below About) */}
+          {/* Members: third on mobile, left column row 2 on lg (below About) */}
           <section
-            className="order-3 lg:col-span-1 lg:col-start-3 lg:row-start-2 rounded-2xl bg-white p-6 shadow-sm"
+            className="order-3 lg:col-span-2 lg:row-start-2 rounded-2xl bg-white p-10 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2
@@ -418,11 +452,53 @@ function ClubPage() {
           </section>
         </div>
 
-        {/* Middle row: Pending approvals, Historic reading & meetings */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Historic reading list */}
+        {/* Middle row: Meetings (more space) & Historic reading */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Meetings: left, more space */}
           <section
-            className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2"
+            className="rounded-2xl bg-white p-10 shadow-sm lg:col-span-2 order-1"
+            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
+          >
+            <h2
+              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
+              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
+            >
+              Meetings
+            </h2>
+            <div className="space-y-3">
+              {placeholderMeetings.map((meeting) => (
+                <div
+                  key={meeting.id}
+                  className="flex items-center justify-between gap-3 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="m-0 text-[#1A1410]">{meeting.label}</p>
+                    <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
+                      {meeting.book}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0"
+                  >
+                    book
+                  </button>
+                </div>
+              ))}
+            </div>
+            {isOwner && (
+              <div className="mt-4">
+                <ScheduleMeetingForm
+                  clubId={clubId}
+                  onSuccess={() => window.location.reload()}
+                />
+              </div>
+            )}
+          </section>
+
+          {/* Historic reading list: right, less space */}
+          <section
+            className="rounded-2xl bg-white p-10 shadow-sm lg:col-span-1 order-2"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2
@@ -436,7 +512,7 @@ function ClubPage() {
                 No finished books yet.
               </p>
             ) : (
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-4 gap-3">
                 {readBooks.map((book) => (
                   <div
                     key={book.id}
@@ -467,67 +543,6 @@ function ClubPage() {
               </div>
             )}
           </section>
-
-          {/* Meetings */}
-          <section
-            className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-1"
-            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
-          >
-            <h2
-              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-            >
-              Meetings
-            </h2>
-            {meetingsError && (
-              <p className="text-sm text-red-600 m-0 mb-3">{meetingsError}</p>
-            )}
-            {isLoadingMeetings ? (
-              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-                Loading meetings...
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {clubMeetings.length === 0 ? (
-                  <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-                    No meetings scheduled yet.
-                  </p>
-                ) : (
-                  clubMeetings.map((meeting) => (
-                    <div
-                      key={meeting.id}
-                      className="flex items-center justify-between gap-3 text-sm"
-                    >
-                      <div className="min-w-0">
-                        <p className="m-0 text-[#1A1410]">{meeting.title}</p>
-                        <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
-                          {formatMeetingDateTime(
-                            meeting.meeting_date,
-                            meeting.start_time,
-                            meeting.end_time
-                          ) || "—"}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0"
-                      >
-                        book
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-            {isOwner && (
-              <div className="mt-4">
-                <ScheduleMeetingForm
-                  clubId={clubId}
-                  onSuccess={() => refetchClubMeetings()}
-                />
-              </div>
-            )}
-          </section>
         </div>
 
         <ClubAnnouncmentBoard
@@ -535,70 +550,6 @@ function ClubPage() {
           isOwner={isOwner}
           token={auth?.token ?? null}
         />
-        {/* Announcement board */}
-        <section
-          className="rounded-2xl bg-white p-6 shadow-sm"
-          style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
-        >
-          <h2
-            className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-            style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-          >
-            Announcement&apos;s board
-          </h2>
-          <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-            No announcements yet. This space will show important updates from
-            the organiser once announcements are connected to the backend.
-          </p>
-        </section>
-
-        {/* Owner tools: add book and manage club books */}
-        {isOwner && (
-          <section className="space-y-6 rounded-2xl">
-            <section
-              className="rounded-2xl bg-white p-6 shadow-sm"
-              style={{
-                boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px",
-                border: "2px solid #eab308",
-              }}
-            >
-              <h2
-                className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-                style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-              >
-                Pending approvals
-              </h2>
-              <ul className="list-none p-0 m-0 space-y-3">
-                {placeholderPendingApprovals.map((member) => (
-                  <li
-                    key={member.id}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <span className="text-sm text-[#1A1410]">
-                      {member.name}
-                    </span>
-                    <div className="flex gap-2 shrink-0">
-                      <button
-                        type="button"
-                        className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90"
-                        style={{ backgroundColor: "rgb(107, 123, 92)" }}
-                      >
-                        accept
-                      </button>
-                      <button
-                        type="button"
-                        className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90"
-                        style={{ backgroundColor: "rgb(196, 93, 62)" }}
-                      >
-                        reject
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </section>
-        )}
       </div>
     </main>
   );
