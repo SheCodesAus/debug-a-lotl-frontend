@@ -1,22 +1,61 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
-
 import ClubHeader from "../components/clubs/ClubHeader";
 import BookSearchSection from "../components/clubs/BookSearchSection";
-import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard";
 import getClub from "../api/get-club.js";
 import postClubBook from "../api/post-club-book";
 import patchClubBookStatus from "../api/patch-club-book-status";
 import useClubBooks from "../hooks/use-club-books";
-import useClubMeetings from "../hooks/use-club-meetings";
 import JoinClubForm from "../components/forms/JoinClubForm";
 import ScheduleMeetingForm from "../components/forms/ScheduleMeetingForm";
-import EditClubForm from "../components/forms/EditClubForm";
+import getClubMembers from "../api/get-club-members.js";
+import patchClubMember from "../api/patch-club-member.js";
+import getClubMeetings from "../api/get-club-meetings.js";
 
 const ACCENT = "#C45D3E";
 const MUTED_COLOR = "#8A7E74";
 const PAGE_BG = "#fffaf6";
+
+function ScheduleMeetingModal({ clubId, onClose, onSuccess }) {
+  function handleBackdrop(e) {
+    if (e.target === e.currentTarget) onClose();
+  }
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(26, 20, 16, 0.5)" }}
+      onClick={handleBackdrop}
+    >
+      <div
+        className="relative w-full max-w-md rounded-2xl bg-white shadow-xl overflow-y-auto"
+        style={{ maxHeight: "90vh" }}
+      >
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+          <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED_COLOR }}>
+            Schedule a meeting
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1 hover:bg-gray-100"
+            aria-label="Close"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M13.5 4.5L4.5 13.5M4.5 4.5l9 9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+        <div className="px-6 py-5">
+          <ScheduleMeetingForm
+            clubId={clubId}
+            onSuccess={() => { onClose(); onSuccess(); }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ClubPage() {
   const { clubId } = useParams();
@@ -25,13 +64,16 @@ function ClubPage() {
   const [club, setClub] = useState(null);
   const [isLoadingClub, setIsLoadingClub] = useState(true);
   const [clubError, setClubError] = useState("");
-  const [isEditingClub, setIsEditingClub] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [pendingMembers, setPendingMembers] = useState([]);
+  const [approvedMembers, setApprovedMembers] = useState([]);
+  const [memberActionLoading, setMemberActionLoading] = useState(null);
+
+  // meetings state
+  const [meetings, setMeetings] = useState([]);
 
   const { clubBooks, isLoadingBooks, booksError, refetchClubBooks } =
     useClubBooks(clubId, auth?.token ?? null);
-
-  const { clubMeetings, isLoadingMeetings, meetingsError, refetchClubMeetings } =
-    useClubMeetings(clubId, auth?.token ?? null);
 
   useEffect(() => {
     async function loadClub() {
@@ -53,6 +95,51 @@ function ClubPage() {
   const creatorName = club?.owner_username ?? null;
   const memberCount = club?.member_count ?? 1;
 
+  // Load members (owner only)
+  useEffect(() => {
+    if (!isOwner || !auth?.token) return;
+    async function loadMembers() {
+      try {
+        const all = await getClubMembers(clubId, auth.token);
+        setPendingMembers(all.filter((m) => m.status === "pending"));
+        setApprovedMembers(all.filter((m) => m.status === "approved"));
+      } catch (err) {
+        console.error("Could not load members:", err.message);
+      }
+    }
+    loadMembers();
+  }, [isOwner, clubId, auth?.token]);
+
+  // Load meetings — visible to approved members and owner
+  useEffect(() => {
+    if (!auth?.token) return;
+    async function loadMeetings() {
+      try {
+        const data = await getClubMeetings(clubId, auth.token);
+        setMeetings(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Could not load meetings:", err.message);
+      }
+    }
+    loadMeetings();
+  }, [clubId, auth?.token]);
+
+  async function handleMemberAction(memberId, newStatus) {
+    setMemberActionLoading(memberId);
+    try {
+      await patchClubMember(clubId, memberId, newStatus, auth.token);
+      setPendingMembers((prev) => prev.filter((m) => m.id !== memberId));
+      if (newStatus === "approved") {
+        const member = pendingMembers.find((m) => m.id === memberId);
+        if (member) setApprovedMembers((prev) => [...prev, { ...member, status: "approved" }]);
+      }
+    } catch (err) {
+      console.error("Could not update member status:", err.message);
+    } finally {
+      setMemberActionLoading(null);
+    }
+  }
+
   const [isMarkingRead, setIsMarkingRead] = useState(false);
 
   async function handleAddBook(selectedBook) {
@@ -73,9 +160,7 @@ function ClubPage() {
     if (!book?.id || !auth?.token) return;
     setIsMarkingRead(true);
     try {
-      await patchClubBookStatus(auth.token, clubId, book.id, {
-        status: "read",
-      });
+      await patchClubBookStatus(auth.token, clubId, book.id, { status: "read" });
       await refetchClubBooks();
     } finally {
       setIsMarkingRead(false);
@@ -86,150 +171,44 @@ function ClubPage() {
   const readingBooks = books.filter((book) => book.status === "reading");
   const readBooks = books.filter((book) => book.status === "read");
   const currentBook = readingBooks[0] ?? null;
-  const meetings = Array.isArray(clubMeetings) ? clubMeetings : [];
-
-  // Placeholder content for sections that are not yet wired to the backend
-  const placeholderPendingApprovals = [
-    { id: "placeholder-1", name: "member #1" },
-    { id: "placeholder-2", name: "member #2" },
-  ];
-
   const displayMemberCount = memberCount ?? 0;
 
   const memberList = [
-    {
-      id: "owner",
-      name: club?.owner_username ?? "Owner",
-      isOrganiser: true,
-    },
-    { id: "m-2", name: "Jane R." },
-    { id: "m-3", name: "Aisha K." },
-    { id: "m-4", name: "Tom W." },
-    { id: "m-5", name: "Sophia L." },
+    { id: "owner", name: club?.owner_username ?? "Owner", isOrganiser: true },
+    ...approvedMembers.map((m) => ({ id: m.id, name: m.username })),
   ];
 
-  const memberAvatarColors = [
-    "#6b7b5c",
-    "#C45D3E",
-    "#7A5BA6",
-    "#8A7E54",
-    "#5C7387",
-  ];
+  const memberAvatarColors = ["#6b7b5c", "#C45D3E", "#7A5BA6", "#8A7E54", "#5C7387"];
 
   function getInitials(name) {
     if (!name) return "";
-    return name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase();
+    return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
   }
 
   function formatBookDate(dateString) {
     if (!dateString) return "";
     const d = new Date(dateString);
     if (Number.isNaN(d.getTime())) return dateString;
-    return d.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   }
 
-  function formatMeetingTime(timeString) {
-    if (!timeString) return "";
-    // Backend is likely "HH:MM:SS" (or "HH:MM:SS.ssssss"). Keep it resilient.
-    const hhmmss = String(timeString).trim().slice(0, 8);
-    const d = new Date(`1970-01-01T${hhmmss}`);
-    if (Number.isNaN(d.getTime())) return String(timeString);
-    return d.toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  function formatMeetingDate(dateString) {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return dateString;
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   }
 
-  if (isLoadingClub || isLoadingBooks) return <p className="p-8 sm:p-10">Loading...</p>;
-  if (clubError) return <p className="p-8 sm:p-10 text-red-600">{clubError}</p>;
-  if (booksError) return <p className="p-8 sm:p-10 text-red-600">{booksError}</p>;
-  if (!club) return <p className="p-8 sm:p-10">Club not found.</p>;
+  if (isLoadingClub || isLoadingBooks) return <p className="p-6">Loading...</p>;
+  if (clubError) return <p className="p-6 text-red-600">{clubError}</p>;
+  if (booksError) return <p className="p-6 text-red-600">{booksError}</p>;
+  if (!club) return <p className="p-6">Club not found.</p>;
 
   return (
-    <main
-      className="min-h-full flex flex-col"
-      style={{ backgroundColor: PAGE_BG }}
-    >
-      <ClubHeader
-        club={club}
-        creatorName={creatorName}
-        memberCount={memberCount}
-        isOwner={isOwner}
-        onEditClub={() => {
-          if (isOwner) setIsEditingClub(true);
-        }}
-      />
+    <main className="min-h-full flex flex-col" style={{ backgroundColor: PAGE_BG }}>
+      <ClubHeader club={club} creatorName={creatorName} memberCount={memberCount} />
 
-      <div className="flex-1 px-6 sm:px-10 py-10 sm:py-12 max-w-6xl w-full mx-auto space-y-10 sm:space-y-12">
-        {isOwner && isEditingClub && (
-          <EditClubForm
-            club={club}
-            token={auth?.token ?? null}
-            onSuccess={(updatedClub) => {
-              setClub(updatedClub);
-              setIsEditingClub(false);
-            }}
-            onCancel={() => setIsEditingClub(false)}
-          />
-        )}
-
-        {/* Owner-only: pending approvals at top */}
-        {isOwner && (
-          <section
-            className="rounded-2xl bg-white p-10 shadow-sm"
-            style={{
-              boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px",
-              border: "2px solid #eab308",
-            }}
-          >
-            <h2
-              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-            >
-              Pending approvals
-            </h2>
-            <ul className="list-none p-0 m-0 space-y-3">
-              {placeholderPendingApprovals.map((member) => (
-                <li
-                  key={member.id}
-                  className="flex items-center justify-between gap-3"
-                >
-                  <span className="text-sm text-[#1A1410]">
-                    {member.name}
-                  </span>
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      type="button"
-                      className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90"
-                      style={{ backgroundColor: "rgb(107, 123, 92)" }}
-                    >
-                      accept
-                    </button>
-                    <button
-                      type="button"
-                      className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90"
-                      style={{ backgroundColor: "rgb(196, 93, 62)" }}
-                    >
-                      reject
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* Owner-only: book search */}
+      <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
         <BookSearchSection
           isOwner={isOwner}
           clubBooks={books}
@@ -237,158 +216,81 @@ function ClubPage() {
           token={auth?.token ?? null}
         />
 
-        {/* Top row: on mobile About, then Currently Reading, then Members; on lg About + Members (left 2 cols, more room) | Currently Reading (right 1 col) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[auto_auto] gap-8">
-          {/* About this club: first on mobile, left and wider on lg */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[auto_auto] gap-6">
+          {/* About this club */}
           <section
-            className="order-1 lg:col-span-2 lg:row-start-1 rounded-2xl bg-white p-10 shadow-sm"
+            className="order-1 lg:order-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 rounded-2xl bg-white p-6 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
-            <h2
-              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-            >
+            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
               About this club
             </h2>
             <div className="flex items-start gap-4">
-              <div
-                className="w-16 h-16 rounded-lg flex items-center justify-center text-white text-lg font-semibold shrink-0"
-                style={{ backgroundColor: "#6b7b5c" }}
-              >
-                {(club.name || "Club")
-                  .split(/\s+/)
-                  .map((s) => s[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
+              <div className="w-16 h-16 rounded-lg flex items-center justify-center text-white text-lg font-semibold shrink-0" style={{ backgroundColor: "#6b7b5c" }}>
+                {(club.name || "Club").split(/\s+/).map((s) => s[0]).join("").toUpperCase().slice(0, 2)}
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold text-[#1A1410] text-base m-0">
-                  {club.name}
-                </h3>
+                <h3 className="font-semibold text-[#1A1410] text-base m-0">{club.name}</h3>
                 {club.description && (
-                  <p
-                    className="text-sm m-0 mt-1 line-clamp-3"
-                    style={{ color: MUTED_COLOR }}
-                  >
-                    {club.description}
-                  </p>
+                  <p className="text-sm m-0 mt-1 line-clamp-3" style={{ color: MUTED_COLOR }}>{club.description}</p>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span
-                    className="px-2 py-0.5 rounded-full border border-gray-200"
-                    style={{ color: MUTED_COLOR }}
-                  >
+                  <span className="px-2 py-0.5 rounded-full border border-gray-200" style={{ color: MUTED_COLOR }}>
                     {memberCount} member{memberCount !== 1 ? "s" : ""}
                   </span>
-                  {/* Placeholder genres until wired to backend */}
-                  <span className="px-2 py-0.5 rounded-full bg-[#f5f0d9] text-[#5f574f]">
-                    Genre A
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#f5f0d9] text-[#5f574f]">
-                    Genre B
-                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#f5f0d9] text-[#5f574f]">Genre A</span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#f5f0d9] text-[#5f574f]">Genre B</span>
                 </div>
               </div>
             </div>
-
             {!isOwner && auth?.token && (
               <div className="mt-4">
-                <JoinClubForm
-                  clubId={clubId}
-                  isPrivate={!club.is_public}
-                  onSuccess={() => window.location.reload()}
-                />
+                <JoinClubForm clubId={clubId} isPrivate={!club.is_public} onSuccess={() => window.location.reload()} />
               </div>
             )}
           </section>
 
-          {/* Currently Reading: second on mobile, right (1 col, span 2 rows) on lg — less room than About */}
+          {/* Currently Reading */}
           <section
-            className="order-2 lg:col-span-1 lg:col-start-3 lg:row-span-2 lg:row-start-1 rounded-2xl bg-white p-10 shadow-sm"
+            className="order-2 lg:order-1 lg:col-span-2 lg:row-span-2 lg:row-start-1 rounded-2xl bg-white p-6 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
-            <h2
-              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-            >
+            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
               Currently Reading
             </h2>
             {currentBook ? (
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col sm:flex-row gap-6">
                 {currentBook.cover_image ? (
-                  <img
-                    src={currentBook.cover_image}
-                    alt=""
-                    className="w-full max-w-52 aspect-[2/3] object-cover rounded-lg shrink-0"
-                  />
+                  <img src={currentBook.cover_image} alt="" className="w-full sm:w-52 h-64 sm:h-80 object-cover rounded-lg shrink-0" />
                 ) : (
-                  <div
-                    className="w-full max-w-52 aspect-[2/3] shrink-0 rounded-lg overflow-hidden flex items-end text-white text-left p-3"
-                    style={{
-                      background:
-                        "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)",
-                    }}
-                  >
+                  <div className="w-full sm:w-52 shrink-0 rounded-lg overflow-hidden flex items-end text-white text-left p-3" style={{ minHeight: 320, background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
                     <div>
-                      <div className="font-semibold text-sm leading-tight">
-                        {currentBook.title}
-                      </div>
-                      <div className="text-xs opacity-90">
-                        {currentBook.author}
-                      </div>
+                      <div className="font-semibold text-sm leading-tight">{currentBook.title}</div>
+                      <div className="text-xs opacity-90">{currentBook.author}</div>
                     </div>
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-playfair font-bold text-xl text-[#1A1410] m-0 mb-1">
-                    {currentBook.title}
-                  </h3>
-                  {currentBook.author && (
-                    <p
-                      className="text-sm m-0 mb-1"
-                      style={{ color: MUTED_COLOR }}
-                    >
-                      {currentBook.author}
-                    </p>
-                  )}
+                  <h3 className="font-playfair font-bold text-xl text-[#1A1410] m-0 mb-1">{currentBook.title}</h3>
+                  {currentBook.author && <p className="text-sm m-0 mb-1" style={{ color: MUTED_COLOR }}>{currentBook.author}</p>}
                   {(currentBook.isbn || currentBook.genre) && (
-                    <p
-                      className="text-sm m-0 mb-1"
-                      style={{ color: MUTED_COLOR }}
-                    >
-                      {currentBook.isbn && (
-                        <span>ISBN: {currentBook.isbn}</span>
-                      )}
+                    <p className="text-sm m-0 mb-1" style={{ color: MUTED_COLOR }}>
+                      {currentBook.isbn && <span>ISBN: {currentBook.isbn}</span>}
                       {currentBook.isbn && currentBook.genre && " · "}
-                      {currentBook.genre && (
-                        <span>Genre: {currentBook.genre}</span>
-                      )}
+                      {currentBook.genre && <span>Genre: {currentBook.genre}</span>}
                     </p>
                   )}
-                  {(currentBook.start_date ||
-                    currentBook.finish_date ||
-                    currentBook.added_at) && (
-                    <p
-                      className="text-xs m-0 mb-3"
-                      style={{ color: MUTED_COLOR }}
-                    >
+                  {(currentBook.start_date || currentBook.finish_date || currentBook.added_at) && (
+                    <p className="text-xs m-0 mb-3" style={{ color: MUTED_COLOR }}>
                       {[
-                        currentBook.start_date &&
-                          `Started ${formatBookDate(currentBook.start_date)}`,
-                        currentBook.finish_date &&
-                          `Finished ${formatBookDate(currentBook.finish_date)}`,
-                        currentBook.added_at &&
-                          `Added ${formatBookDate(currentBook.added_at)}`,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
+                        currentBook.start_date && `Started ${formatBookDate(currentBook.start_date)}`,
+                        currentBook.finish_date && `Finished ${formatBookDate(currentBook.finish_date)}`,
+                        currentBook.added_at && `Added ${formatBookDate(currentBook.added_at)}`,
+                      ].filter(Boolean).join(" · ")}
                     </p>
                   )}
                   {currentBook.description && (
-                    <p className="text-sm text-[#1A1410] m-0 leading-relaxed line-clamp-4">
-                      {currentBook.description}
-                    </p>
+                    <p className="text-sm text-[#1A1410] m-0 leading-relaxed">{currentBook.description}</p>
                   )}
                   {isOwner && (
                     <div className="mt-4">
@@ -407,21 +309,17 @@ function ClubPage() {
               </div>
             ) : (
               <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-                No book is currently set as reading. Add one and move it to
-                Reading.
+                No book is currently set as reading. Add one and move it to Reading.
               </p>
             )}
           </section>
 
-          {/* Members: third on mobile, left column row 2 on lg (below About) */}
+          {/* Members */}
           <section
-            className="order-3 lg:col-span-2 lg:row-start-2 rounded-2xl bg-white p-10 shadow-sm"
+            className="order-3 lg:col-span-1 lg:col-start-3 lg:row-start-2 rounded-2xl bg-white p-6 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
-            <h2
-              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-            >
+            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
               Members ({displayMemberCount})
             </h2>
             <ul className="list-none p-0 m-0 flex flex-col gap-3">
@@ -429,25 +327,14 @@ function ClubPage() {
                 <li key={member.id} className="flex items-center gap-3">
                   <div
                     className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold shrink-0"
-                    style={{
-                      backgroundColor:
-                        memberAvatarColors[index % memberAvatarColors.length],
-                    }}
+                    style={{ backgroundColor: memberAvatarColors[index % memberAvatarColors.length] }}
                   >
                     {getInitials(member.name)}
                   </div>
                   <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-[#1A1410] truncate">
-                      {member.name}
-                    </span>
+                    <span className="text-sm font-medium text-[#1A1410] truncate">{member.name}</span>
                     {member.isOrganiser && (
-                      <span
-                        className="px-2 py-0.5 rounded-full text-xs font-medium shrink-0"
-                        style={{
-                          backgroundColor: "#f5f0d9",
-                          color: "#8a7e74",
-                        }}
-                      >
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium shrink-0" style={{ backgroundColor: "#f5f0d9", color: "#8a7e74" }}>
                         Organiser
                       </span>
                     )}
@@ -455,127 +342,32 @@ function ClubPage() {
                 </li>
               ))}
             </ul>
-            <button
-              type="button"
-              className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left"
-              style={{ color: ACCENT }}
-            >
+            <button type="button" className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left" style={{ color: ACCENT }}>
               View all {displayMemberCount} members →
             </button>
           </section>
         </div>
 
-        {/* Middle row: Meetings (more space) & Historic reading */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Meetings: left, more space */}
+        {/* Historic reading & Meetings */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Historic reading */}
           <section
-            className="rounded-2xl bg-white p-10 shadow-sm lg:col-span-2 order-1"
+            className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
-            <h2
-              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-            >
-              Meetings
-            </h2>
-            <div className="space-y-3">
-              {isLoadingMeetings ? (
-                <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-                  Loading meetings…
-                </p>
-              ) : meetingsError ? (
-                <p className="text-sm m-0 text-red-600">{meetingsError}</p>
-              ) : meetings.length === 0 ? (
-                <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-                  No meetings scheduled yet.
-                </p>
-              ) : (
-                meetings.map((meeting) => {
-                  const dateLabel = formatBookDate(meeting.meeting_date);
-                  const start = formatMeetingTime(meeting.start_time);
-                  const end = formatMeetingTime(meeting.end_time);
-                  const typeLabel =
-                    meeting.meeting_type === "in_person" ? "In person" : "Virtual";
-                  const where = meeting.location?.trim() ? ` · ${meeting.location}` : "";
-
-                  return (
-                    <div
-                      key={meeting.id}
-                      className="flex items-center justify-between gap-3 text-sm"
-                    >
-                      <div className="min-w-0">
-                        <p className="m-0 text-[#1A1410]">
-                          {meeting.title || "Meeting"}
-                        </p>
-                        <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
-                          {[dateLabel, start && end ? `${start}–${end}` : start || end]
-                            .filter(Boolean)
-                            .join(" · ")}
-                          {typeLabel ? ` · ${typeLabel}${where}` : where}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0"
-                        disabled
-                        title="Booking meetings not wired yet"
-                      >
-                        book
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-            {isOwner && (
-              <div className="mt-4">
-                <ScheduleMeetingForm
-                  clubId={clubId}
-                  onSuccess={() => window.location.reload()}
-                />
-              </div>
-            )}
-          </section>
-
-          {/* Historic reading list: right, less space */}
-          <section
-            className="rounded-2xl bg-white p-10 shadow-sm lg:col-span-1 order-2"
-            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
-          >
-            <h2
-              className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-              style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-            >
+            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
               Historic reading
             </h2>
             {readBooks.length === 0 ? (
-              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-                No finished books yet.
-              </p>
+              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No finished books yet.</p>
             ) : (
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
                 {readBooks.map((book) => (
-                  <div
-                    key={book.id}
-                    className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-100"
-                    title={[book.title, book.author]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  >
+                  <div key={book.id} className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-100" title={[book.title, book.author].filter(Boolean).join(" · ")}>
                     {book.cover_image ? (
-                      <img
-                        src={book.cover_image}
-                        alt={book.title}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
                     ) : (
-                      <div
-                        className="w-full h-full flex items-end p-2 text-white text-[10px] leading-tight"
-                        style={{
-                          background:
-                            "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)",
-                        }}
-                      >
+                      <div className="w-full h-full flex items-end p-2 text-white text-[10px] leading-tight" style={{ background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
                         <span className="line-clamp-2">{book.title}</span>
                       </div>
                     )}
@@ -584,14 +376,127 @@ function ClubPage() {
               </div>
             )}
           </section>
+
+          {/* ✅ Meetings — real data from backend */}
+          <section
+            className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-1"
+            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
+                Meetings
+              </h2>
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleModal(true)}
+                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
+                  style={{ backgroundColor: ACCENT }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                  </svg>
+                  Schedule
+                </button>
+              )}
+            </div>
+
+            {meetings.length === 0 ? (
+              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No meetings scheduled yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {meetings.map((meeting) => (
+                  <div key={meeting.id} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="m-0 font-medium text-[#1A1410]">{meeting.title}</p>
+                      <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
+                        {formatMeetingDate(meeting.meeting_date)}
+                        {meeting.start_time && ` · ${meeting.start_time.slice(0, 5)}`}
+                        {meeting.meeting_type === "virtual" ? " · Virtual" : " · In person"}
+                      </p>
+                    </div>
+                    {!isOwner && (
+                      <button
+                        type="button"
+                        className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0 transition-colors"
+                      >
+                        book
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
 
-        <ClubAnnouncmentBoard
-          clubId={clubId}
-          isOwner={isOwner}
-          token={auth?.token ?? null}
-        />
+        {/* Announcements */}
+        <section className="rounded-2xl bg-white p-6 shadow-sm" style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}>
+          <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
+            Announcement&apos;s board
+          </h2>
+          <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+            No announcements yet. This space will show important updates from the organiser once announcements are connected to the backend.
+          </p>
+        </section>
+
+        {/* Owner-only: Pending approvals */}
+        {isOwner && (
+          <section
+            className="rounded-2xl bg-white p-6 shadow-sm"
+            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px", border: "2px solid #eab308" }}
+          >
+            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
+              Pending approvals {pendingMembers.length > 0 && `(${pendingMembers.length})`}
+            </h2>
+            {pendingMembers.length === 0 ? (
+              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No pending requests at the moment.</p>
+            ) : (
+              <ul className="list-none p-0 m-0 space-y-3">
+                {pendingMembers.map((member) => (
+                  <li key={member.id} className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-[#1A1410]">{member.username}</span>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        type="button"
+                        disabled={memberActionLoading === member.id}
+                        onClick={() => handleMemberAction(member.id, "approved")}
+                        className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        style={{ backgroundColor: "rgb(107, 123, 92)" }}
+                      >
+                        {memberActionLoading === member.id ? "..." : "accept"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={memberActionLoading === member.id}
+                        onClick={() => handleMemberAction(member.id, "rejected")}
+                        className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        style={{ backgroundColor: "rgb(196, 93, 62)" }}
+                      >
+                        {memberActionLoading === member.id ? "..." : "reject"}
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
       </div>
+
+      {showScheduleModal && (
+        <ScheduleMeetingModal
+          clubId={clubId}
+          onClose={() => setShowScheduleModal(false)}
+          onSuccess={() => {
+            setShowScheduleModal(false);
+            // Reload meetings after scheduling
+            getClubMeetings(clubId, auth.token)
+              .then((data) => setMeetings(Array.isArray(data) ? data : []))
+              .catch(console.error);
+          }}
+        />
+      )}
     </main>
   );
 }
