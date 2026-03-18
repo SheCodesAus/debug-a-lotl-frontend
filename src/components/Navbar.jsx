@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../hooks/use-auth";
+import { getFirstNameFromProfile } from "../utils/get-first-name";
 import Footer from "./Footer";
 
 const PRIMARY = "#b46a4f";
@@ -14,6 +15,7 @@ function NavBar() {
   const isLoggedIn = Boolean(auth?.token && auth?.username);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const firstName = getFirstNameFromProfile(auth) ?? auth.username ?? "User";
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -26,7 +28,8 @@ function NavBar() {
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("username");
     window.localStorage.removeItem("user_id");
-    setAuth({ token: null, user_id: null, username: null });
+    window.localStorage.removeItem("name");
+    setAuth({ token: null, user_id: null, username: null, name: null });
     setMobileMenuOpen(false);
     navigate("/");
   };
@@ -67,7 +70,7 @@ function NavBar() {
               className="h-6 w-auto object-contain"
               aria-hidden="true"
             />
-            Hi, {auth.username}
+            Hi, {firstName}
           </span>
           <button
             type="button"
