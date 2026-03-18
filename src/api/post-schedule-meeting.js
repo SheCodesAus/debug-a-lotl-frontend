@@ -2,13 +2,13 @@
 // Returns the meeting data or throws with a helpful error.
 async function postScheduleMeeting(clubId, meetingData, token) {
     const baseUrl = import.meta.env.VITE_API_URL ?? "";
-    const url = `${baseUrl}/api/clubs/${clubId}/meetings/`;
+    const url = `${baseUrl}/clubs/${clubId}/meetings/`;
 
     const response = await fetch(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Token ${token}`,
         },
         body: JSON.stringify(meetingData),
     });

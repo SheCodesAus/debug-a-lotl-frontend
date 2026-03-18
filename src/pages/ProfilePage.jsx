@@ -162,7 +162,7 @@ function ProfilePage() {
   const clubsOwned =
     userId != null ? clubs.filter((c) => c.owner === userId) : [];
   const clubsMemberOf =
-    userId != null ? clubs : [];
+    userId != null ? clubs.filter((c) => c.owner !== userId) : [];
 
   const joinedFormatted = profile?.date_joined
     ? new Date(profile.date_joined).toLocaleDateString(undefined, {
