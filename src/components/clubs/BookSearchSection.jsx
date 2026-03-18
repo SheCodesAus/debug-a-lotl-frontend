@@ -14,7 +14,7 @@ const TEXT_COLOR = "#1A1410";
 -Let owners click "add to club"
 */
 
-function BookSearchSection({ isOwner, clubBooks, onAddBook }) {
+function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
   //What user types in the search box
   const [query, setQuery] = useState("");
   //Results we receive from Google Books
@@ -44,9 +44,8 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook }) {
     return clubBooks.some((book) => book.google_books_id === googleBookId);
   }
 
-  //runs when user submits search form
   async function handleSearch(event) {
-    event.preventDefault(); //stops full page reload
+    event.preventDefault();
     setError("");
 
     const cleanQuery = query.trim();
@@ -57,7 +56,7 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook }) {
 
     try {
       setIsLoading(true);
-      const books = await getGoogleBooks(cleanQuery);
+      const books = await getGoogleBooks(cleanQuery, token ?? null);
       setResults(books);
     } catch (err) {
       setError(err.message || "Could not search books.");
@@ -66,7 +65,6 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook }) {
     }
   }
 
-  // Runs when owner clicks Add button on one result
   async function handleAddClick(book) {
     try {
       await onAddBook(book);
@@ -94,7 +92,7 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook }) {
           type="text"
           placeholder="Search by title or author"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(e) => setQuery(e.target.value)}
         />
         <button
           type="submit"
