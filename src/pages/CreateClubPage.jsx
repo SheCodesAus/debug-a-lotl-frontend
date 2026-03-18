@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import postCreateClub from "../api/post-create-club";
@@ -66,6 +66,12 @@ function CreateClubPage() {
 
   const isLoggedIn = Boolean(auth?.token);
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/register", { replace: true });
+    }
+  }, [isLoggedIn, navigate]);
+
   const labelStyle = {
     fontSize: 13,
     color: MUTED_COLOR,
@@ -86,16 +92,7 @@ function CreateClubPage() {
     "w-full rounded-lg outline-none box-border transition focus:border-[#1A1410]/40 focus:ring-1 focus:ring-[#1A1410]/20 text-left";
 
   if (!isLoggedIn) {
-    return (
-      <div
-        className="min-h-full flex flex-col items-center justify-center px-4 py-12 font-source-sans"
-        style={{ backgroundColor: "#fffaf6" }}
-      >
-        <p className="text-[#1A1410]" style={{ color: MUTED_COLOR }}>
-          Please log in to create a book club.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (
