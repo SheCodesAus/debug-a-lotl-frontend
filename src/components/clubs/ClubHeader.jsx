@@ -12,9 +12,16 @@
  * (px-4 sm:px-6 max-w-6xl) so the hero title lines up with the content cards
  * below on all breakpoints.
  *
- * Props: club (object), creatorName (string | null), memberCount (number, optional).
+ * Props: club (object), creatorName (string | null), memberCount (number, optional),
+ * isOwner (boolean, optional), onEditClub (function, optional).
  */
-function ClubHeader({ club, creatorName, memberCount = 0 }) {
+function ClubHeader({
+  club,
+  creatorName,
+  memberCount = 0,
+  isOwner = false,
+  onEditClub,
+}) {
   if (!club) return null;
 
   const visibility = club.is_public ? "Public" : "Private";
@@ -42,7 +49,8 @@ function ClubHeader({ club, creatorName, memberCount = 0 }) {
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
       {/* Same content wrapper as body (px-4 sm:px-6 max-w-6xl w-full mx-auto) so hero title lines up with cards */}
       <div className="px-4 sm:px-6 max-w-6xl w-full mx-auto relative min-h-[220px] sm:min-h-[260px] flex items-center">
-        <div className="min-w-0">
+        <div className="min-w-0 w-full flex items-start justify-between gap-4">
+          <div className="min-w-0">
           <h1 className="font-lora font-bold text-3xl sm:text-4xl lg:text-5xl text-white m-0 truncate">
             {club.name}
           </h1>
@@ -63,6 +71,17 @@ function ClubHeader({ club, creatorName, memberCount = 0 }) {
               </p>
             )}
           </div>
+          </div>
+
+          {isOwner && (
+            <button
+              type="button"
+              onClick={onEditClub}
+              className="shrink-0 rounded-lg bg-white/15 text-white font-semibold px-4 py-2 text-sm border border-white/25 backdrop-blur-sm hover:bg-white/20 transition"
+            >
+              Edit club
+            </button>
+          )}
         </div>
       </div>
     </header>

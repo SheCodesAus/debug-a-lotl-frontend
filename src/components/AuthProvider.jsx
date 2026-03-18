@@ -14,6 +14,7 @@ export const AuthProvider = (props) => {
       ? Number(window.localStorage.getItem("user_id"))
       : null,
     username: window.localStorage.getItem("username"),
+    name: window.localStorage.getItem("name"),
   });
 
   // When we have a token but missing username or user_id (e.g. old session or page refresh), fetch the current user
@@ -24,10 +25,18 @@ export const AuthProvider = (props) => {
       .then((data) => {
         const username = data.username ?? null;
         const user_id = data.id ?? null;
-        if (username != null || user_id != null) {
-          if (username != null) window.localStorage.setItem("username", username);
-          if (user_id != null) window.localStorage.setItem("user_id", String(user_id));
-          setAuth((prev) => ({ ...prev, username, user_id }));
+        const name = data.name ?? null;
+        if (username != null || user_id != null || name != null) {
+          if (username != null) {
+            window.localStorage.setItem("username", username);
+          }
+          if (user_id != null) {
+            window.localStorage.setItem("user_id", String(user_id));
+          }
+          if (name != null) {
+            window.localStorage.setItem("name", name);
+          }
+          setAuth((prev) => ({ ...prev, username, user_id, name }));
         }
       })
       .catch(() => {
@@ -35,7 +44,8 @@ export const AuthProvider = (props) => {
         window.localStorage.removeItem("token");
         window.localStorage.removeItem("username");
         window.localStorage.removeItem("user_id");
-        setAuth({ token: null, user_id: null, username: null });
+        window.localStorage.removeItem("name");
+        setAuth({ token: null, user_id: null, username: null, name: null });
       });
   }, [auth.token, auth.username, auth.user_id]);
 

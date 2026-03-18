@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
+import { getFirstNameFromProfile } from "../utils/get-first-name";
 import getCurrentUser from "../api/get-current-user.js";
 import patchCurrentUser from "../api/patch-current-user.js";
 import getClubs from "../api/get-clubs.js";
@@ -171,7 +172,10 @@ function ProfilePage() {
       })
     : null;
 
-  const displayName = profile?.username ?? "User";
+  const displayName =
+    getFirstNameFromProfile(profile) ??
+    profile?.username ??
+    "User";
   const initials = displayName
     .split(/\s+/)
     .map((w) => w.charAt(0))

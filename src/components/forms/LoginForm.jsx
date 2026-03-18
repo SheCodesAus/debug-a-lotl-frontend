@@ -36,10 +36,18 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
           return;
         }
         const user_id = response.user_id ?? null;
+        const name = response.name ?? null;
         window.localStorage.setItem("token", response.token);
         window.localStorage.setItem("username", response.username);
-        if (user_id != null) window.localStorage.setItem("user_id", String(user_id));
-        setAuth({ token: response.token, user_id, username: response.username });
+        if (user_id != null)
+          window.localStorage.setItem("user_id", String(user_id));
+        if (name != null) window.localStorage.setItem("name", name);
+        setAuth({
+          token: response.token,
+          user_id,
+          username: response.username,
+          name,
+        });
         navigate("/");
       })
       .catch((err) => {
