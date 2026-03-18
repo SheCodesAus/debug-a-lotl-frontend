@@ -12,6 +12,7 @@ import ScheduleMeetingForm from "../components/forms/ScheduleMeetingForm";
 import getClubMembers from "../api/get-club-members.js";
 import patchClubMember from "../api/patch-club-member.js";
 import getClubMeetings from "../api/get-club-meetings.js";
+import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard.jsx";
 
 const ACCENT = "#C45D3E";
 const MUTED_COLOR = "#8A7E74";
@@ -209,6 +210,52 @@ function ClubPage() {
       <ClubHeader club={club} creatorName={creatorName} memberCount={memberCount} />
 
       <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
+        {/* Owner-only: Pending approvals (top) */}
+        {isOwner && (
+          <section
+            className="rounded-2xl bg-white p-10 shadow-sm"
+            style={{
+              boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px",
+              border: "2px solid #eab308",
+            }}
+          >
+            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
+              Pending approvals {pendingMembers.length > 0 && `(${pendingMembers.length})`}
+            </h2>
+            {pendingMembers.length === 0 ? (
+              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No pending requests at the moment.</p>
+            ) : (
+              <ul className="list-none p-0 m-0 space-y-3">
+                {pendingMembers.map((member) => (
+                  <li key={member.id} className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-[#1A1410]">{member.username}</span>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        type="button"
+                        disabled={memberActionLoading === member.id}
+                        onClick={() => handleMemberAction(member.id, "approved")}
+                        className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        style={{ backgroundColor: "rgb(107, 123, 92)" }}
+                      >
+                        {memberActionLoading === member.id ? "..." : "accept"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={memberActionLoading === member.id}
+                        onClick={() => handleMemberAction(member.id, "rejected")}
+                        className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        style={{ backgroundColor: "rgb(196, 93, 62)" }}
+                      >
+                        {memberActionLoading === member.id ? "..." : "reject"}
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
         <BookSearchSection
           isOwner={isOwner}
           clubBooks={books}
@@ -219,7 +266,7 @@ function ClubPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[auto_auto] gap-6">
           {/* About this club */}
           <section
-            className="order-1 lg:order-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 rounded-2xl bg-white p-6 shadow-sm"
+            className="order-1 lg:col-span-2 lg:row-start-1 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
@@ -232,7 +279,7 @@ function ClubPage() {
               <div className="min-w-0">
                 <h3 className="font-semibold text-[#1A1410] text-base m-0">{club.name}</h3>
                 {club.description && (
-                  <p className="text-sm m-0 mt-1 line-clamp-3" style={{ color: MUTED_COLOR }}>{club.description}</p>
+                  <p className="text-sm m-0 mt-1 line-clamp-2" style={{ color: MUTED_COLOR }}>{club.description}</p>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
                   <span className="px-2 py-0.5 rounded-full border border-gray-200" style={{ color: MUTED_COLOR }}>
@@ -252,36 +299,37 @@ function ClubPage() {
 
           {/* Currently Reading */}
           <section
-            className="order-2 lg:order-1 lg:col-span-2 lg:row-span-2 lg:row-start-1 rounded-2xl bg-white p-6 shadow-sm"
+            className="order-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-2 rounded-2xl bg-white p-10 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
               Currently Reading
             </h2>
             {currentBook ? (
-              <div className="flex flex-col sm:flex-row gap-6">
+              <div className="space-y-3">
                 {currentBook.cover_image ? (
-                  <img src={currentBook.cover_image} alt="" className="w-full sm:w-52 h-64 sm:h-80 object-cover rounded-lg shrink-0" />
+                  <img src={currentBook.cover_image} alt="" className="w-full max-w-[260px] mx-auto h-auto object-cover rounded-lg" />
                 ) : (
-                  <div className="w-full sm:w-52 shrink-0 rounded-lg overflow-hidden flex items-end text-white text-left p-3" style={{ minHeight: 320, background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
+                  <div className="w-full max-w-[260px] mx-auto rounded-lg overflow-hidden flex items-end text-white text-left p-3" style={{ minHeight: 280, background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
                     <div>
                       <div className="font-semibold text-sm leading-tight">{currentBook.title}</div>
                       <div className="text-xs opacity-90">{currentBook.author}</div>
                     </div>
                   </div>
                 )}
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-playfair font-bold text-xl text-[#1A1410] m-0 mb-1">{currentBook.title}</h3>
-                  {currentBook.author && <p className="text-sm m-0 mb-1" style={{ color: MUTED_COLOR }}>{currentBook.author}</p>}
+
+                <div className="min-w-0">
+                  <h3 className="font-playfair font-bold text-xl text-[#1A1410] m-0">{currentBook.title}</h3>
+                  {currentBook.author && <p className="text-sm m-0 mt-1" style={{ color: MUTED_COLOR }}>{currentBook.author}</p>}
                   {(currentBook.isbn || currentBook.genre) && (
-                    <p className="text-sm m-0 mb-1" style={{ color: MUTED_COLOR }}>
+                    <p className="text-sm m-0 mt-1" style={{ color: MUTED_COLOR }}>
                       {currentBook.isbn && <span>ISBN: {currentBook.isbn}</span>}
                       {currentBook.isbn && currentBook.genre && " · "}
                       {currentBook.genre && <span>Genre: {currentBook.genre}</span>}
                     </p>
                   )}
                   {(currentBook.start_date || currentBook.finish_date || currentBook.added_at) && (
-                    <p className="text-xs m-0 mb-3" style={{ color: MUTED_COLOR }}>
+                    <p className="text-xs m-0 mt-2" style={{ color: MUTED_COLOR }}>
                       {[
                         currentBook.start_date && `Started ${formatBookDate(currentBook.start_date)}`,
                         currentBook.finish_date && `Finished ${formatBookDate(currentBook.finish_date)}`,
@@ -290,7 +338,9 @@ function ClubPage() {
                     </p>
                   )}
                   {currentBook.description && (
-                    <p className="text-sm text-[#1A1410] m-0 leading-relaxed">{currentBook.description}</p>
+                    <p className="text-sm m-0 mt-3 leading-relaxed italic line-clamp-4" style={{ color: MUTED_COLOR }}>
+                      “{currentBook.description}”
+                    </p>
                   )}
                   {isOwner && (
                     <div className="mt-4">
@@ -316,7 +366,7 @@ function ClubPage() {
 
           {/* Members */}
           <section
-            className="order-3 lg:col-span-1 lg:col-start-3 lg:row-start-2 rounded-2xl bg-white p-6 shadow-sm"
+            className="order-3 lg:col-span-2 lg:row-start-2 rounded-2xl bg-white p-10 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
@@ -350,36 +400,9 @@ function ClubPage() {
 
         {/* Historic reading & Meetings */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Historic reading */}
-          <section
-            className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2"
-            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
-          >
-            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
-              Historic reading
-            </h2>
-            {readBooks.length === 0 ? (
-              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No finished books yet.</p>
-            ) : (
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                {readBooks.map((book) => (
-                  <div key={book.id} className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-100" title={[book.title, book.author].filter(Boolean).join(" · ")}>
-                    {book.cover_image ? (
-                      <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-end p-2 text-white text-[10px] leading-tight" style={{ background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
-                        <span className="line-clamp-2">{book.title}</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
           {/* ✅ Meetings — real data from backend */}
           <section
-            className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-1"
+            className="rounded-2xl bg-white p-10 shadow-sm lg:col-span-2"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <div className="flex items-center justify-between mb-4">
@@ -428,60 +451,42 @@ function ClubPage() {
               </div>
             )}
           </section>
-        </div>
 
-        {/* Announcements */}
-        <section className="rounded-2xl bg-white p-6 shadow-sm" style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}>
-          <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
-            Announcement&apos;s board
-          </h2>
-          <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-            No announcements yet. This space will show important updates from the organiser once announcements are connected to the backend.
-          </p>
-        </section>
-
-        {/* Owner-only: Pending approvals */}
-        {isOwner && (
+          {/* Historic reading */}
           <section
-            className="rounded-2xl bg-white p-6 shadow-sm"
-            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px", border: "2px solid #eab308" }}
+            className="rounded-2xl bg-white p-10 shadow-sm lg:col-span-1"
+            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
-              Pending approvals {pendingMembers.length > 0 && `(${pendingMembers.length})`}
+              Historic reading
             </h2>
-            {pendingMembers.length === 0 ? (
-              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No pending requests at the moment.</p>
+            {readBooks.length === 0 ? (
+              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No finished books yet.</p>
             ) : (
-              <ul className="list-none p-0 m-0 space-y-3">
-                {pendingMembers.map((member) => (
-                  <li key={member.id} className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-[#1A1410]">{member.username}</span>
-                    <div className="flex gap-2 shrink-0">
-                      <button
-                        type="button"
-                        disabled={memberActionLoading === member.id}
-                        onClick={() => handleMemberAction(member.id, "approved")}
-                        className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
-                        style={{ backgroundColor: "rgb(107, 123, 92)" }}
-                      >
-                        {memberActionLoading === member.id ? "..." : "accept"}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={memberActionLoading === member.id}
-                        onClick={() => handleMemberAction(member.id, "rejected")}
-                        className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
-                        style={{ backgroundColor: "rgb(196, 93, 62)" }}
-                      >
-                        {memberActionLoading === member.id ? "..." : "reject"}
-                      </button>
-                    </div>
-                  </li>
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-4 gap-3">
+                {readBooks.map((book) => (
+                  <div key={book.id} className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-100" title={[book.title, book.author].filter(Boolean).join(" · ")}>
+                    {book.cover_image ? (
+                      <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-end p-2 text-white text-[10px] leading-tight" style={{ background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
+                        <span className="line-clamp-2">{book.title}</span>
+                      </div>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </section>
-        )}
+        </div>
+
+        <div className="space-y-8">
+          <ClubAnnouncmentBoard
+            clubId={clubId}
+            isOwner={isOwner}
+            token={auth?.token ?? null}
+          />
+        </div>
       </div>
 
       {showScheduleModal && (
