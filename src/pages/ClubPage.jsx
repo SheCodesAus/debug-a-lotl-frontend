@@ -337,9 +337,9 @@ function ClubPage() {
             </div>
             
             {/* membership_status controls what shows here */}
-            {!isOwner && auth?.token && club.membership_status === null && (
+            {!isOwner && auth?.token && !club.membership_status && (
               <div className="mt-4">
-                <JoinClubForm clubId={clubId} isPrivate={!club.is_public} onSuccess={() => window.location.reload()} />
+                <JoinClubForm clubId={clubId} isPrivate={!club.is_public} onSuccess={() => setTimeout(() => window.location.reload(), 1500)} />
               </div>
             )}
             {!isOwner && auth?.token && club.membership_status === "pending" && (
