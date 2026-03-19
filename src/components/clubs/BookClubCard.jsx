@@ -3,6 +3,7 @@ function BookClubCard({ club, compact = false, currentBook = null }) {
 
   const coverUrl = currentBook?.cover_image || "";
   const coverAlt = currentBook?.title ? `${currentBook.title} cover` : "Current book cover";
+  const isInactive = club.is_active === false;
 
   return (
     <article
@@ -26,6 +27,14 @@ function BookClubCard({ club, compact = false, currentBook = null }) {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.65)] via-[rgba(0,0,0,0.35)] to-transparent" />
+        {isInactive && (
+          <span
+            className="absolute top-2 left-2 z-20 rounded-full text-[10px] px-2 py-1 pointer-events-none"
+            style={{ backgroundColor: "rgb(196, 93, 62)", color: "white" }}
+          >
+            Inactive
+          </span>
+        )}
         <div className={compact ? "absolute inset-x-2 bottom-2" : "absolute inset-x-4 bottom-4"}>
           <h2
             className={

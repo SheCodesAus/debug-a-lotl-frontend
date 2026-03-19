@@ -12,8 +12,10 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
     name: club?.name ?? "",
     description: club?.description ?? "",
     banner_image: club?.banner_image ?? "",
+    is_active: club?.is_active ?? true,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const [error, setError] = useState(null);
 
   const handleChange = (event) => {
@@ -45,15 +47,38 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
     }
   };
 
+  async function handleToggleActive(nextValue) {
+    if (!token || !club?.id) return;
+
+    if (fields.is_active && !nextValue) {
+      const ok = window.confirm(
+        "Are you sure you want to deactivate this club? It will disappear from the club list."
+      );
+      if (!ok) return;
+    }
+
+    setIsTogglingStatus(true);
+    setError(null);
+    try {
+      const updated = await patchClub(token, club.id, { is_active: nextValue });
+      setFields((prev) => ({ ...prev, is_active: updated?.is_active ?? nextValue }));
+      if (onSuccess) onSuccess(updated);
+    } catch (err) {
+      setError(err.message || "Could not update club status.");
+    } finally {
+      setIsTogglingStatus(false);
+    }
+  }
+
   const labelStyle = {
     fontSize: 13,
     color: MUTED_COLOR,
     letterSpacing: "0.5px",
-    marginBottom: 8,
+    marginBottom: 20,
   };
 
   const inputStyle = {
-    padding: "10px 14px",
+    padding: "12px 16px",
     borderRadius: 8,
     border: `1.5px solid ${INPUT_BORDER}`,
     backgroundColor: INPUT_BG,
@@ -66,7 +91,7 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
 
   return (
     <form
-      className="rounded-2xl bg-white p-10 shadow-sm space-y-4"
+      className="rounded-2xl bg-white p-12 shadow-sm space-y-6"
       style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
       onSubmit={handleSubmit}
     >
@@ -83,7 +108,7 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-5">
         <div>
           <label
             className="block uppercase font-semibold w-full"
@@ -145,6 +170,48 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
         </div>
       </div>
 
+      <div className="rounded-xl border border-gray-100 bg-[#fffaf6] px-5 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR }}>
+              Club status
+            </p>
+            <p className="text-sm m-0 mt-1" style={{ color: TEXT_COLOR }}>
+              {fields.is_active ? "Active" : "Inactive"}
+            </p>
+            <p className="text-xs m-0 mt-1" style={{ color: MUTED_COLOR }}>
+              Deactivated clubs won’t appear in the club list.
+            </p>
+          </div>
+
+          <label className="inline-flex items-center gap-2 shrink-0 select-none">
+            <span className="text-xs font-semibold" style={{ color: MUTED_COLOR }}>
+              {fields.is_active ? "Active" : "Inactive"}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!!fields.is_active}
+              aria-label="Toggle club active status"
+              onClick={() => handleToggleActive(!fields.is_active)}
+              disabled={isSaving || isTogglingStatus}
+              className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black/20 disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: fields.is_active
+                  ? "rgb(107, 123, 92)"
+                  : "rgb(196, 93, 62)",
+              }}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  fields.is_active ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </label>
+        </div>
+      </div>
+
       <div className="flex items-center justify-end gap-3 pt-2">
         {onCancel && (
           <button
@@ -161,7 +228,7 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
           type="submit"
           className="px-4 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           style={{ backgroundColor: ACCENT }}
-          disabled={isSaving}
+          disabled={isSaving || isTogglingStatus}
         >
           {isSaving ? "Saving…" : "Save changes"}
         </button>
