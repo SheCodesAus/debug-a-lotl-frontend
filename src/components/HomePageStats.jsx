@@ -2,6 +2,9 @@
  * Stats section ready for future backend: Book Clubs uses data from parent (clubs list).
  * Active Readers and Books Read Together need a stats API – they show 0 until wired up.
  */
+import { useEffect, useState } from "react";
+import getHomepageStats from "../api/get-homepage-stats";
+
 const statConfig = [
   { key: "books_read_together", label: "Books Read Together", color: "#6d8396" },
   { key: "active_readers", label: "Active Readers", color: "#7aaba1" },
@@ -9,7 +12,46 @@ const statConfig = [
 ];
 
 function HomePageStats({ bookClubsCount = 0 }) {
-  const getValue = (item) => (item.fromProp ? bookClubsCount : 0);
+  const [stats, setStats] = useState({
+    active_readers: null,
+    total_books_read: null,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getHomepageStats()
+      .then((data) => {
+        if (cancelled) return;
+        setStats({
+          active_readers:
+            typeof data?.active_readers === "number" ? data.active_readers : 0,
+          total_books_read:
+            typeof data?.total_books_read === "number" ? data.total_books_read : 0,
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setStats({ active_readers: 0, total_books_read: 0 });
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const getValue = (item) => {
+    if (item.fromProp) return bookClubsCount;
+    if (loading) return "—";
+    if (item.key === "active_readers") return stats.active_readers ?? 0;
+    if (item.key === "books_read_together") return stats.total_books_read ?? 0;
+    return 0;
+  };
 
   return (
     <section className="pt-0 pb-16 sm:pb-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[rgb(253,252,250)]">
