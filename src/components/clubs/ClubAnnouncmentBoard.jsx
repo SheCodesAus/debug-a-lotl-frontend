@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import getClubAnnouncements from "../../api/get-club-announcements";
 import postClubAnnouncement from "../../api/post-club-announcement";
+import patchClubAnnouncement from "../../api/patch-club-announcement";
 
 const MUTED_COLOR = "#8A7E74";
 const BORDER_GREEN = "#6b7b5c"; // site green used on ClubPage (current book card, avatars)
@@ -23,6 +24,12 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token }) {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  const [editingId, setEditingId] = useState(null);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftMessage, setDraftMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const refetch = useCallback(async () => {
     if (!clubId) return;
@@ -64,6 +71,46 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token }) {
       setSubmitError(err.message ?? "Failed to post announcement.");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  function startEditing(ann) {
+    if (!isOwner) return;
+    setSaveError("");
+    setEditingId(ann?.id ?? null);
+    setDraftTitle((ann?.title ?? "").toString());
+    setDraftMessage((ann?.message ?? "").toString());
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+    setDraftTitle("");
+    setDraftMessage("");
+    setSaveError("");
+    setIsSaving(false);
+  }
+
+  async function saveEditing(announcementId) {
+    if (!token || !isOwner) return;
+    const trimmedTitle = draftTitle.trim();
+    const trimmedMessage = draftMessage.trim();
+    if (!trimmedTitle && !trimmedMessage) return;
+
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      await patchClubAnnouncement(
+        clubId,
+        announcementId,
+        { title: trimmedTitle, message: trimmedMessage },
+        token,
+      );
+      await refetch();
+      cancelEditing();
+    } catch (err) {
+      setSaveError(err.message ?? "Failed to update announcement.");
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -157,18 +204,107 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token }) {
                     backgroundColor: "rgba(107, 123, 92, 0.06)",
                   }}
                 >
-                  <p className="text-xs m-0 mb-1" style={{ color: MUTED_COLOR }}>
-                    {formatSentAt(ann.sent_at)}
-                  </p>
-                  {ann.title ? (
-                    <h3
-                      className="text-sm font-semibold m-0 mb-1"
-                      style={{ color: BORDER_GREEN }}
-                    >
-                      {ann.title}
-                    </h3>
-                  ) : null}
-                  <p className="text-sm m-0 whitespace-pre-wrap">{ann.message}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-xs m-0 mb-1" style={{ color: MUTED_COLOR }}>
+                      {formatSentAt(ann.sent_at)}
+                    </p>
+                    {isOwner && (
+                      <button
+                        type="button"
+                        onClick={() => startEditing(ann)}
+                        disabled={isSaving || (editingId !== null && editingId !== ann.id)}
+                        className="text-xs font-semibold px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ color: MUTED_COLOR }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+
+                  {editingId === ann.id ? (
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <label
+                          htmlFor={`edit-announcement-title-${ann.id}`}
+                          className="block text-xs font-medium mb-1"
+                          style={{ color: MUTED_COLOR }}
+                        >
+                          Title (optional)
+                        </label>
+                        <input
+                          id={`edit-announcement-title-${ann.id}`}
+                          type="text"
+                          value={draftTitle}
+                          onChange={(e) => setDraftTitle(e.target.value)}
+                          placeholder="e.g. Next meeting"
+                          className="w-full text-sm px-3 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          maxLength={255}
+                          disabled={isSaving}
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor={`edit-announcement-message-${ann.id}`}
+                          className="block text-xs font-medium mb-1"
+                          style={{ color: MUTED_COLOR }}
+                        >
+                          Message
+                        </label>
+                        <textarea
+                          id={`edit-announcement-message-${ann.id}`}
+                          value={draftMessage}
+                          onChange={(e) => setDraftMessage(e.target.value)}
+                          placeholder="Write your announcement..."
+                          rows={3}
+                          className="w-full text-sm px-3 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-200 resize-y"
+                          required
+                          disabled={isSaving}
+                        />
+                      </div>
+
+                      {saveError && (
+                        <p className="text-sm text-red-600 m-0">{saveError}</p>
+                      )}
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => saveEditing(ann.id)}
+                          disabled={
+                            isSaving ||
+                            (!draftTitle.trim() && !draftMessage.trim())
+                          }
+                          className="text-sm font-semibold px-4 py-2 rounded bg-[#C45D3E] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isSaving ? "Saving…" : "Save"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditing}
+                          disabled={isSaving}
+                          className="text-sm font-semibold px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{ color: MUTED_COLOR }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {ann.title ? (
+                        <h3
+                          className="text-sm font-semibold m-0 mb-1"
+                          style={{ color: BORDER_GREEN }}
+                        >
+                          {ann.title}
+                        </h3>
+                      ) : null}
+                      <p className="text-sm m-0 whitespace-pre-wrap">
+                        {ann.message}
+                      </p>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
