@@ -1,8 +1,8 @@
 /**
- * Adds a book to a club. Owner only. Book is created with status "reading" so it appears in Currently Reading.
+ * Adds a book to a club. Owner only.
  * Uses backend endpoint POST /clubs/{id}/books/
  * @param {string} token - Auth token (required).
- * @param {Object} payload - Must include club_id, google_books_id, title; optional author, description, cover_image, isbn, genre.
+ * @param {Object} payload - Must include club_id, google_books_id, title; optional author, description, cover_image, isbn, genre, status.
  * @returns {Promise<Object>} Created club book object.
  */
 async function postClubBook(token, payload) {
@@ -18,7 +18,7 @@ async function postClubBook(token, payload) {
     cover_image: payload.cover_image ?? "",
     isbn: payload.isbn ?? "",
     genre: payload.genre ?? "",
-    status: "reading",
+    status: payload.status ?? "to_read",
   };
 
   const response = await fetch(url, {
