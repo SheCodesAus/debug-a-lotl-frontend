@@ -1,5 +1,8 @@
-function BookClubCard({ club, compact = false }) {
+function BookClubCard({ club, compact = false, currentBook = null }) {
   if (!club) return null;
+
+  const coverUrl = currentBook?.cover_image || "";
+  const coverAlt = currentBook?.title ? `${currentBook.title} cover` : "Current book cover";
 
   return (
     <article
@@ -10,7 +13,7 @@ function BookClubCard({ club, compact = false }) {
       }
     >
       {/* Hero image with overlay title – shorter height */}
-      <div className="relative w-full bg-gray-100 aspect-[4/3]">
+      <div className={compact ? "relative w-full bg-gray-100 aspect-[16/10]" : "relative w-full bg-gray-100 aspect-[16/9]"}>
         {club.banner_image ? (
           <img
             src={club.banner_image}
@@ -40,20 +43,27 @@ function BookClubCard({ club, compact = false }) {
       <div
         className={
           compact
-            ? "px-3 py-3 sm:py-4 bg-white/90 h-[7.5rem] flex flex-col"
-            : "px-5 py-5 sm:py-6 bg-white/90 h-[8.5rem] flex flex-col"
+            ? "px-3 py-3 sm:py-4 bg-white/90 h-[8.75rem] flex flex-col"
+            : "px-5 py-5 sm:py-6 bg-white/90 h-[10.5rem] flex flex-col"
         }
       >
         <div className={compact ? "flex gap-2 items-stretch flex-1 min-h-0" : "flex gap-4 items-stretch flex-1 min-h-0"}>
-          {/* Left: current book placeholder */}
+          {/* Left: current book cover (fallback to placeholder) */}
           <div
             className={
               compact
-                ? "w-12 h-12 flex-shrink-0 rounded-md border border-dashed border-[rgba(224,122,95,0.35)] bg-[rgb(253,252,250)] flex items-center justify-center"
-                : "w-20 sm:w-24 flex-shrink-0 rounded-lg border border-dashed border-[rgba(224,122,95,0.35)] bg-[rgb(253,252,250)] flex items-center justify-center"
+                ? "w-12 h-[4.25rem] flex-shrink-0 rounded-md border border-dashed border-[rgba(224,122,95,0.35)] bg-[rgb(253,252,250)] overflow-hidden flex items-center justify-center"
+                : "w-20 sm:w-24 h-full flex-shrink-0 rounded-lg border border-dashed border-[rgba(224,122,95,0.35)] bg-[rgb(253,252,250)] overflow-hidden flex items-center justify-center"
             }
           >
-            {compact ? (
+            {coverUrl ? (
+              <img
+                src={coverUrl}
+                alt={coverAlt}
+                className="w-full h-full object-contain bg-[rgb(253,252,250)]"
+                loading="lazy"
+              />
+            ) : compact ? (
               <span className="text-[8px] text-[#606060] font-nunito">Book</span>
             ) : (
               <p className="text-[10px] sm:text-xs text-[#606060] text-center font-nunito px-2 leading-snug">
