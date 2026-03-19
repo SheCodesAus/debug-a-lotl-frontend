@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import getClubs from "../api/get-clubs";
 import BookClubCard from "../components/clubs/BookClubCard";
+import useClubsCurrentBooks from "../hooks/use-clubs-current-books";
 
 const ACCENT = "#e07a5f";
 const DARK = "#303030";
@@ -31,14 +32,16 @@ function ClubListPage() {
 
   const filteredClubs = useMemo(() => {
     let result = clubs;
-    if (visibilityFilter === "public") result = result.filter((c) => c.is_public === true);
-    else if (visibilityFilter === "private") result = result.filter((c) => !c.is_public);
+    if (visibilityFilter === "public")
+      result = result.filter((c) => c.is_public === true);
+    else if (visibilityFilter === "private")
+      result = result.filter((c) => !c.is_public);
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       result = result.filter(
         (c) =>
           (c.name && c.name.toLowerCase().includes(q)) ||
-          (c.description && c.description.toLowerCase().includes(q))
+          (c.description && c.description.toLowerCase().includes(q)),
       );
     }
     return result;
@@ -46,7 +49,13 @@ function ClubListPage() {
 
   const displayedCount = page * PAGE_SIZE;
   const displayedClubs = filteredClubs.slice(0, displayedCount);
-  const hasMore = filteredClubs.length > PAGE_SIZE && displayedCount < filteredClubs.length;
+  const hasMore =
+    filteredClubs.length > PAGE_SIZE && displayedCount < filteredClubs.length;
+
+  const { currentBooksByClubId } = useClubsCurrentBooks(
+    displayedClubs.map((c) => c?.id).filter(Boolean),
+    auth?.token ?? null,
+  );
 
   useEffect(() => {
     setPage(1);
@@ -111,7 +120,9 @@ function ClubListPage() {
 
           {/* Public / Private filter */}
           <div className="flex flex-wrap items-center gap-2 mb-8 sm:mb-10">
-            <span className="font-nunito text-sm text-[#606060] mr-1">Show:</span>
+            <span className="font-nunito text-sm text-[#606060] mr-1">
+              Show:
+            </span>
             {[
               { value: "all", label: "All clubs" },
               { value: "public", label: "Public" },
@@ -124,8 +135,16 @@ function ClubListPage() {
                 className="px-4 py-2 rounded-lg font-nunito text-sm font-medium transition-colors border"
                 style={
                   visibilityFilter === value
-                    ? { backgroundColor: ACCENT, color: "white", borderColor: ACCENT }
-                    : { color: DARK, borderColor: "rgb(214,211,209)", backgroundColor: "transparent" }
+                    ? {
+                        backgroundColor: ACCENT,
+                        color: "white",
+                        borderColor: ACCENT,
+                      }
+                    : {
+                        color: DARK,
+                        borderColor: "rgb(214,211,209)",
+                        backgroundColor: "transparent",
+                      }
                 }
               >
                 {label}
@@ -149,7 +168,11 @@ function ClubListPage() {
                     to={`/clubs/${club.id}`}
                     className="block"
                   >
-                    <BookClubCard club={club} compact />
+                    <BookClubCard
+                      club={club}
+                      compact
+                      currentBook={currentBooksByClubId?.[club.id] ?? null}
+                    />
                   </Link>
                 ))}
               </div>
@@ -164,7 +187,10 @@ function ClubListPage() {
                   style={
                     hasMore
                       ? { backgroundColor: ACCENT, color: "white" }
-                      : { backgroundColor: "rgb(214,211,209)", color: "#606060" }
+                      : {
+                          backgroundColor: "rgb(214,211,209)",
+                          color: "#606060",
+                        }
                   }
                 >
                   Show more
