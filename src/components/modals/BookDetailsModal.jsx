@@ -12,6 +12,10 @@ function BookDetailsModal({
   alreadyAdded,
   onAddToRead,
   onSetCurrentlyReading,
+  showActions = true,
+  actionsVariant = "add", // "add" | "startReading"
+  onStartReading,
+  startReadingDisabled = false,
 }) {
   const closeButtonRef = useRef(null);
   const lastActiveElementRef = useRef(null);
@@ -143,50 +147,69 @@ function BookDetailsModal({
           </div>
         </div>
 
-        <div className="px-6 sm:px-[70px] py-5 border-t border-gray-100 shrink-0 bg-white">
-          <div className="flex flex-col sm:flex-row flex-wrap gap-2 justify-center">
-            <button
-              type="button"
-              onClick={onAddToRead}
-              disabled={alreadyAdded}
-              className="text-xs px-3 py-2 rounded border bg-transparent disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto transition-colors"
-              style={{
-                borderColor: alreadyAdded ? "rgb(214, 211, 209)" : BUTTON_YELLOW,
-                color: alreadyAdded ? "#8A7E74" : "#1A1410",
-              }}
-              onMouseEnter={(e) => {
-                if (alreadyAdded) return;
-                e.currentTarget.style.backgroundColor = "rgba(234, 179, 8, 0.10)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
-            >
-              {alreadyAdded ? "Already Added" : "Add to To Read"}
-            </button>
+        {showActions && actionsVariant === "add" && (
+          <div className="px-6 sm:px-[70px] py-5 border-t border-gray-100 shrink-0 bg-white">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 justify-center">
+              <button
+                type="button"
+                onClick={onAddToRead}
+                disabled={alreadyAdded}
+                className="text-xs px-3 py-2 rounded border bg-transparent disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto transition-colors"
+                style={{
+                  borderColor: alreadyAdded ? "rgb(214, 211, 209)" : BUTTON_YELLOW,
+                  color: alreadyAdded ? "#8A7E74" : "#1A1410",
+                }}
+                onMouseEnter={(e) => {
+                  if (alreadyAdded) return;
+                  e.currentTarget.style.backgroundColor =
+                    "rgba(234, 179, 8, 0.10)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                {alreadyAdded ? "Already Added" : "Add to To Read"}
+              </button>
 
-            <button
-              type="button"
-              onClick={onSetCurrentlyReading}
-              disabled={alreadyAdded}
-              className="rounded border bg-transparent font-semibold cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-xs px-3 py-2 w-full sm:w-auto transition-colors"
-              style={{
-                borderColor: alreadyAdded ? "rgb(214, 211, 209)" : BUTTON_GREEN,
-                color: alreadyAdded ? "#8A7E74" : BUTTON_GREEN,
-              }}
-              onMouseEnter={(e) => {
-                if (alreadyAdded) return;
-                e.currentTarget.style.backgroundColor =
-                  "rgba(107, 123, 92, 0.12)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
-            >
-              Set as Currently Reading
-            </button>
+              <button
+                type="button"
+                onClick={onSetCurrentlyReading}
+                disabled={alreadyAdded}
+                className="rounded border bg-transparent font-semibold cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-xs px-3 py-2 w-full sm:w-auto transition-colors"
+                style={{
+                  borderColor: alreadyAdded ? "rgb(214, 211, 209)" : BUTTON_GREEN,
+                  color: alreadyAdded ? "#8A7E74" : BUTTON_GREEN,
+                }}
+                onMouseEnter={(e) => {
+                  if (alreadyAdded) return;
+                  e.currentTarget.style.backgroundColor =
+                    "rgba(107, 123, 92, 0.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                Set as Currently Reading
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+
+        {showActions && actionsVariant === "startReading" && (
+          <div className="px-6 sm:px-[70px] py-5 border-t border-gray-100 shrink-0 bg-white">
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={onStartReading}
+                disabled={startReadingDisabled}
+                className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-6 py-2 text-sm w-full sm:w-auto"
+                style={{ backgroundColor: ACCENT }}
+              >
+                {startReadingDisabled ? "Updating…" : "Start reading"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
