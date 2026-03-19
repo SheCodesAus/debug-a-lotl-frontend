@@ -13,6 +13,7 @@ import getClubMembers from "../api/get-club-members.js";
 import patchClubMember from "../api/patch-club-member.js";
 import getClubMeetings from "../api/get-club-meetings.js";
 import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard.jsx";
+import BookDetailsModal from "../components/modals/BookDetailsModal";
 
 const ACCENT = "#C45D3E";
 const MUTED_COLOR = "#8A7E74";
@@ -66,6 +67,10 @@ function ClubPage() {
   const [isLoadingClub, setIsLoadingClub] = useState(true);
   const [clubError, setClubError] = useState("");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedHistoricBook, setSelectedHistoricBook] = useState(null);
+  const [showHistoricBookModal, setShowHistoricBookModal] = useState(false);
+  const [selectedToReadBook, setSelectedToReadBook] = useState(null);
+  const [showToReadModal, setShowToReadModal] = useState(false);
   const [pendingMembers, setPendingMembers] = useState([]);
   const [approvedMembers, setApprovedMembers] = useState([]);
   const [memberActionLoading, setMemberActionLoading] = useState(null);
@@ -243,6 +248,26 @@ function ClubPage() {
     const d = new Date(dateString);
     if (Number.isNaN(d.getTime())) return dateString;
     return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function openHistoricBookModal(book) {
+    setSelectedHistoricBook(book);
+    setShowHistoricBookModal(true);
+  }
+
+  function closeHistoricBookModal() {
+    setShowHistoricBookModal(false);
+    setSelectedHistoricBook(null);
+  }
+
+  function openToReadModal(book) {
+    setSelectedToReadBook(book);
+    setShowToReadModal(true);
+  }
+
+  function closeToReadModal() {
+    setShowToReadModal(false);
+    setSelectedToReadBook(null);
   }
 
   if (isLoadingClub || isLoadingBooks) return <p className="p-6">Loading...</p>;
@@ -526,8 +551,18 @@ function ClubPage() {
                 {readBooks.map((book) => (
                   <div
                     key={book.id}
-                    className="w-16 h-24 rounded-md overflow-hidden bg-gray-100 shrink-0"
+                    className="w-16 h-24 rounded-md overflow-hidden bg-gray-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#1A1410]/20"
                     title={[book.title, book.author].filter(Boolean).join(" · ")}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View details for ${book.title}`}
+                    onClick={() => openHistoricBookModal(book)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openHistoricBookModal(book);
+                      }
+                    }}
                   >
                     {book.cover_image ? (
                       <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
@@ -544,6 +579,13 @@ function ClubPage() {
               </div>
             )}
           </section>
+
+          <BookDetailsModal
+            book={selectedHistoricBook}
+            isOpen={showHistoricBookModal}
+            onClose={closeHistoricBookModal}
+            showActions={false}
+          />
 
           {/* To Read */}
           <section
@@ -568,7 +610,20 @@ function ClubPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {toReadBooks.map((book) => (
-                  <article key={book.id} className="rounded-xl border border-gray-100 bg-white p-6 flex gap-3">
+                  <article
+                    key={book.id}
+                    className="rounded-xl border border-gray-100 bg-white p-6 flex gap-3 cursor-pointer hover:bg-gray-50/40 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1A1410]/20"
+                    onClick={() => openToReadModal(book)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openToReadModal(book);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View details for ${book.title}`}
+                  >
                     {book.cover_image ? (
                       <img
                         src={book.cover_image}
@@ -597,7 +652,10 @@ function ClubPage() {
                         <div className="mt-3">
                           <button
                             type="button"
-                            onClick={() => handleStartReading(book)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartReading(book);
+                            }}
                             disabled={isSettingReading}
                             className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 text-sm"
                             style={{ backgroundColor: ACCENT }}
@@ -612,6 +670,20 @@ function ClubPage() {
               </div>
             )}
           </section>
+
+          <BookDetailsModal
+            book={selectedToReadBook}
+            isOpen={showToReadModal}
+            onClose={closeToReadModal}
+            showActions={isOwner}
+            actionsVariant="startReading"
+            onStartReading={async () => {
+              if (!selectedToReadBook) return;
+              await handleStartReading(selectedToReadBook);
+              closeToReadModal();
+            }}
+            startReadingDisabled={isSettingReading}
+          />
         </div>
 
         <div className="space-y-8">
