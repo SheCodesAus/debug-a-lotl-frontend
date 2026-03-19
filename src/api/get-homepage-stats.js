@@ -1,11 +1,11 @@
 /**
- * Fetches homepage stats from the API (book clubs, active readers, books read, curated genres).
+ * Fetches homepage stats from the API.
  * No auth required.
- * @returns {Promise<{ book_clubs: number, active_readers: number, books_read_together: number, curated_genres: number }>}
+ * @returns {Promise<{ active_readers: number, total_books_read: number }>}
  */
 async function getHomepageStats() {
   const baseUrl = import.meta.env.VITE_API_URL ?? "";
-  const url = `${baseUrl}/stats/`;
+  const url = `${baseUrl}/stats/home/`;
 
   const response = await fetch(url, { method: "GET" });
 
