@@ -5,6 +5,7 @@ import { getFirstNameFromProfile } from "../utils/get-first-name";
 import getCurrentUser from "../api/get-current-user.js";
 import patchCurrentUser from "../api/patch-current-user.js";
 import getClubs from "../api/get-clubs.js";
+import getMyClubs from "../api/get-my-clubs.js";
 import BookClubCard from "../components/clubs/BookClubCard.jsx";
 import ProfileStats from "../components/ProfileStats.jsx";
 
@@ -21,6 +22,7 @@ function ProfilePage() {
   const { auth } = useAuth();
   const [profile, setProfile] = useState(null);
   const [clubs, setClubs] = useState([]);
+  const [myClubs, setMyClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -70,13 +72,15 @@ function ProfilePage() {
     let cancelled = false;
     async function load() {
       try {
-        const [profileData, clubsData] = await Promise.all([
+        const [profileData, clubsData, myClubsData] = await Promise.all([
           getCurrentUser(auth.token),
           getClubs(auth.token),
+          getMyClubs(auth.token),
         ]);
         if (!cancelled) {
           setProfile(profileData);
           setClubs(Array.isArray(clubsData) ? clubsData : []);
+          setMyClubs(Array.isArray(myClubsData) ? myClubsData : []);
         }
       } catch (err) {
         if (!cancelled) {
@@ -160,8 +164,7 @@ function ProfilePage() {
   }
 
   const userId = profile?.id;
-  const clubsOwned =
-    userId != null ? clubs.filter((c) => c.owner === userId) : [];
+  const clubsOwned = userId != null ? myClubs : [];
   const clubsMemberOf =
     userId != null ? clubs.filter((c) => c.owner !== userId && c.membership_status === "approved") : [];
 

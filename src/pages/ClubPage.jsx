@@ -9,6 +9,7 @@ import patchClubBookStatus from "../api/patch-club-book-status";
 import useClubBooks from "../hooks/use-club-books";
 import JoinClubForm from "../components/forms/JoinClubForm";
 import ScheduleMeetingForm from "../components/forms/ScheduleMeetingForm";
+import EditClubForm from "../components/forms/EditClubForm";
 import getClubMembers from "../api/get-club-members.js";
 import patchClubMember from "../api/patch-club-member.js";
 import getClubMeetings from "../api/get-club-meetings.js";
@@ -59,6 +60,61 @@ function ScheduleMeetingModal({ clubId, onClose, onSuccess }) {
   );
 }
 
+function EditClubModal({ club, token, onClose, onSuccess }) {
+  function handleBackdrop(e) {
+    if (e.target === e.currentTarget) onClose();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(26, 20, 16, 0.5)" }}
+      onClick={handleBackdrop}
+    >
+      <div
+        className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-y-auto"
+        style={{ maxHeight: "90vh" }}
+      >
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+          <h2
+            className="text-xs font-semibold uppercase tracking-wider"
+            style={{ color: MUTED_COLOR }}
+          >
+            Edit club
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1 hover:bg-gray-100"
+            aria-label="Close"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path
+                d="M13.5 4.5L4.5 13.5M4.5 4.5l9 9"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div className="px-6 py-5">
+          <EditClubForm
+            club={club}
+            token={token}
+            onCancel={onClose}
+            onSuccess={(updated) => {
+              onSuccess(updated);
+              onClose();
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ClubPage() {
   const { clubId } = useParams();
   const { auth } = useAuth();
@@ -67,6 +123,7 @@ function ClubPage() {
   const [isLoadingClub, setIsLoadingClub] = useState(true);
   const [clubError, setClubError] = useState("");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedHistoricBook, setSelectedHistoricBook] = useState(null);
   const [showHistoricBookModal, setShowHistoricBookModal] = useState(false);
   const [selectedToReadBook, setSelectedToReadBook] = useState(null);
@@ -277,7 +334,22 @@ function ClubPage() {
 
   return (
     <main className="min-h-full flex flex-col" style={{ backgroundColor: PAGE_BG }}>
-      <ClubHeader club={club} creatorName={creatorName} memberCount={memberCount} />
+      <ClubHeader
+        club={club}
+        creatorName={creatorName}
+        memberCount={memberCount}
+        isOwner={isOwner}
+        onEditClub={() => setShowEditModal(true)}
+      />
+
+      {showEditModal && (
+        <EditClubModal
+          club={club}
+          token={auth?.token ?? null}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={(updated) => setClub(updated)}
+        />
+      )}
 
       <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
         {/* Owner-only: Pending approvals (top) */}
