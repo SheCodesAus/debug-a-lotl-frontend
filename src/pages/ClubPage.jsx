@@ -142,9 +142,40 @@ function ClubPage() {
   }
 
   const [isMarkingRead, setIsMarkingRead] = useState(false);
+  const [isSettingReading, setIsSettingReading] = useState(false);
 
-  async function handleAddBook(selectedBook) {
-    await postClubBook(auth?.token, {
+  async function moveCurrentReadingToHistoric() {
+    // If there is a current book, archive it before setting a new one.
+    if (!currentBook?.id || !auth?.token) return;
+    await patchClubBookStatus(auth.token, clubId, currentBook.id, { status: "read" });
+  }
+
+  async function handleAddBook(selectedBook, status = "to_read") {
+    if (!auth?.token) return;
+
+    if (status === "reading") {
+      setIsSettingReading(true);
+      try {
+        await moveCurrentReadingToHistoric();
+        await postClubBook(auth.token, {
+          club_id: Number(clubId),
+          google_books_id: selectedBook.google_books_id,
+          title: selectedBook.title,
+          author: selectedBook.author,
+          description: selectedBook.description,
+          cover_image: selectedBook.cover_image,
+          isbn: selectedBook.isbn,
+          genre: selectedBook.genre,
+          status: "reading",
+        });
+        await refetchClubBooks();
+      } finally {
+        setIsSettingReading(false);
+      }
+      return;
+    }
+
+    await postClubBook(auth.token, {
       club_id: Number(clubId),
       google_books_id: selectedBook.google_books_id,
       title: selectedBook.title,
@@ -153,8 +184,21 @@ function ClubPage() {
       cover_image: selectedBook.cover_image,
       isbn: selectedBook.isbn,
       genre: selectedBook.genre,
+      status: "to_read",
     });
     await refetchClubBooks();
+  }
+
+  async function handleStartReading(book) {
+    if (!book?.id || !auth?.token) return;
+    setIsSettingReading(true);
+    try {
+      await moveCurrentReadingToHistoric();
+      await patchClubBookStatus(auth.token, clubId, book.id, { status: "reading" });
+      await refetchClubBooks();
+    } finally {
+      setIsSettingReading(false);
+    }
   }
 
   async function handleMarkAsRead(book) {
@@ -170,6 +214,7 @@ function ClubPage() {
 
   const books = Array.isArray(clubBooks) ? clubBooks : [];
   const readingBooks = books.filter((book) => book.status === "reading");
+  const toReadBooks = books.filter((book) => book.status === "to_read");
   const readBooks = books.filter((book) => book.status === "read");
   const currentBook = readingBooks[0] ?? null;
   const displayMemberCount = memberCount ?? 0;
@@ -266,7 +311,7 @@ function ClubPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[auto_auto] gap-6">
           {/* About this club */}
           <section
-            className="order-1 lg:col-span-2 lg:row-start-1 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+            className="order-1 lg:col-span-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
@@ -359,7 +404,7 @@ function ClubPage() {
                       <button
                         type="button"
                         onClick={() => handleMarkAsRead(currentBook)}
-                        disabled={isMarkingRead}
+                        disabled={isMarkingRead || isSettingReading}
                         className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 text-sm"
                         style={{ backgroundColor: ACCENT }}
                       >
@@ -376,97 +421,99 @@ function ClubPage() {
             )}
           </section>
 
-          {/* Members */}
-          <section
-            className="order-3 lg:col-span-2 lg:row-start-2 rounded-2xl bg-white p-10 shadow-sm"
-            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
-          >
-            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
-              Members ({displayMemberCount})
-            </h2>
-            <ul className="list-none p-0 m-0 flex flex-col gap-3">
-              {memberList.slice(0, 4).map((member, index) => (
-                <li key={member.id} className="flex items-center gap-3">
-                  <div
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold shrink-0"
-                    style={{ backgroundColor: memberAvatarColors[index % memberAvatarColors.length] }}
+          {/* Members + Meetings (stacked under About) */}
+          <div className="order-3 lg:col-span-2 lg:row-start-2 flex flex-col space-y-6">
+            {/* Members */}
+            <section
+              className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+              style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
+            >
+              <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
+                Members ({displayMemberCount})
+              </h2>
+              <ul className="list-none p-0 m-0 flex flex-col gap-3">
+                {memberList.slice(0, 4).map((member, index) => (
+                  <li key={member.id} className="flex items-center gap-3">
+                    <div
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold shrink-0"
+                      style={{ backgroundColor: memberAvatarColors[index % memberAvatarColors.length] }}
+                    >
+                      {getInitials(member.name)}
+                    </div>
+                    <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-[#1A1410] truncate">{member.name}</span>
+                      {member.isOrganiser && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium shrink-0" style={{ backgroundColor: "#f5f0d9", color: "#8a7e74" }}>
+                          Organiser
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left" style={{ color: ACCENT }}>
+                View all {displayMemberCount} members →
+              </button>
+            </section>
+
+            {/* Meetings */}
+            <section
+              className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm flex-1 min-h-0"
+              style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
+                  Meetings
+                </h2>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => setShowScheduleModal(true)}
+                    className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
+                    style={{ backgroundColor: ACCENT }}
                   >
-                    {getInitials(member.name)}
-                  </div>
-                  <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-[#1A1410] truncate">{member.name}</span>
-                    {member.isOrganiser && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium shrink-0" style={{ backgroundColor: "#f5f0d9", color: "#8a7e74" }}>
-                        Organiser
-                      </span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left" style={{ color: ACCENT }}>
-              View all {displayMemberCount} members →
-            </button>
-          </section>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                    </svg>
+                    Schedule
+                  </button>
+                )}
+              </div>
+
+              {meetings.length === 0 ? (
+                <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No meetings scheduled yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {meetings.map((meeting) => (
+                    <div key={meeting.id} className="flex items-center justify-between gap-3 text-sm">
+                      <div className="min-w-0">
+                        <p className="m-0 font-medium text-[#1A1410]">{meeting.title}</p>
+                        <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
+                          {formatMeetingDate(meeting.meeting_date)}
+                          {meeting.start_time && ` · ${meeting.start_time.slice(0, 5)}`}
+                          {meeting.meeting_type === "virtual" ? " · Virtual" : " · In person"}
+                        </p>
+                      </div>
+                      {!isOwner && (
+                        <button
+                          type="button"
+                          className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0 transition-colors"
+                        >
+                          book
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
         </div>
 
-        {/* Historic reading & Meetings */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ✅ Meetings — real data from backend */}
-          <section
-            className="rounded-2xl bg-white p-10 shadow-sm lg:col-span-2"
-            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
-                Meetings
-              </h2>
-              {isOwner && (
-                <button
-                  type="button"
-                  onClick={() => setShowScheduleModal(true)}
-                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
-                  style={{ backgroundColor: ACCENT }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-                  </svg>
-                  Schedule
-                </button>
-              )}
-            </div>
-
-            {meetings.length === 0 ? (
-              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No meetings scheduled yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {meetings.map((meeting) => (
-                  <div key={meeting.id} className="flex items-center justify-between gap-3 text-sm">
-                    <div className="min-w-0">
-                      <p className="m-0 font-medium text-[#1A1410]">{meeting.title}</p>
-                      <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
-                        {formatMeetingDate(meeting.meeting_date)}
-                        {meeting.start_time && ` · ${meeting.start_time.slice(0, 5)}`}
-                        {meeting.meeting_type === "virtual" ? " · Virtual" : " · In person"}
-                      </p>
-                    </div>
-                    {!isOwner && (
-                      <button
-                        type="button"
-                        className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0 transition-colors"
-                      >
-                        book
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
+        <div className="flex flex-col gap-6">
           {/* Historic reading */}
           <section
-            className="rounded-2xl bg-white p-10 shadow-sm lg:col-span-1"
+            className="order-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
@@ -475,17 +522,92 @@ function ClubPage() {
             {readBooks.length === 0 ? (
               <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No finished books yet.</p>
             ) : (
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-4 gap-3">
+              <div className="flex flex-wrap items-start gap-3">
                 {readBooks.map((book) => (
-                  <div key={book.id} className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-100" title={[book.title, book.author].filter(Boolean).join(" · ")}>
+                  <div
+                    key={book.id}
+                    className="w-16 h-24 rounded-md overflow-hidden bg-gray-100 shrink-0"
+                    title={[book.title, book.author].filter(Boolean).join(" · ")}
+                  >
                     {book.cover_image ? (
                       <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-end p-2 text-white text-[10px] leading-tight" style={{ background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
+                      <div
+                        className="w-full h-full flex items-end p-2 text-white text-[10px] leading-tight"
+                        style={{ background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}
+                      >
                         <span className="line-clamp-2">{book.title}</span>
                       </div>
                     )}
                   </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* To Read */}
+          <section
+            className="order-1 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
+          >
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h2 className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
+                To Read
+              </h2>
+              {toReadBooks.length > 0 && (
+                <span className="text-xs px-2 py-0.5 rounded-full border border-gray-200" style={{ color: MUTED_COLOR }}>
+                  {toReadBooks.length}
+                </span>
+              )}
+            </div>
+
+            {toReadBooks.length === 0 ? (
+              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+                No books in your to-read list yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {toReadBooks.map((book) => (
+                  <article key={book.id} className="rounded-xl border border-gray-100 bg-white p-6 flex gap-3">
+                    {book.cover_image ? (
+                      <img
+                        src={book.cover_image}
+                        alt={book.title}
+                        className="w-16 h-24 rounded-md object-cover shrink-0"
+                      />
+                    ) : (
+                      <div
+                        className="w-16 h-24 rounded-md shrink-0 flex items-center justify-center text-xs text-white"
+                        style={{ background: "linear-gradient(145deg, #3d4f5c 0%, #2c3e3a 100%)" }}
+                      >
+                        Book
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1 flex flex-col">
+                      <h3 className="text-sm font-semibold text-[#1A1410] m-0 truncate">
+                        {book.title}
+                      </h3>
+                      {book.author && (
+                        <p className="text-xs m-0 mt-1 truncate" style={{ color: MUTED_COLOR }}>
+                          {book.author}
+                        </p>
+                      )}
+                      {isOwner && (
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            onClick={() => handleStartReading(book)}
+                            disabled={isSettingReading}
+                            className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 text-sm"
+                            style={{ backgroundColor: ACCENT }}
+                          >
+                            {isSettingReading ? "Updating…" : "Start reading"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
                 ))}
               </div>
             )}

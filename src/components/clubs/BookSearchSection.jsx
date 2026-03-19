@@ -65,9 +65,9 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
     }
   }
 
-  async function handleAddClick(book) {
+  async function handleAddClick(book, status) {
     try {
-      await onAddBook(book);
+      await onAddBook(book, status);
     } catch (err) {
       setError(err.message || "Could not add this book.");
     }
@@ -152,15 +152,25 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
                   >
                     {book.author}
                   </p>
-                  <div className="mt-3">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => handleAddClick(book)}
+                      onClick={() => handleAddClick(book, "to_read")}
                       disabled={alreadyAdded}
                       className="text-xs px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
                       style={alreadyAdded ? {} : { borderColor: "#f0dfd5" }}
                     >
-                      {alreadyAdded ? "Already Added" : "Add to Club"}
+                      {alreadyAdded ? "Already Added" : "Add to To Read"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddClick(book, "reading")}
+                      disabled={alreadyAdded}
+                      className="text-xs px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                      style={alreadyAdded ? {} : { borderColor: "#f0dfd5" }}
+                    >
+                      Set as Currently Reading
                     </button>
                   </div>
                 </div>
