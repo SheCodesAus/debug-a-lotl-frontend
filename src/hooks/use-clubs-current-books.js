@@ -6,6 +6,7 @@ function normalizeIds(clubIds) {
   const ids = clubIds
     .map((id) => (typeof id === "string" ? Number(id) : id))
     .filter((id) => Number.isFinite(id) && id > 0);
+  // De-dupe so we don't fetch the same club twice.
   return Array.from(new Set(ids));
 }
 
@@ -14,20 +15,39 @@ function normalizeIds(clubIds) {
  * Returns a map keyed by clubId: { [id]: book|null }
  */
 export default function useClubsCurrentBooks(clubIds, token = null) {
+  // NOTE:
+  // `clubIds` is often created inline in a render (e.g. `clubs.map(c => c.id)`),
+  // which means its array identity changes every render.
+  //
+  // We normalize + convert to a stable primitive dependency (`idsKey`) so this
+  // hook doesn't refetch + setState on every render (which can cause
+  // "Maximum update depth exceeded").
   const ids = normalizeIds(clubIds);
   const idsKey = ids.join(",");
   const [currentBooksByClubId, setCurrentBooksByClubId] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorByClubId, setErrorByClubId] = useState({});
 
-  // Cache: clubId -> { book, fetchedAt }
+  // Cache:
+  // Store the selected "current reading" book per club so pagination/filtering
+  // doesn't trigger refetches for clubs we've already loaded.
+  //
+  // clubId -> { book, fetchedAt }
   const cacheRef = useRef(new Map());
-  const inFlightRef = useRef(new Map()); // clubId -> Promise
+
+  // In-flight de-dupe:
+  // If multiple renders ask for the same club's books while the request is
+  // still pending, reuse the same Promise rather than issuing multiple calls.
+  //
+  // clubId -> Promise<book|null>
+  const inFlightRef = useRef(new Map());
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
+      // Reconstruct IDs from `idsKey` so the effect is driven by the actual set
+      // of IDs, not by the reference identity of the array passed in.
       const idsFromKey =
         typeof idsKey === "string" && idsKey.length > 0
           ? idsKey
@@ -60,6 +80,8 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
           }
         }
 
+        // Fetch the club's books then select the current reading one.
+        // This matches the logic already used on `ClubPage`.
         const p = (async () => {
           const books = await getClubBooks(clubId, token);
           const list = Array.isArray(books) ? books : [];
@@ -82,12 +104,17 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
       const results = await Promise.all(tasks);
       if (cancelled) return;
 
+      // Merge into state instead of replacing:
+      // pages may incrementally show more clubs (pagination), and we don't want
+      // to lose already-fetched entries.
       setCurrentBooksByClubId((prev) => {
         const next = { ...prev };
         for (const r of results) next[r.clubId] = r.book ?? null;
         return next;
       });
 
+      // Best-effort errors:
+      // keep track of per-club failures without breaking the whole page.
       setErrorByClubId((prev) => {
         const next = { ...prev };
         for (const r of results) {
