@@ -1,4 +1,3 @@
-
 // Derive a short, friendly first name from the signup "name" field.
 // - Uses only profile.name.
 // - Trims whitespace and returns the first word (e.g. "Alex" from "Alex Smith").
@@ -13,4 +12,3 @@ export function getFirstNameFromProfile(profile) {
   const [firstWord] = trimmed.split(/\s+/);
   return firstWord || null;
 }
-
