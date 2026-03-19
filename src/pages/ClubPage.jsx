@@ -290,9 +290,21 @@ function ClubPage() {
                 </div>
               </div>
             </div>
-            {!isOwner && auth?.token && (
+            
+            {/* membership_status controls what shows here */}
+            {!isOwner && auth?.token && club.membership_status === null && (
               <div className="mt-4">
                 <JoinClubForm clubId={clubId} isPrivate={!club.is_public} onSuccess={() => window.location.reload()} />
+              </div>
+            )}
+            {!isOwner && auth?.token && club.membership_status === "pending" && (
+              <div className="mt-4 px-3 py-2.5 rounded-lg text-sm" style={{ backgroundColor: "#fdf6ec", border: "1.5px solid #f0d9b5", color: "#8a6a3a" }}>
+                Your request is pending approval from the owner.
+              </div>
+            )}
+            {!isOwner && auth?.token && club.membership_status === "approved" && (
+              <div className="mt-4 px-3 py-2.5 rounded-lg text-sm" style={{ backgroundColor: "#f0f7f0", border: "1.5px solid #b6d9b6", color: "#3a6b3a" }}>
+                ✓ You are a member of this club.
               </div>
             )}
           </section>
