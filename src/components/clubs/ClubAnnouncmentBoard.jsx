@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import getClubAnnouncements from "../../api/get-club-announcements";
 import postClubAnnouncement from "../../api/post-club-announcement";
 import patchClubAnnouncement from "../../api/patch-club-announcement";
+import ClubMemberContentPlaceholder from "./ClubMemberContentPlaceholder.jsx";
 
 const MUTED_COLOR = "#8A7E74";
 const BORDER_GREEN = "#6b7b5c"; // site green used on ClubPage (current book card, avatars)
@@ -15,7 +16,7 @@ function formatSentAt(isoString) {
   });
 }
 
-function ClubAnnouncmentBoard({ clubId, isOwner, token }) {
+function ClubAnnouncmentBoard({ clubId, isOwner, token, restricted = false }) {
   const [announcements, setAnnouncements] = useState([]);
   const [visibleCount, setVisibleCount] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,8 +47,9 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token }) {
   }, [clubId, token]);
 
   useEffect(() => {
+    if (restricted) return;
     refetch();
-  }, [refetch]);
+  }, [refetch, restricted]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -112,6 +114,23 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token }) {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  if (restricted) {
+    return (
+      <section
+        className="rounded-2xl bg-white p-4 sm:p-5 shadow-sm"
+        style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
+      >
+        <h2
+          className="text-xs font-semibold uppercase tracking-wider m-0 mb-2"
+          style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
+        >
+          Announcement&apos;s board
+        </h2>
+        <ClubMemberContentPlaceholder />
+      </section>
+    );
   }
 
   return (

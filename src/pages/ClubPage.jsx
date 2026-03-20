@@ -15,6 +15,7 @@ import patchClubMember from "../api/patch-club-member.js";
 import getClubMeetings from "../api/get-club-meetings.js";
 import postAttendMeeting from "../api/post-attend-meeting.js";
 import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard.jsx";
+import ClubMemberContentPlaceholder from "../components/clubs/ClubMemberContentPlaceholder.jsx";
 import BookDetailsModal from "../components/modals/BookDetailsModal";
 
 const ACCENT = "#C45D3E";
@@ -180,6 +181,13 @@ function ClubPage() {
 
   useEffect(() => {
     if (!auth?.token) return;
+    if (!club) return;
+    const canViewMeetings =
+      club.is_public || isOwner || club.membership_status === "approved";
+    if (!canViewMeetings) {
+      setMeetings([]);
+      return;
+    }
     async function loadMeetings() {
       try {
         const data = await getClubMeetings(clubId, auth.token);
@@ -189,7 +197,7 @@ function ClubPage() {
       }
     }
     loadMeetings();
-  }, [clubId, auth?.token]);
+  }, [clubId, auth?.token, club, isOwner]);
 
   // ✅ Handle booking a meeting
   async function handleBookMeeting(meetingId) {
@@ -345,6 +353,11 @@ function ClubPage() {
   if (clubError) return <p className="p-6 text-red-600">{clubError}</p>;
   if (booksError) return <p className="p-6 text-red-600">{booksError}</p>;
   if (!club) return <p className="p-6">Club not found.</p>;
+
+  const isPrivateNonMemberView =
+    !club.is_public &&
+    !isOwner &&
+    club.membership_status !== "approved";
 
   return (
     <main className="min-h-full flex flex-col" style={{ backgroundColor: PAGE_BG }}>
@@ -526,43 +539,60 @@ function ClubPage() {
           <div className="order-3 lg:col-span-2 lg:row-start-2 flex flex-col space-y-6">
             {/* Members */}
             <section
-              className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+              className={
+                isPrivateNonMemberView
+                  ? "rounded-2xl bg-white p-4 sm:p-5 shadow-sm"
+                  : "rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+              }
               style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
             >
-              <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
-                Members ({displayMemberCount})
+              <h2
+                className={`text-xs font-semibold uppercase tracking-wider m-0 ${isPrivateNonMemberView ? "mb-2" : "mb-4"}`}
+                style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
+              >
+                {isPrivateNonMemberView ? "Members" : `Members (${displayMemberCount})`}
               </h2>
-              <ul className="list-none p-0 m-0 flex flex-col gap-3">
-                {memberList.slice(0, 4).map((member, index) => (
-                  <li key={member.id} className="flex items-center gap-3">
-                    <div
-                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold shrink-0"
-                      style={{ backgroundColor: memberAvatarColors[index % memberAvatarColors.length] }}
-                    >
-                      {getInitials(member.name)}
-                    </div>
-                    <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-[#1A1410] truncate">{member.name}</span>
-                      {member.isOrganiser && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium shrink-0" style={{ backgroundColor: "#f5f0d9", color: "#8a7e74" }}>
-                          Organiser
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <button type="button" className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left" style={{ color: ACCENT }}>
-                View all {displayMemberCount} members →
-              </button>
+              {isPrivateNonMemberView ? (
+                <ClubMemberContentPlaceholder />
+              ) : (
+                <>
+                  <ul className="list-none p-0 m-0 flex flex-col gap-3">
+                    {memberList.slice(0, 4).map((member, index) => (
+                      <li key={member.id} className="flex items-center gap-3">
+                        <div
+                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold shrink-0"
+                          style={{ backgroundColor: memberAvatarColors[index % memberAvatarColors.length] }}
+                        >
+                          {getInitials(member.name)}
+                        </div>
+                        <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium text-[#1A1410] truncate">{member.name}</span>
+                          {member.isOrganiser && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium shrink-0" style={{ backgroundColor: "#f5f0d9", color: "#8a7e74" }}>
+                              Organiser
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <button type="button" className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left" style={{ color: ACCENT }}>
+                    View all {displayMemberCount} members →
+                  </button>
+                </>
+              )}
             </section>
 
             {/* ✅ Meetings with functional book button */}
             <section
-              className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm flex-1 min-h-0"
+              className={
+                isPrivateNonMemberView
+                  ? "rounded-2xl bg-white p-4 sm:p-5 shadow-sm flex-1 min-h-0"
+                  : "rounded-2xl bg-white p-6 sm:p-8 shadow-sm flex-1 min-h-0"
+              }
               style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className={`flex items-center justify-between ${isPrivateNonMemberView ? "mb-2" : "mb-4"}`}>
                 <h2 className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
                   Meetings
                 </h2>
@@ -581,7 +611,9 @@ function ClubPage() {
                 )}
               </div>
 
-              {meetings.length === 0 ? (
+              {isPrivateNonMemberView ? (
+                <ClubMemberContentPlaceholder />
+              ) : meetings.length === 0 ? (
                 <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No meetings scheduled yet.</p>
               ) : (
                 <div className="space-y-3">
@@ -786,6 +818,7 @@ function ClubPage() {
             clubId={clubId}
             isOwner={isOwner}
             token={auth?.token ?? null}
+            restricted={isPrivateNonMemberView}
           />
         </div>
       </div>
