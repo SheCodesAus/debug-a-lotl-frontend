@@ -137,6 +137,10 @@ function ClubPage() {
   // ✅ Track booking state per meeting: { [meetingId]: 'idle' | 'loading' | 'booked' | 'error' }
   const [bookingState, setBookingState] = useState({});
 
+  useEffect(() => {
+    setBookingState({});
+  }, [clubId]);
+
   const { clubBooks, isLoadingBooks, booksError, refetchClubBooks } =
     useClubBooks(clubId, auth?.token ?? null);
 
@@ -583,9 +587,17 @@ function ClubPage() {
                 <div className="space-y-3">
                   {meetings.map((meeting) => {
                     const bState = bookingState[meeting.id] ?? "idle";
-                    const isBooked = bState === "booked";
+                    const bookedFromApi = meeting.user_has_booked === true;
+                    const isBooked =
+                      bState === "booked" ||
+                      (bState === "idle" && bookedFromApi);
                     const isBooking = bState === "loading";
-                    const bookingError = bState !== "idle" && bState !== "loading" && bState !== "booked" ? bState : null;
+                    const bookingError =
+                      bState !== "idle" &&
+                      bState !== "loading" &&
+                      bState !== "booked"
+                        ? bState
+                        : null;
 
                     return (
                       <div key={meeting.id} className="flex items-start justify-between gap-3 text-sm">
