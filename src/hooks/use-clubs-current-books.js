@@ -11,8 +11,9 @@ function normalizeIds(clubIds) {
 }
 
 /**
- * Fetches each club's current reading book (status === "reading").
- * Returns a map keyed by clubId: { [id]: book|null }
+ * Fetches each club's books once per club; exposes the current reading book
+ * (status === "reading") per club and the total count of historic books
+ * (status === "read", same as ClubPage "Historic reading") across those clubs.
  */
 export default function useClubsCurrentBooks(clubIds, token = null) {
   // NOTE:
@@ -25,6 +26,7 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
   const ids = normalizeIds(clubIds);
   const idsKey = ids.join(",");
   const [currentBooksByClubId, setCurrentBooksByClubId] = useState({});
+  const [totalHistoricReadCount, setTotalHistoricReadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [errorByClubId, setErrorByClubId] = useState({});
 
@@ -32,14 +34,14 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
   // Store the selected "current reading" book per club so pagination/filtering
   // doesn't trigger refetches for clubs we've already loaded.
   //
-  // clubId -> { book, fetchedAt }
+  // clubId -> { book, historicReadCount, fetchedAt }
   const cacheRef = useRef(new Map());
 
   // In-flight de-dupe:
   // If multiple renders ask for the same club's books while the request is
   // still pending, reuse the same Promise rather than issuing multiple calls.
   //
-  // clubId -> Promise<book|null>
+  // clubId -> Promise<{ book, historicReadCount }>
   const inFlightRef = useRef(new Map());
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
 
       if (idsFromKey.length === 0) {
         setIsLoading(false);
+        setTotalHistoricReadCount(0);
         return;
       }
 
@@ -67,16 +70,28 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
         // Use cache if available
         if (cacheRef.current.has(clubId)) {
           const cached = cacheRef.current.get(clubId);
-          return { clubId, book: cached.book, error: null, fromCache: true };
+          return {
+            clubId,
+            book: cached.book,
+            historicReadCount: cached.historicReadCount ?? 0,
+            error: null,
+            fromCache: true,
+          };
         }
 
         // De-dupe in-flight fetches
         if (inFlightRef.current.has(clubId)) {
           try {
-            const book = await inFlightRef.current.get(clubId);
-            return { clubId, book, error: null, fromCache: false };
+            const data = await inFlightRef.current.get(clubId);
+            return {
+              clubId,
+              book: data.book,
+              historicReadCount: data.historicReadCount,
+              error: null,
+              fromCache: false,
+            };
           } catch (e) {
-            return { clubId, book: null, error: e, fromCache: false };
+            return { clubId, book: null, historicReadCount: 0, error: e, fromCache: false };
           }
         }
 
@@ -85,17 +100,22 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
         const p = (async () => {
           const books = await getClubBooks(clubId, token);
           const list = Array.isArray(books) ? books : [];
-          const reading = list.find((b) => b?.status === "reading") ?? null;
-          return reading;
+          const book = list.find((b) => b?.status === "reading") ?? null;
+          const historicReadCount = list.filter((b) => b?.status === "read").length;
+          return { book, historicReadCount };
         })();
 
         inFlightRef.current.set(clubId, p);
         try {
-          const book = await p;
-          cacheRef.current.set(clubId, { book, fetchedAt: Date.now() });
-          return { clubId, book, error: null, fromCache: false };
+          const { book, historicReadCount } = await p;
+          cacheRef.current.set(clubId, {
+            book,
+            historicReadCount,
+            fetchedAt: Date.now(),
+          });
+          return { clubId, book, historicReadCount, error: null, fromCache: false };
         } catch (e) {
-          return { clubId, book: null, error: e, fromCache: false };
+          return { clubId, book: null, historicReadCount: 0, error: e, fromCache: false };
         } finally {
           inFlightRef.current.delete(clubId);
         }
@@ -125,6 +145,10 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
         return next;
       });
 
+      setTotalHistoricReadCount(
+        results.reduce((sum, r) => sum + (r.error ? 0 : (r.historicReadCount ?? 0)), 0),
+      );
+
       setIsLoading(false);
     }
 
@@ -137,6 +161,7 @@ export default function useClubsCurrentBooks(clubIds, token = null) {
 
   return {
     currentBooksByClubId,
+    totalHistoricReadCount,
     isLoadingCurrentBooks: isLoading,
     currentBooksErrorByClubId: errorByClubId,
   };

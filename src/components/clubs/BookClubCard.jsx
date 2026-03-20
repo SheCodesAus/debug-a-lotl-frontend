@@ -1,9 +1,11 @@
-function BookClubCard({ club, compact = false, currentBook = null }) {
+function BookClubCard({ club, compact = false, dense = false, currentBook = null }) {
   if (!club) return null;
 
   const coverUrl = currentBook?.cover_image || "";
   const coverAlt = currentBook?.title ? `${currentBook.title} cover` : "Current book cover";
   const isInactive = club.is_active === false;
+  /** Shorter card body + flatter banner only; typography and horizontal layout stay `compact`. */
+  const verticalCompact = compact && dense;
 
   return (
     <article
@@ -13,8 +15,16 @@ function BookClubCard({ club, compact = false, currentBook = null }) {
           : "rounded-2xl overflow-hidden bg-[rgb(253,252,250)] shadow-sm hover:shadow-md transition-shadow border border-[rgba(48,48,48,0.06)]"
       }
     >
-      {/* Hero image with overlay title – shorter height */}
-      <div className={compact ? "relative w-full bg-gray-100 aspect-[16/10]" : "relative w-full bg-gray-100 aspect-[16/9]"}>
+      {/* Hero image with overlay title */}
+      <div
+        className={
+          verticalCompact
+            ? "relative w-full bg-gray-100 aspect-[2/1]"
+            : compact
+              ? "relative w-full bg-gray-100 aspect-[16/10]"
+              : "relative w-full bg-gray-100 aspect-[16/9]"
+        }
+      >
         {club.banner_image ? (
           <img
             src={club.banner_image}
@@ -22,7 +32,9 @@ function BookClubCard({ club, compact = false, currentBook = null }) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl text-[#e07a5f] bg-[rgb(247,244,240)]">
+          <div
+            className={`w-full h-full flex items-center justify-center text-[#e07a5f] bg-[rgb(247,244,240)] ${verticalCompact ? "text-3xl" : "text-4xl"}`}
+          >
             📚
           </div>
         )}
@@ -48,12 +60,14 @@ function BookClubCard({ club, compact = false, currentBook = null }) {
         </div>
       </div>
 
-      {/* Content area under hero – fixed height, more padding */}
+      {/* Content area under hero */}
       <div
         className={
-          compact
-            ? "px-3 py-3 sm:py-4 bg-white/90 h-[8.75rem] flex flex-col"
-            : "px-5 py-5 sm:py-6 bg-white/90 h-[10.5rem] flex flex-col"
+          verticalCompact
+            ? "px-3 py-2 sm:py-2 bg-white/90 h-[7rem] flex flex-col"
+            : compact
+              ? "px-3 py-3 sm:py-4 bg-white/90 h-[8.75rem] flex flex-col"
+              : "px-5 py-5 sm:py-6 bg-white/90 h-[10.5rem] flex flex-col"
         }
       >
         <div className={compact ? "flex gap-2 items-stretch flex-1 min-h-0" : "flex gap-4 items-stretch flex-1 min-h-0"}>

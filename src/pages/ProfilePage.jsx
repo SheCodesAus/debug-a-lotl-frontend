@@ -6,8 +6,11 @@ import getCurrentUser from "../api/get-current-user.js";
 import patchCurrentUser from "../api/patch-current-user.js";
 import getClubs from "../api/get-clubs.js";
 import getMyClubs from "../api/get-my-clubs.js";
+import getMyBookedMeetings from "../api/get-my-booked-meetings.js";
 import BookClubCard from "../components/clubs/BookClubCard.jsx";
 import ProfileStats from "../components/ProfileStats.jsx";
+import useClubsCurrentBooks from "../hooks/use-clubs-current-books.js";
+import { formatMeetingDate } from "../utils/format-meeting-date.js";
 
 const PAGE_BG = "#F8F6F1";
 const CARD_BG = "#FFFFFF";
@@ -30,8 +33,22 @@ function ProfilePage() {
   const [editBio, setEditBio] = useState("");
   const [saveError, setSaveError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [bookedMeetings, setBookedMeetings] = useState([]);
 
   const isLoggedIn = Boolean(auth?.token && auth?.username);
+
+  const userId = profile?.id;
+  const clubsMemberOf =
+    userId != null
+      ? clubs.filter(
+          (c) => c.owner !== userId && c.membership_status === "approved",
+        )
+      : [];
+  const clubsOwned = userId != null ? myClubs : [];
+  const { currentBooksByClubId, totalHistoricReadCount } = useClubsCurrentBooks(
+    [...clubsMemberOf, ...clubsOwned].map((c) => c?.id),
+    auth?.token ?? null,
+  );
 
   function startEditing() {
     // Pre-fill with current profile so the user can tweak rather than re-type
@@ -72,15 +89,18 @@ function ProfilePage() {
     let cancelled = false;
     async function load() {
       try {
-        const [profileData, clubsData, myClubsData] = await Promise.all([
-          getCurrentUser(auth.token),
-          getClubs(auth.token),
-          getMyClubs(auth.token),
-        ]);
+        const [profileData, clubsData, myClubsData, bookedData] =
+          await Promise.all([
+            getCurrentUser(auth.token),
+            getClubs(auth.token),
+            getMyClubs(auth.token),
+            getMyBookedMeetings(auth.token).catch(() => []),
+          ]);
         if (!cancelled) {
           setProfile(profileData);
           setClubs(Array.isArray(clubsData) ? clubsData : []);
           setMyClubs(Array.isArray(myClubsData) ? myClubsData : []);
+          setBookedMeetings(Array.isArray(bookedData) ? bookedData : []);
         }
       } catch (err) {
         if (!cancelled) {
@@ -163,11 +183,6 @@ function ProfilePage() {
     );
   }
 
-  const userId = profile?.id;
-  const clubsOwned = userId != null ? myClubs : [];
-  const clubsMemberOf =
-    userId != null ? clubs.filter((c) => c.owner !== userId && c.membership_status === "approved") : [];
-
   const joinedFormatted = profile?.date_joined
     ? new Date(profile.date_joined).toLocaleDateString(undefined, {
         month: "short",
@@ -199,18 +214,20 @@ function ProfilePage() {
           Your Profile
         </h1>
 
-        {/* Profile card full width; stats row below */}
-        <div className="space-y-6">
-          {/* Primary profile card: full row; left half = image, right half = content */}
-          <section
-            className="w-full rounded-2xl overflow-hidden flex flex-col sm:flex-row min-h-\[280px\] sm:min-h-\[320px\]"
-            style={{
-              backgroundColor: CARD_BG,
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-            }}
-          >
-            {isEditing ? (
-              <form onSubmit={handleSaveProfile} className="w-full flex-1 flex flex-col p-6 sm:p-8 space-y-5">
+        {/* Profile card, then stats row — visually separate blocks */}
+        <div className="space-y-8">
+          {isEditing ? (
+            <section
+              className="w-full rounded-2xl overflow-hidden flex flex-col"
+              style={{
+                backgroundColor: CARD_BG,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+              }}
+            >
+              <form
+                onSubmit={handleSaveProfile}
+                className="w-full flex-1 flex flex-col p-6 sm:p-8 space-y-5"
+              >
                 <div>
                   <label
                     htmlFor="profile_picture"
@@ -267,10 +284,17 @@ function ProfilePage() {
                   </button>
                 </div>
               </form>
-            ) : (
-              <>
-                {/* Left half: profile image fills half the tile */}
-                <div className="w-full sm:w-1/2 min-h-\[180px\] sm:min-h-0 sm:h-auto shrink-0 relative bg-gray-100 rounded-t-2xl sm:rounded-t-none sm:rounded-l-2xl overflow-hidden">
+            </section>
+          ) : (
+            <>
+              <section
+                className="w-full rounded-2xl overflow-hidden flex flex-col sm:flex-row sm:items-stretch"
+                style={{
+                  backgroundColor: CARD_BG,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                }}
+              >
+                <div className="w-full sm:w-2/5 lg:w-1/3 shrink-0 relative h-40 sm:h-auto sm:min-h-0 sm:self-stretch bg-gray-100 rounded-t-2xl sm:rounded-t-none sm:rounded-l-2xl overflow-hidden">
                   {profile?.profile_picture ? (
                     <img
                       src={profile.profile_picture}
@@ -286,8 +310,7 @@ function ProfilePage() {
                     </div>
                   )}
                 </div>
-                {/* Right half: name, email, bio */}
-                <div className="w-full sm:w-1/2 min-w-0 flex flex-col justify-center p-6 sm:p-8 text-center sm:text-left">
+                <div className="w-full sm:flex-1 min-w-0 flex flex-col justify-center p-5 sm:p-6 md:p-8 text-center sm:text-left">
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3">
                     <h2
                       className="font-lora text-2xl sm:text-3xl font-semibold"
@@ -312,34 +335,132 @@ function ProfilePage() {
                       {profile.bio.trim()}
                     </p>
                   ) : null}
-                  <div className="mt-4">
+                  <div className="mt-4 flex justify-center sm:justify-start">
                     <button
                       type="button"
                       onClick={startEditing}
-                      className="text-sm font-semibold text-[#e07a5f] hover:underline"
+                      className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-[#e07a5f] hover:opacity-90 transition-opacity"
                     >
                       Edit profile
                     </button>
                   </div>
                 </div>
-              </>
+              </section>
+
+              <ProfileStats
+                clubsCount={clubs.length}
+                upcomingMeetingsCount={bookedMeetings.length}
+                booksReadCount={totalHistoricReadCount}
+                cardBg={CARD_BG}
+                statNumberColor={STAT_NUMBER}
+                descriptionColor={DESCRIPTION_COLOR}
+              />
+
+              <section
+                className="rounded-2xl p-5 sm:p-6 md:p-8"
+                style={{
+                  backgroundColor: CARD_BG,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                }}
+              >
+                <h3
+                  className="text-xs font-semibold uppercase tracking-wider mb-4"
+                  style={{ color: DESCRIPTION_COLOR }}
+                >
+                  Upcoming meetings you&apos;ve booked
+                </h3>
+                {bookedMeetings.length === 0 ? (
+                  <p className="text-sm m-0" style={{ color: DESCRIPTION_COLOR }}>
+                    You don&apos;t have any upcoming booked meetings. Visit a
+                    club you&apos;re a member of to book a slot.
+                  </p>
+                ) : (
+                  <ul className="space-y-3 list-none m-0 p-0">
+                    {bookedMeetings.map((meeting) => {
+                      const clubId = meeting.club?.id;
+                      const clubName = meeting.club?.name ?? "Club";
+                      const timePart =
+                        meeting.start_time != null &&
+                        String(meeting.start_time).length >= 5
+                          ? ` · ${String(meeting.start_time).slice(0, 5)}`
+                          : "";
+                      const meta = `${formatMeetingDate(meeting.meeting_date)}${timePart}${
+                        meeting.meeting_type === "virtual"
+                          ? " · Virtual"
+                          : " · In person"
+                      }`;
+                      const inner = (
+                        <>
+                          <p
+                            className="m-0 text-sm font-medium"
+                            style={{ color: TITLE_COLOR }}
+                          >
+                            {meeting.title}
+                          </p>
+                          <p
+                            className="m-0 text-xs mt-1"
+                            style={{ color: DESCRIPTION_COLOR }}
+                          >
+                            {clubName}
+                            <span className="text-[#606060]"> · {meta}</span>
+                          </p>
+                        </>
+                      );
+                      return (
+                        <li key={meeting.id}>
+                          {clubId != null ? (
+                            <Link
+                              to={`/clubs/${clubId}`}
+                              className="block rounded-xl border border-transparent px-3 py-2 -mx-3 -my-0.5 transition-colors hover:bg-[rgb(247,244,240)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e07a5f]/40"
+                            >
+                              {inner}
+                            </Link>
+                          ) : (
+                            <div className="px-3 py-2">{inner}</div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            </>
+          )}
+        </div>
+
+        {/* Book clubs: single column — owned first, then memberships */}
+        <div className="flex flex-col gap-10">
+          <section>
+            <h3
+              className="text-xs font-semibold uppercase tracking-wider mb-4"
+              style={{ color: DESCRIPTION_COLOR }}
+            >
+              Book clubs you own
+            </h3>
+            {clubsOwned.length === 0 ? (
+              <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
+                You haven&apos;t created any clubs yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                {clubsOwned.map((club) => (
+                  <Link
+                    key={club.id}
+                    to={`/clubs/${club.id}`}
+                    className="block"
+                  >
+                    <BookClubCard
+                      club={club}
+                      compact
+                      dense
+                      currentBook={currentBooksByClubId?.[club.id] ?? null}
+                    />
+                  </Link>
+                ))}
+              </div>
             )}
           </section>
 
-          {/* Stats: row of three cards below profile */}
-          <ProfileStats
-            clubsCount={clubs.length}
-            upcomingMeetingsCount={0}
-            booksReadCount={0}
-            cardBg={CARD_BG}
-            statNumberColor={STAT_NUMBER}
-            descriptionColor={DESCRIPTION_COLOR}
-          />
-        </div>
-
-        {/* Book clubs: two sections side by side on lg, each with a grid of compact cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Book clubs you are a member of */}
           <section>
             <h3
               className="text-xs font-semibold uppercase tracking-wider mb-4"
@@ -353,41 +474,19 @@ function ProfilePage() {
                 join.
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {clubsMemberOf.map((club) => (
                   <Link
                     key={club.id}
                     to={`/clubs/${club.id}`}
                     className="block"
                   >
-                    <BookClubCard club={club} compact />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Book clubs you own */}
-          <section>
-            <h3
-              className="text-xs font-semibold uppercase tracking-wider mb-4"
-              style={{ color: DESCRIPTION_COLOR }}
-            >
-              Book clubs you own
-            </h3>
-            {clubsOwned.length === 0 ? (
-              <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
-                You haven&apos;t created any clubs yet.
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                {clubsOwned.map((club) => (
-                  <Link
-                    key={club.id}
-                    to={`/clubs/${club.id}`}
-                    className="block"
-                  >
-                    <BookClubCard club={club} compact />
+                    <BookClubCard
+                      club={club}
+                      compact
+                      dense
+                      currentBook={currentBooksByClubId?.[club.id] ?? null}
+                    />
                   </Link>
                 ))}
               </div>
