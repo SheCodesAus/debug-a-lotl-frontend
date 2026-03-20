@@ -203,7 +203,7 @@ function ProfilePage() {
         <div className="space-y-6">
           {/* Primary profile card: full row; left half = image, right half = content */}
           <section
-            className="w-full rounded-2xl overflow-hidden flex flex-col sm:flex-row min-h-[280px] sm:min-h-[320px]"
+            className="w-full rounded-2xl overflow-hidden flex flex-col sm:flex-row min-h-\[280px\] sm:min-h-\[320px\]"
             style={{
               backgroundColor: CARD_BG,
               boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
@@ -270,7 +270,7 @@ function ProfilePage() {
             ) : (
               <>
                 {/* Left half: profile image fills half the tile */}
-                <div className="w-full sm:w-1/2 min-h-[180px] sm:min-h-0 sm:h-auto flex-shrink-0 relative bg-gray-100 rounded-t-2xl sm:rounded-t-none sm:rounded-l-2xl overflow-hidden">
+                <div className="w-full sm:w-1/2 min-h-\[180px\] sm:min-h-0 sm:h-auto shrink-0 relative bg-gray-100 rounded-t-2xl sm:rounded-t-none sm:rounded-l-2xl overflow-hidden">
                   {profile?.profile_picture ? (
                     <img
                       src={profile.profile_picture}
