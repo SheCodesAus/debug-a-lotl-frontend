@@ -536,51 +536,43 @@ function ClubPage() {
 
           {/* Members + Meetings */}
           <div className="order-3 lg:col-span-2 lg:row-start-2 flex flex-col space-y-6">
-            {/* Members */}
-            <section
-              className={
-                restrictMemberSections
-                  ? "rounded-2xl bg-white p-4 sm:p-5 shadow-sm"
-                  : "rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
-              }
-              style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
-            >
-              <h2
-                className={`text-xs font-semibold uppercase tracking-wider m-0 ${restrictMemberSections ? "mb-2" : "mb-4"}`}
-                style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
+            {/* Members — owner only */}
+            {isOwner && (
+              <section
+                className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+                style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
               >
-                {restrictMemberSections ? "Members" : `Members (${displayMemberCount})`}
-              </h2>
-              {restrictMemberSections ? (
-                <ClubMemberContentPlaceholder />
-              ) : (
-                <>
-                  <ul className="list-none p-0 m-0 flex flex-col gap-3">
-                    {memberList.slice(0, 4).map((member, index) => (
-                      <li key={member.id} className="flex items-center gap-3">
-                        <div
-                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold shrink-0"
-                          style={{ backgroundColor: memberAvatarColors[index % memberAvatarColors.length] }}
-                        >
-                          {getInitials(member.name)}
-                        </div>
-                        <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
-                          <span className="text-sm font-medium text-[#1A1410] truncate">{member.name}</span>
-                          {member.isOrganiser && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium shrink-0" style={{ backgroundColor: "#f5f0d9", color: "#8a7e74" }}>
-                              Organiser
-                            </span>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <button type="button" className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left" style={{ color: ACCENT }}>
-                    View all {displayMemberCount} members →
-                  </button>
-                </>
-              )}
-            </section>
+                <h2
+                  className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
+                  style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
+                >
+                  Members ({displayMemberCount})
+                </h2>
+                <ul className="list-none p-0 m-0 flex flex-col gap-3">
+                  {memberList.slice(0, 4).map((member, index) => (
+                    <li key={member.id} className="flex items-center gap-3">
+                      <div
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold shrink-0"
+                        style={{ backgroundColor: memberAvatarColors[index % memberAvatarColors.length] }}
+                      >
+                        {getInitials(member.name)}
+                      </div>
+                      <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium text-[#1A1410] truncate">{member.name}</span>
+                        {member.isOrganiser && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium shrink-0" style={{ backgroundColor: "#f5f0d9", color: "#8a7e74" }}>
+                            Organiser
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <button type="button" className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left" style={{ color: ACCENT }}>
+                  View all {displayMemberCount} members →
+                </button>
+              </section>
+            )}
 
             {/* ✅ Meetings with functional book button */}
             <section
