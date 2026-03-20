@@ -183,7 +183,7 @@ function ClubPage() {
     if (!auth?.token) return;
     if (!club) return;
     const canViewMeetings =
-      club.is_public || isOwner || club.membership_status === "approved";
+      isOwner || club.membership_status === "approved";
     if (!canViewMeetings) {
       setMeetings([]);
       return;
@@ -354,10 +354,9 @@ function ClubPage() {
   if (booksError) return <p className="p-6 text-red-600">{booksError}</p>;
   if (!club) return <p className="p-6">Club not found.</p>;
 
-  const isPrivateNonMemberView =
-    !club.is_public &&
-    !isOwner &&
-    club.membership_status !== "approved";
+  /** Members, meetings, and announcements: only for owner or approved members (public or private). */
+  const restrictMemberSections =
+    !isOwner && club.membership_status !== "approved";
 
   return (
     <main className="min-h-full flex flex-col" style={{ backgroundColor: PAGE_BG }}>
@@ -540,19 +539,19 @@ function ClubPage() {
             {/* Members */}
             <section
               className={
-                isPrivateNonMemberView
+                restrictMemberSections
                   ? "rounded-2xl bg-white p-4 sm:p-5 shadow-sm"
                   : "rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
               }
               style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
             >
               <h2
-                className={`text-xs font-semibold uppercase tracking-wider m-0 ${isPrivateNonMemberView ? "mb-2" : "mb-4"}`}
+                className={`text-xs font-semibold uppercase tracking-wider m-0 ${restrictMemberSections ? "mb-2" : "mb-4"}`}
                 style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
               >
-                {isPrivateNonMemberView ? "Members" : `Members (${displayMemberCount})`}
+                {restrictMemberSections ? "Members" : `Members (${displayMemberCount})`}
               </h2>
-              {isPrivateNonMemberView ? (
+              {restrictMemberSections ? (
                 <ClubMemberContentPlaceholder />
               ) : (
                 <>
@@ -586,13 +585,13 @@ function ClubPage() {
             {/* ✅ Meetings with functional book button */}
             <section
               className={
-                isPrivateNonMemberView
+                restrictMemberSections
                   ? "rounded-2xl bg-white p-4 sm:p-5 shadow-sm flex-1 min-h-0"
                   : "rounded-2xl bg-white p-6 sm:p-8 shadow-sm flex-1 min-h-0"
               }
               style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
             >
-              <div className={`flex items-center justify-between ${isPrivateNonMemberView ? "mb-2" : "mb-4"}`}>
+              <div className={`flex items-center justify-between ${restrictMemberSections ? "mb-2" : "mb-4"}`}>
                 <h2 className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
                   Meetings
                 </h2>
@@ -611,7 +610,7 @@ function ClubPage() {
                 )}
               </div>
 
-              {isPrivateNonMemberView ? (
+              {restrictMemberSections ? (
                 <ClubMemberContentPlaceholder />
               ) : meetings.length === 0 ? (
                 <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No meetings scheduled yet.</p>
@@ -818,7 +817,7 @@ function ClubPage() {
             clubId={clubId}
             isOwner={isOwner}
             token={auth?.token ?? null}
-            restricted={isPrivateNonMemberView}
+            restricted={restrictMemberSections}
           />
         </div>
       </div>

@@ -19,7 +19,7 @@ export default function ClubMemberContentPlaceholder() {
       }}
     >
       <p className="font-lora text-xs sm:text-sm leading-snug m-0 max-w-lg">
-        You need to request to join this club in order to view this information.
+        You must be a member of this club to view this information.
       </p>
     </div>
   );
