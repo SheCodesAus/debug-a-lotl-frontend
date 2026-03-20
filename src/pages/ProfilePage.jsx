@@ -8,6 +8,7 @@ import getClubs from "../api/get-clubs.js";
 import getMyClubs from "../api/get-my-clubs.js";
 import BookClubCard from "../components/clubs/BookClubCard.jsx";
 import ProfileStats from "../components/ProfileStats.jsx";
+import useClubsCurrentBooks from "../hooks/use-clubs-current-books.js";
 
 const PAGE_BG = "#F8F6F1";
 const CARD_BG = "#FFFFFF";
@@ -32,6 +33,19 @@ function ProfilePage() {
   const [saving, setSaving] = useState(false);
 
   const isLoggedIn = Boolean(auth?.token && auth?.username);
+
+  const userId = profile?.id;
+  const clubsMemberOf =
+    userId != null
+      ? clubs.filter(
+          (c) => c.owner !== userId && c.membership_status === "approved",
+        )
+      : [];
+  const clubsOwned = userId != null ? myClubs : [];
+  const { currentBooksByClubId } = useClubsCurrentBooks(
+    [...clubsMemberOf, ...clubsOwned].map((c) => c?.id),
+    auth?.token ?? null,
+  );
 
   function startEditing() {
     // Pre-fill with current profile so the user can tweak rather than re-type
@@ -162,11 +176,6 @@ function ProfilePage() {
       </div>
     );
   }
-
-  const userId = profile?.id;
-  const clubsOwned = userId != null ? myClubs : [];
-  const clubsMemberOf =
-    userId != null ? clubs.filter((c) => c.owner !== userId && c.membership_status === "approved") : [];
 
   const joinedFormatted = profile?.date_joined
     ? new Date(profile.date_joined).toLocaleDateString(undefined, {
@@ -337,9 +346,39 @@ function ProfilePage() {
           />
         </div>
 
-        {/* Book clubs: two sections side by side on lg, each with a grid of compact cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Book clubs you are a member of */}
+        {/* Book clubs: single column — owned first, then memberships */}
+        <div className="flex flex-col gap-10">
+          <section>
+            <h3
+              className="text-xs font-semibold uppercase tracking-wider mb-4"
+              style={{ color: DESCRIPTION_COLOR }}
+            >
+              Book clubs you own
+            </h3>
+            {clubsOwned.length === 0 ? (
+              <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
+                You haven&apos;t created any clubs yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                {clubsOwned.map((club) => (
+                  <Link
+                    key={club.id}
+                    to={`/clubs/${club.id}`}
+                    className="block"
+                  >
+                    <BookClubCard
+                      club={club}
+                      compact
+                      dense
+                      currentBook={currentBooksByClubId?.[club.id] ?? null}
+                    />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
           <section>
             <h3
               className="text-xs font-semibold uppercase tracking-wider mb-4"
@@ -353,41 +392,19 @@ function ProfilePage() {
                 join.
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {clubsMemberOf.map((club) => (
                   <Link
                     key={club.id}
                     to={`/clubs/${club.id}`}
                     className="block"
                   >
-                    <BookClubCard club={club} compact />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Book clubs you own */}
-          <section>
-            <h3
-              className="text-xs font-semibold uppercase tracking-wider mb-4"
-              style={{ color: DESCRIPTION_COLOR }}
-            >
-              Book clubs you own
-            </h3>
-            {clubsOwned.length === 0 ? (
-              <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
-                You haven&apos;t created any clubs yet.
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                {clubsOwned.map((club) => (
-                  <Link
-                    key={club.id}
-                    to={`/clubs/${club.id}`}
-                    className="block"
-                  >
-                    <BookClubCard club={club} compact />
+                    <BookClubCard
+                      club={club}
+                      compact
+                      dense
+                      currentBook={currentBooksByClubId?.[club.id] ?? null}
+                    />
                   </Link>
                 ))}
               </div>
