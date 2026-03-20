@@ -140,7 +140,10 @@ function CreateClubPage() {
               style={labelStyle}
               htmlFor="name"
             >
-              Club name <span className="text-red-500">*</span>
+              Club name{" "}
+              <span className="text-red-500 text-xs align-super" aria-hidden="true">
+                *
+              </span>
             </label>
             <input
               className={inputClassName}
@@ -160,7 +163,10 @@ function CreateClubPage() {
               style={labelStyle}
               htmlFor="description"
             >
-              Description <span className="text-red-500">*</span>
+              Description{" "}
+              <span className="text-red-500 text-xs align-super" aria-hidden="true">
+                *
+              </span>
             </label>
             <textarea
               className={`${inputClassName} min-h-[100px] resize-y`}
@@ -321,7 +327,10 @@ function CreateClubPage() {
                 style={labelStyle}
                 htmlFor="club_location"
               >
-                Default meeting location <span className="text-red-500">*</span>
+                Default meeting location{" "}
+                <span className="text-red-500 text-xs align-super" aria-hidden="true">
+                  *
+                </span>
               </label>
               <input
                 className={inputClassName}

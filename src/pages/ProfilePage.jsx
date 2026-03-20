@@ -191,9 +191,7 @@ function ProfilePage() {
     : null;
 
   const displayName =
-    getFirstNameFromProfile(profile) ??
-    profile?.username ??
-    "User";
+    getFirstNameFromProfile(profile) ?? profile?.username ?? "User";
   const initials = displayName
     .split(/\s+/)
     .map((w) => w.charAt(0))
@@ -370,7 +368,10 @@ function ProfilePage() {
                   Upcoming meetings you&apos;ve booked
                 </h3>
                 {bookedMeetings.length === 0 ? (
-                  <p className="text-sm m-0" style={{ color: DESCRIPTION_COLOR }}>
+                  <p
+                    className="text-sm m-0"
+                    style={{ color: DESCRIPTION_COLOR }}
+                  >
                     You don&apos;t have any upcoming booked meetings. Visit a
                     club you&apos;re a member of to book a slot.
                   </p>
