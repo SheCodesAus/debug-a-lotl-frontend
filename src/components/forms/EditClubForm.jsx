@@ -154,7 +154,10 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
             style={labelStyle}
             htmlFor="name"
           >
-            Club name
+            Club name{" "}
+            <span className="text-red-500 text-xs align-super" aria-hidden="true">
+              *
+            </span>
           </label>
           <input
             id="name"
@@ -173,7 +176,10 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
             style={labelStyle}
             htmlFor="description"
           >
-            Description
+            Description{" "}
+            <span className="text-red-500 text-xs align-super" aria-hidden="true">
+              *
+            </span>
           </label>
           <textarea
             id="description"
@@ -324,7 +330,10 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
             style={labelStyle}
             htmlFor="club_location"
           >
-            Default meeting location <span className="text-red-500">*</span>
+            Default meeting location{" "}
+            <span className="text-red-500 text-xs align-super" aria-hidden="true">
+              *
+            </span>
           </label>
           <input
             className={inputClassName}
