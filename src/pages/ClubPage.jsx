@@ -13,6 +13,7 @@ import EditClubForm from "../components/forms/EditClubForm";
 import getClubMembers from "../api/get-club-members.js";
 import patchClubMember from "../api/patch-club-member.js";
 import getClubMeetings from "../api/get-club-meetings.js";
+import postAttendMeeting from "../api/post-attend-meeting.js";
 import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard.jsx";
 import BookDetailsModal from "../components/modals/BookDetailsModal";
 
@@ -131,9 +132,10 @@ function ClubPage() {
   const [pendingMembers, setPendingMembers] = useState([]);
   const [approvedMembers, setApprovedMembers] = useState([]);
   const [memberActionLoading, setMemberActionLoading] = useState(null);
-
-  // meetings state
   const [meetings, setMeetings] = useState([]);
+
+  // ✅ Track booking state per meeting: { [meetingId]: 'idle' | 'loading' | 'booked' | 'error' }
+  const [bookingState, setBookingState] = useState({});
 
   const { clubBooks, isLoadingBooks, booksError, refetchClubBooks } =
     useClubBooks(clubId, auth?.token ?? null);
@@ -158,7 +160,6 @@ function ClubPage() {
   const creatorName = club?.owner_username ?? null;
   const memberCount = club?.member_count ?? 1;
 
-  // Load members (owner only)
   useEffect(() => {
     if (!isOwner || !auth?.token) return;
     async function loadMembers() {
@@ -173,7 +174,6 @@ function ClubPage() {
     loadMembers();
   }, [isOwner, clubId, auth?.token]);
 
-  // Load meetings — visible to approved members and owner
   useEffect(() => {
     if (!auth?.token) return;
     async function loadMeetings() {
@@ -186,6 +186,17 @@ function ClubPage() {
     }
     loadMeetings();
   }, [clubId, auth?.token]);
+
+  // ✅ Handle booking a meeting
+  async function handleBookMeeting(meetingId) {
+    setBookingState((prev) => ({ ...prev, [meetingId]: "loading" }));
+    try {
+      await postAttendMeeting(meetingId, auth.token);
+      setBookingState((prev) => ({ ...prev, [meetingId]: "booked" }));
+    } catch (err) {
+      setBookingState((prev) => ({ ...prev, [meetingId]: err.message || "Could not book meeting" }));
+    }
+  }
 
   async function handleMemberAction(memberId, newStatus) {
     setMemberActionLoading(memberId);
@@ -207,7 +218,6 @@ function ClubPage() {
   const [isSettingReading, setIsSettingReading] = useState(false);
 
   async function moveCurrentReadingToHistoric() {
-    // If there is a current book, archive it before setting a new one.
     if (!currentBook?.id || !auth?.token) return;
     await patchClubBookStatus(auth.token, clubId, currentBook.id, { status: "read" });
   }
@@ -352,14 +362,11 @@ function ClubPage() {
       )}
 
       <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
-        {/* Owner-only: Pending approvals (top) */}
+        {/* Owner-only: Pending approvals */}
         {isOwner && (
           <section
             className="rounded-2xl bg-white p-10 shadow-sm"
-            style={{
-              boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px",
-              border: "2px solid #eab308",
-            }}
+            style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px", border: "2px solid #eab308" }}
           >
             <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
               Pending approvals {pendingMembers.length > 0 && `(${pendingMembers.length})`}
@@ -432,8 +439,7 @@ function ClubPage() {
                 </div>
               </div>
             </div>
-            
-            {/* membership_status controls what shows here */}
+
             {!isOwner && auth?.token && !club.membership_status && (
               <div className="mt-4">
                 <JoinClubForm clubId={clubId} isPrivate={!club.is_public} onSuccess={() => setTimeout(() => window.location.reload(), 1500)} />
@@ -442,11 +448,6 @@ function ClubPage() {
             {!isOwner && auth?.token && club.membership_status === "pending" && (
               <div className="mt-4 px-3 py-2.5 rounded-lg text-sm" style={{ backgroundColor: "#fdf6ec", border: "1.5px solid #f0d9b5", color: "#8a6a3a" }}>
                 Your request is pending approval from the owner.
-              </div>
-            )}
-            {!isOwner && auth?.token && club.membership_status === "approved" && (
-              <div className="mt-4 px-3 py-2.5 rounded-lg text-sm" style={{ backgroundColor: "#f0f7f0", border: "1.5px solid #b6d9b6", color: "#3a6b3a" }}>
-                ✓ You are a member of this club.
               </div>
             )}
           </section>
@@ -462,16 +463,15 @@ function ClubPage() {
             {currentBook ? (
               <div className="space-y-3">
                 {currentBook.cover_image ? (
-                  <img src={currentBook.cover_image} alt="" className="w-full max-w-[260px] mx-auto h-auto object-cover rounded-lg" />
+                  <img src={currentBook.cover_image} alt="" className="w-full max-w-\[260px\] mx-auto h-auto object-cover rounded-lg" />
                 ) : (
-                  <div className="w-full max-w-[260px] mx-auto rounded-lg overflow-hidden flex items-end text-white text-left p-3" style={{ minHeight: 280, background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
+                  <div className="w-full max-w-\[260px\] mx-auto rounded-lg overflow-hidden flex items-end text-white text-left p-3" style={{ minHeight: 280, background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
                     <div>
                       <div className="font-semibold text-sm leading-tight">{currentBook.title}</div>
                       <div className="text-xs opacity-90">{currentBook.author}</div>
                     </div>
                   </div>
                 )}
-
                 <div className="min-w-0">
                   <h3 className="font-playfair font-bold text-xl text-[#1A1410] m-0">{currentBook.title}</h3>
                   {currentBook.author && <p className="text-sm m-0 mt-1" style={{ color: MUTED_COLOR }}>{currentBook.author}</p>}
@@ -493,7 +493,7 @@ function ClubPage() {
                   )}
                   {currentBook.description && (
                     <p className="text-sm m-0 mt-3 leading-relaxed italic line-clamp-4" style={{ color: MUTED_COLOR }}>
-                      “{currentBook.description}”
+                      "{currentBook.description}"
                     </p>
                   )}
                   {isOwner && (
@@ -518,7 +518,7 @@ function ClubPage() {
             )}
           </section>
 
-          {/* Members + Meetings (stacked under About) */}
+          {/* Members + Meetings */}
           <div className="order-3 lg:col-span-2 lg:row-start-2 flex flex-col space-y-6">
             {/* Members */}
             <section
@@ -553,7 +553,7 @@ function ClubPage() {
               </button>
             </section>
 
-            {/* Meetings */}
+            {/* ✅ Meetings with functional book button */}
             <section
               className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm flex-1 min-h-0"
               style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
@@ -581,26 +581,46 @@ function ClubPage() {
                 <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No meetings scheduled yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {meetings.map((meeting) => (
-                    <div key={meeting.id} className="flex items-center justify-between gap-3 text-sm">
-                      <div className="min-w-0">
-                        <p className="m-0 font-medium text-[#1A1410]">{meeting.title}</p>
-                        <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
-                          {formatMeetingDate(meeting.meeting_date)}
-                          {meeting.start_time && ` · ${meeting.start_time.slice(0, 5)}`}
-                          {meeting.meeting_type === "virtual" ? " · Virtual" : " · In person"}
-                        </p>
+                  {meetings.map((meeting) => {
+                    const bState = bookingState[meeting.id] ?? "idle";
+                    const isBooked = bState === "booked";
+                    const isBooking = bState === "loading";
+                    const bookingError = bState !== "idle" && bState !== "loading" && bState !== "booked" ? bState : null;
+
+                    return (
+                      <div key={meeting.id} className="flex items-start justify-between gap-3 text-sm">
+                        <div className="min-w-0 flex-1">
+                          <p className="m-0 font-medium text-[#1A1410]">{meeting.title}</p>
+                          <p className="m-0 text-xs" style={{ color: MUTED_COLOR }}>
+                            {formatMeetingDate(meeting.meeting_date)}
+                            {meeting.start_time && ` · ${meeting.start_time.slice(0, 5)}`}
+                            {meeting.meeting_type === "virtual" ? " · Virtual" : " · In person"}
+                          </p>
+                          {/* ✅ Error message under the meeting */}
+                          {bookingError && (
+                            <p className="m-0 mt-1 text-xs text-red-600">{bookingError}</p>
+                          )}
+                        </div>
+
+                        {/* ✅ Book button — only for members, not owner */}
+                        {!isOwner && (
+                          <button
+                            type="button"
+                            disabled={isBooked || isBooking}
+                            onClick={() => handleBookMeeting(meeting.id)}
+                            className="text-xs px-3 py-1 rounded shrink-0 transition-colors disabled:cursor-not-allowed"
+                            style={{
+                              border: isBooked ? "none" : "1px solid #e5e7eb",
+                              backgroundColor: isBooked ? "rgb(107, 123, 92)" : "transparent",
+                              color: isBooked ? "white" : "#1A1410",
+                            }}
+                          >
+                            {isBooking ? "..." : isBooked ? "✓ Booked" : "book"}
+                          </button>
+                        )}
                       </div>
-                      {!isOwner && (
-                        <button
-                          type="button"
-                          className="text-xs px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 shrink-0 transition-colors"
-                        >
-                          book
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -697,11 +717,7 @@ function ClubPage() {
                     aria-label={`View details for ${book.title}`}
                   >
                     {book.cover_image ? (
-                      <img
-                        src={book.cover_image}
-                        alt={book.title}
-                        className="w-16 h-24 rounded-md object-cover shrink-0"
-                      />
+                      <img src={book.cover_image} alt={book.title} className="w-16 h-24 rounded-md object-cover shrink-0" />
                     ) : (
                       <div
                         className="w-16 h-24 rounded-md shrink-0 flex items-center justify-center text-xs text-white"
@@ -710,15 +726,10 @@ function ClubPage() {
                         Book
                       </div>
                     )}
-
                     <div className="min-w-0 flex-1 flex flex-col">
-                      <h3 className="text-sm font-semibold text-[#1A1410] m-0 truncate">
-                        {book.title}
-                      </h3>
+                      <h3 className="text-sm font-semibold text-[#1A1410] m-0 truncate">{book.title}</h3>
                       {book.author && (
-                        <p className="text-xs m-0 mt-1 truncate" style={{ color: MUTED_COLOR }}>
-                          {book.author}
-                        </p>
+                        <p className="text-xs m-0 mt-1 truncate" style={{ color: MUTED_COLOR }}>{book.author}</p>
                       )}
                       {isOwner && (
                         <div className="mt-3">
@@ -773,7 +784,6 @@ function ClubPage() {
           onClose={() => setShowScheduleModal(false)}
           onSuccess={() => {
             setShowScheduleModal(false);
-            // Reload meetings after scheduling
             getClubMeetings(clubId, auth.token)
               .then((data) => setMeetings(Array.isArray(data) ? data : []))
               .catch(console.error);
