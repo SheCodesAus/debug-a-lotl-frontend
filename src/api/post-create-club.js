@@ -9,11 +9,13 @@ async function postCreateClub(token, payload) {
     description: payload.description?.trim() ?? "",
     banner_image: payload.banner_image?.trim() ?? "",
     is_public: Boolean(payload.is_public),
-    // Optional cap on members; send null when left empty so backend allows unlimited
+    // Public clubs have no member cap (UI disables the field; enforce here too)
     max_members:
-      payload.max_members !== "" && payload.max_members != null
-        ? Number(payload.max_members)
-        : null,
+      payload.is_public
+        ? null
+        : payload.max_members !== "" && payload.max_members != null
+          ? Number(payload.max_members)
+          : null,
     // Backend expects "virtual" | "in_person" (underscore, not hyphen)
     club_meeting_mode:
       payload.club_meeting_mode === "in_person" ? "in_person" : "virtual",

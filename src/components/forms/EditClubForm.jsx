@@ -12,6 +12,10 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
     name: club?.name ?? "",
     description: club?.description ?? "",
     banner_image: club?.banner_image ?? "",
+    is_public: club?.is_public ?? true,
+    max_members: club?.max_members != null ? String(club.max_members) : "",
+    club_meeting_mode: club?.club_meeting_mode ?? "virtual",
+    club_location: club?.club_location ?? "",
     is_active: club?.is_active ?? true,
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -31,10 +35,45 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
     setIsSaving(true);
     setError(null);
 
+    if (!fields.name?.trim()) {
+      setError("Club name is required.");
+      setIsSaving(false);
+      return;
+    }
+
+    if (!fields.description?.trim()) {
+      setError("Description is required.");
+      setIsSaving(false);
+      return;
+    }
+
+    if (
+      fields.club_meeting_mode === "in_person" &&
+      !fields.club_location?.trim()
+    ) {
+      setError("Location is required for in-person clubs.");
+      setIsSaving(false);
+      return;
+    }
+
     const payload = {
       name: fields.name.trim(),
       description: fields.description.trim(),
       banner_image: fields.banner_image.trim(),
+      is_public: Boolean(fields.is_public),
+      // Public clubs have no member cap (UI disables; backend enforces too)
+      max_members: fields.is_public
+        ? null
+        : fields.max_members !== "" && fields.max_members != null
+          ? Number(fields.max_members)
+          : null,
+      // Backend expects "virtual" | "in_person"
+      club_meeting_mode: fields.club_meeting_mode === "in_person" ? "in_person" : "virtual",
+      // Required by backend when club_meeting_mode is "in_person"
+      club_location:
+        fields.club_meeting_mode === "in_person"
+          ? fields.club_location?.trim() ?? ""
+          : "",
     };
 
     try {
@@ -168,6 +207,176 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
             This image appears behind the club title at the top of the page.
           </p>
         </div>
+      </div>
+
+      <fieldset className="w-full flex flex-col">
+        <span className="block uppercase font-semibold w-full" style={labelStyle}>
+          Visibility
+        </span>
+        <div className="flex gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={() =>
+              setFields((prev) => ({ ...prev, is_public: false }))
+            }
+            className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
+            style={
+              fields.is_public === false
+                ? {
+                    backgroundColor: INPUT_BG,
+                    borderColor: ACCENT,
+                    color: ACCENT,
+                  }
+                : {
+                    backgroundColor: "#fff",
+                    borderColor: INPUT_BORDER,
+                    color: TEXT_COLOR,
+                  }
+            }
+          >
+            Private (Request to Join)
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              setFields((prev) => ({ ...prev, is_public: true }))
+            }
+            className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
+            style={
+              fields.is_public === true
+                ? {
+                    backgroundColor: INPUT_BG,
+                    borderColor: ACCENT,
+                    color: ACCENT,
+                  }
+                : {
+                    backgroundColor: "#fff",
+                    borderColor: INPUT_BORDER,
+                    color: TEXT_COLOR,
+                  }
+            }
+          >
+            Public (Anyone Can Join)
+          </button>
+        </div>
+      </fieldset>
+
+      <fieldset className="w-full flex flex-col">
+        <span className="block uppercase font-semibold w-full" style={labelStyle}>
+          Attendance
+        </span>
+        <div className="flex gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={() =>
+              setFields((prev) => ({
+                ...prev,
+                club_meeting_mode: "virtual",
+                club_location: "",
+              }))
+            }
+            className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
+            style={
+              fields.club_meeting_mode !== "in_person"
+                ? {
+                    backgroundColor: INPUT_BG,
+                    borderColor: ACCENT,
+                    color: ACCENT,
+                  }
+                : {
+                    backgroundColor: "#fff",
+                    borderColor: INPUT_BORDER,
+                    color: TEXT_COLOR,
+                  }
+            }
+          >
+            Virtual
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              setFields((prev) => ({ ...prev, club_meeting_mode: "in_person" }))
+            }
+            className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
+            style={
+              fields.club_meeting_mode === "in_person"
+                ? {
+                    backgroundColor: INPUT_BG,
+                    borderColor: ACCENT,
+                    color: ACCENT,
+                  }
+                : {
+                    backgroundColor: "#fff",
+                    borderColor: INPUT_BORDER,
+                    color: TEXT_COLOR,
+                  }
+            }
+          >
+            In person
+          </button>
+        </div>
+      </fieldset>
+
+      {fields.club_meeting_mode === "in_person" && (
+        <div className="w-full">
+          <label
+            className="block uppercase font-semibold w-full"
+            style={labelStyle}
+            htmlFor="club_location"
+          >
+            Default meeting location <span className="text-red-500">*</span>
+          </label>
+          <input
+            className={inputClassName}
+            style={inputStyle}
+            type="text"
+            id="club_location"
+            placeholder="e.g. Bristol Central Library"
+            value={fields.club_location}
+            onChange={handleChange}
+          />
+        </div>
+      )}
+
+      <div className="w-full">
+        <label
+          className="block uppercase font-semibold w-full"
+          style={{
+            ...labelStyle,
+            color: fields.is_public ? "#b5aba3" : MUTED_COLOR,
+          }}
+          htmlFor="max_members"
+        >
+          Max members (optional)
+        </label>
+        <input
+          className={inputClassName}
+          style={{
+            ...inputStyle,
+            ...(fields.is_public
+              ? {
+                  backgroundColor: "#EFEAE4",
+                  borderColor: "#DDD5CC",
+                  color: "#9A9088",
+                  cursor: "not-allowed",
+                }
+              : {}),
+          }}
+          type="number"
+          id="max_members"
+          min={1}
+          placeholder="No limit"
+          value={fields.is_public ? "" : fields.max_members}
+          onChange={handleChange}
+          disabled={fields.is_public}
+          aria-disabled={fields.is_public}
+        />
+        {fields.is_public && (
+          <p className="text-xs mt-1.5 m-0" style={{ color: MUTED_COLOR }}>
+            Public clubs don’t use a member cap—make the club private to set a
+            limit.
+          </p>
+        )}
       </div>
 
       <div className="rounded-xl border border-gray-100 bg-[#fffaf6] px-5 py-4">
