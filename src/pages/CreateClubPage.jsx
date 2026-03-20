@@ -50,6 +50,14 @@ function CreateClubPage() {
       return;
     }
 
+    if (
+      formData.club_meeting_mode === "in_person" &&
+      !formData.club_location?.trim()
+    ) {
+      setError("Location is required for in-person clubs.");
+      return;
+    }
+
     if (!auth?.token) {
       setError("You must be logged in to create a book club.");
       return;
@@ -195,7 +203,9 @@ function CreateClubPage() {
             <div className="flex gap-3 flex-wrap">
               <button
                 type="button"
-                onClick={() => setFormData((prev) => ({ ...prev, is_public: false }))}
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, is_public: false }))
+                }
                 className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
                 style={
                   formData.is_public === false
@@ -215,7 +225,13 @@ function CreateClubPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setFormData((prev) => ({ ...prev, is_public: true }))}
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    is_public: true,
+                    max_members: "",
+                  }))
+                }
                 className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
                 style={
                   formData.is_public === true
@@ -236,24 +252,128 @@ function CreateClubPage() {
             </div>
           </fieldset>
 
+          <fieldset className="w-full flex flex-col">
+            <span
+              className="block uppercase font-semibold w-full"
+              style={labelStyle}
+            >
+              Attendance
+            </span>
+            <div className="flex gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    club_meeting_mode: "virtual",
+                    club_location: "",
+                  }))
+                }
+                className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
+                style={
+                  formData.club_meeting_mode !== "in_person"
+                    ? {
+                        backgroundColor: INPUT_BG,
+                        borderColor: ACCENT,
+                        color: ACCENT,
+                      }
+                    : {
+                        backgroundColor: "#fff",
+                        borderColor: INPUT_BORDER,
+                        color: TEXT_COLOR,
+                      }
+                }
+              >
+                Virtual
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    club_meeting_mode: "in_person",
+                  }))
+                }
+                className="flex-1 min-w-[140px] py-3 px-4 rounded-lg border-2 text-left font-medium text-sm transition"
+                style={
+                  formData.club_meeting_mode === "in_person"
+                    ? {
+                        backgroundColor: INPUT_BG,
+                        borderColor: ACCENT,
+                        color: ACCENT,
+                      }
+                    : {
+                        backgroundColor: "#fff",
+                        borderColor: INPUT_BORDER,
+                        color: TEXT_COLOR,
+                      }
+                }
+              >
+                In person
+              </button>
+            </div>
+          </fieldset>
+
+          {formData.club_meeting_mode === "in_person" && (
+            <div className="w-full">
+              <label
+                className="block uppercase font-semibold w-full"
+                style={labelStyle}
+                htmlFor="club_location"
+              >
+                Default meeting location <span className="text-red-500">*</span>
+              </label>
+              <input
+                className={inputClassName}
+                style={inputStyle}
+                type="text"
+                id="club_location"
+                placeholder="e.g. Bristol Central Library"
+                value={formData.club_location}
+                onChange={handleChange}
+              />
+            </div>
+          )}
+
           <div className="w-full">
             <label
               className="block uppercase font-semibold w-full"
-              style={labelStyle}
+              style={{
+                ...labelStyle,
+                color: formData.is_public ? "#b5aba3" : MUTED_COLOR,
+              }}
               htmlFor="max_members"
             >
               Max members (optional)
             </label>
             <input
               className={inputClassName}
-              style={inputStyle}
+              style={{
+                ...inputStyle,
+                ...(formData.is_public
+                  ? {
+                      backgroundColor: "#EFEAE4",
+                      borderColor: "#DDD5CC",
+                      color: "#9A9088",
+                      cursor: "not-allowed",
+                    }
+                  : {}),
+              }}
               type="number"
               id="max_members"
               min={1}
               placeholder="No limit"
-              value={formData.max_members}
+              value={formData.is_public ? "" : formData.max_members}
               onChange={handleChange}
+              disabled={formData.is_public}
+              aria-disabled={formData.is_public}
             />
+            {formData.is_public && (
+              <p className="text-xs mt-1.5 m-0" style={{ color: MUTED_COLOR }}>
+                Public clubs don’t use a member cap—make the club private to set a
+                limit.
+              </p>
+            )}
           </div>
 
           <button
