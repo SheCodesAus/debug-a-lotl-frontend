@@ -45,7 +45,7 @@ function ProfilePage() {
         )
       : [];
   const clubsOwned = userId != null ? myClubs : [];
-  const { currentBooksByClubId } = useClubsCurrentBooks(
+  const { currentBooksByClubId, totalHistoricReadCount } = useClubsCurrentBooks(
     [...clubsMemberOf, ...clubsOwned].map((c) => c?.id),
     auth?.token ?? null,
   );
@@ -350,7 +350,7 @@ function ProfilePage() {
               <ProfileStats
                 clubsCount={clubs.length}
                 upcomingMeetingsCount={bookedMeetings.length}
-                booksReadCount={0}
+                booksReadCount={totalHistoricReadCount}
                 cardBg={CARD_BG}
                 statNumberColor={STAT_NUMBER}
                 descriptionColor={DESCRIPTION_COLOR}
