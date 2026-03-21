@@ -9,7 +9,7 @@ import getClubs from "../api/get-clubs";
 import BookClubCard from "../components/clubs/BookClubCard";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books";
 
-const ACCENT = "#e07a5f";
+const ACCENT = "#C45D3E";
 const DARK = "#303030";
 const PAGE_SIZE = 8;
 
@@ -105,7 +105,7 @@ function ClubListPage() {
               placeholder="Search for a book club to join…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 min-w-0 px-4 py-3 rounded-lg border border-gray-200 font-nunito text-[#303030] placeholder:text-[#606060] focus:outline-none focus:ring-2 focus:ring-[#e07a5f]/40 focus:border-[#e07a5f]"
+              className="flex-1 min-w-0 px-4 py-3 rounded-lg border border-gray-200 font-nunito text-[#303030] placeholder:text-[#606060] focus:outline-none focus:ring-2 focus:ring-[#C45D3E]/40 focus:border-[#C45D3E]"
               aria-label="Search book clubs"
             />
             <button
