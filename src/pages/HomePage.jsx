@@ -6,7 +6,7 @@ import BookClubCard from "../components/clubs/BookClubCard";
 import HomePageStats from "../components/HomePageStats";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books";
 
-const ACCENT = "#e07a5f";
+const ACCENT = "#C45D3E";
 const DARK = "#303030";
 const PARAGRAPH = "#606060";
 const INITIAL_CLUBS_VISIBLE = 6;
@@ -165,16 +165,113 @@ function HomePage() {
           </div>
         </div>
 
+        {/* About Section */}
+        <section className="mt-20 sm:mt-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[#f2ece4] py-16 sm:py-20 border-y border-[#e7ddd1]">
+          <div className="max-w-6xl mx-auto">
+            <div className="max-w-3xl">
+              <p
+                className="text-xs font-semibold uppercase tracking-[0.22em] mb-3"
+                style={{ color: ACCENT }}
+              >
+                How It Works
+              </p>
+              <h2
+                className="font-lora text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-5"
+                style={{ color: DARK }}
+              >
+                Where Every Page Starts a Conversation
+              </h2>
+
+              <p
+                className="text-base sm:text-lg leading-8 max-w-2xl"
+                style={{ color: PARAGRAPH }}
+              >
+                Create your own book club, discover others to join, and keep everything organised in one place. From choosing the next read
+                to scheduling meetings and sharing updates, our platform helps readers stay connected and enjoy the whole journey together.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
+              <article className="rounded-3xl p-7 shadow-sm border border-[#e7ddd1] bg-[#fffaf6]">
+                <p
+                  className="text-xs font-semibold uppercase tracking-[0.18em] mb-3"
+                  style={{ color: "#C45D3E" }}
+                >
+                  01
+                </p>
+                <h3
+                  className="font-lora text-xl sm:text-2xl font-bold mb-3"
+                  style={{ color: DARK }}
+                >
+                  Create or join clubs
+                </h3>
+                <p className="text-sm sm:text-base m-0 leading-7" style={{ color: PARAGRAPH }}>
+                  Start your own club or find one that matches your reading
+                  style. Join public clubs instantly or request access to
+                  private ones.
+                </p>
+              </article>
+
+              <article className="rounded-3xl p-7 shadow-sm border border-[#dce6de] bg-[#f4f8f4]">
+                <p
+                  className="text-xs font-semibold uppercase tracking-[0.18em] mb-3"
+                  style={{ color: "#6b7b5c" }}
+                >
+                  02
+                </p>
+                <h3
+                  className="font-lora text-xl sm:text-2xl font-bold mb-3"
+                  style={{ color: DARK }}
+                >
+                  Organise books and meetings
+                </h3>
+                <p className="text-sm sm:text-base m-0 leading-7" style={{ color: PARAGRAPH }}>
+                  Club owners can add books, track what the group is reading,
+                  schedule meetings, and post announcements to keep everyone
+                  updated.
+                </p>
+              </article>
+
+              <article className="rounded-3xl p-7 shadow-sm border border-[#e5dfeb] bg-[#faf7fd]">
+                <p
+                  className="text-xs font-semibold uppercase tracking-[0.18em] mb-3"
+                  style={{ color: "#7a5ba6" }}
+                >
+                  03
+                </p>
+                <h3
+                  className="font-lora text-xl sm:text-2xl font-bold mb-3"
+                  style={{ color: DARK }}
+                >
+                  Read together
+                </h3>
+                <p className="text-sm sm:text-base m-0 leading-7" style={{ color: PARAGRAPH }}>
+                  Members can follow the club&apos;s reading journey, book into
+                  meetings, and stay involved in discussions along the way. 
+                </p>
+              </article>
+            </div>
+
+          </div>
+        </section>
+
+        <section className="mt-8 sm:mt-10 max-w-6xl mx-auto">
+          <div className="max-w-5xl mx-auto rounded-[2rem] bg-white px-6 py-12 sm:px-10 sm:py-14 shadow-sm border border-[#ece2d7]">
+            <HomePageStats bookClubsCount={clubs.length} embedded />
+          </div>
+        </section>
+
+        
         {/* Current book clubs section – full-width background band */}
         <section
           id="current-book-clubs"
           className="mt-20 sm:mt-28 py-16 sm:py-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[rgb(247,244,240)] scroll-mt-20"
         >
           <div className="max-w-6xl mx-auto">
-            <h2 className="font-lora text-2xl sm:text-3xl font-bold text-center text-[#303030] mb-2">
+            <h2 className="font-lora text-3xl sm:text-4xl md:text-5xl font-bold text-center text-[#303030] mb-3">
               Current book clubs
             </h2>
-            <p className="text-center text-[#606060] text-base sm:text-lg mb-10">
+            <p className="text-center text-[#606060] text-base sm:text-lg mb-10 max-w-2xl mx-auto">
               Browse and join clubs that match your reading style.
             </p>
 
@@ -239,8 +336,6 @@ function HomePage() {
             )}
           </div>
         </section>
-
-        <HomePageStats bookClubsCount={clubs.length} />
       </div>
     </div>
   );
