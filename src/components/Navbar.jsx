@@ -5,8 +5,7 @@ import { useAuth } from "../hooks/use-auth";
 import { getFirstNameFromProfile } from "../utils/get-first-name";
 import Footer from "./Footer";
 
-const PRIMARY = "#b46a4f";
-const HEADER_BG = "#e3bd74"; /* golden yellow on scroll */
+const PRIMARY = "#C45D3E";
 const HEADER_BG_TOP = "rgb(253,252,250)"; /* hero colour when at top */
 
 function NavBar() {
@@ -41,7 +40,7 @@ function NavBar() {
       <Link
         to="/clubs"
         onClick={closeMobileMenu}
-        className={`px-3 py-2 rounded-lg font-semibold text-lg transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${isScrolled ? "text-gray-900" : "text-gray-700"}`}
+        className="px-3 py-2 rounded-lg font-nunito font-semibold text-[15px] tracking-[0.01em] text-[#4f4a45] transition-colors hover:bg-black/5 hover:text-[#2f2a26] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
       >
         Discover Clubs
       </Link>
@@ -49,7 +48,7 @@ function NavBar() {
         <Link
           to="/profile"
           onClick={closeMobileMenu}
-          className={`px-3 py-2 rounded-lg font-semibold text-lg transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${isScrolled ? "text-gray-900" : "text-gray-700"}`}
+          className="px-3 py-2 rounded-lg font-nunito font-semibold text-[15px] tracking-[0.01em] text-[#4f4a45] transition-colors hover:bg-black/5 hover:text-[#2f2a26] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
         >
           Profile
         </Link>
@@ -58,16 +57,16 @@ function NavBar() {
   );
 
   const authSection = (
-    <div className="flex items-center gap-4 text-lg">
+    <div className="flex items-center gap-3 text-base">
       {isLoggedIn ? (
         <>
           <span
-            className="inline-flex items-center gap-2 font-medium cursor-default select-none text-[#e07a5f]"
+            className="inline-flex items-center gap-2 font-nunito font-semibold cursor-default select-none text-[#C45D3E]"
           >
             <img
               src="/img/hand-wave.png"
               alt=""
-              className="h-6 w-auto object-contain"
+              className="h-5 w-auto object-contain"
               aria-hidden="true"
             />
             Hi, {firstName}
@@ -75,8 +74,8 @@ function NavBar() {
           <button
             type="button"
             onClick={handleLogout}
-            className="px-5 py-2.5 rounded-lg font-semibold text-white text-lg transition-colors hover:opacity-90"
-            style={{ backgroundColor: "#e07a5f" }}
+            className="px-4 py-2 rounded-xl font-nunito font-semibold text-white text-[15px] transition-colors hover:opacity-90"
+            style={{ backgroundColor: PRIMARY }}
           >
             Logout
           </button>
@@ -86,14 +85,14 @@ function NavBar() {
           <Link
             to="/login"
             onClick={closeMobileMenu}
-            className="px-5 py-2.5 rounded-lg font-semibold text-lg text-[#333333] border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-xl font-nunito font-semibold text-[15px] text-[#3d3732] border border-[#ddd2c5] bg-white hover:bg-[#faf7f2] transition-colors"
           >
             Log In
           </Link>
           <Link
             to="/register"
             onClick={closeMobileMenu}
-            className="px-5 py-2.5 rounded-lg font-semibold text-lg text-white transition-colors hover:opacity-90"
+            className="px-4 py-2 rounded-xl font-nunito font-semibold text-[15px] text-white transition-colors hover:opacity-90"
             style={{ backgroundColor: PRIMARY }}
           >
             Get Started
@@ -105,23 +104,26 @@ function NavBar() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Sticky header: hero colour at top, yellow on scroll */}
+      {/* Sticky header: keep the same background and add depth on scroll */}
       <header
         className="sticky top-0 z-10 shrink-0 transition-[background-color,box-shadow] duration-200"
         style={{
-          backgroundColor: isScrolled ? HEADER_BG : HEADER_BG_TOP,
-          boxShadow: isScrolled ? "0 1px 3px 0 rgb(0 0 0 / 0.1)" : "none",
+          backgroundColor: HEADER_BG_TOP,
+          boxShadow: isScrolled
+            ? "0 14px 30px -22px rgba(26, 20, 16, 0.28)"
+            : "0 1px 0 rgba(26, 20, 16, 0.05)",
+          backdropFilter: "blur(12px)",
         }}
       >
-        <nav className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 text-lg">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 text-lg">
           {/* Logo + title */}
           <Link
             to="/"
             onClick={closeMobileMenu}
-            className="flex items-center gap-2 shrink-0"
+            className="flex items-center gap-3 shrink-0"
           >
             <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
               style={{ backgroundColor: PRIMARY }}
               aria-hidden
             >
@@ -140,13 +142,13 @@ function NavBar() {
                 />
               </svg>
             </div>
-            <span className="font-semibold text-gray-900 text-xl">
+            <span className="font-lora font-bold text-[#2f2a26] text-2xl tracking-tight">
               Open Book
             </span>
           </Link>
 
           {/* Desktop: center nav + right auth (lg and up) */}
-          <div className="hidden lg:flex lg:items-center lg:gap-8 lg:flex-1 lg:justify-center lg:mr-6">
+          <div className="hidden lg:flex lg:items-center lg:gap-5 lg:flex-1 lg:justify-center lg:mr-6">
             {navLinks}
           </div>
           <div className="hidden lg:flex lg:items-center lg:ml-auto">
@@ -158,7 +160,7 @@ function NavBar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen((open) => !open)}
-              className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${isScrolled ? "text-gray-800 hover:bg-black/10 focus:ring-gray-600" : "text-gray-600 hover:bg-gray-100 focus:ring-gray-400"}`}
+              className="p-2 rounded-xl text-[#4f4a45] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 hover:bg-[#f3ede5] focus:ring-[#C45D3E]/40"
               aria-expanded={mobileMenuOpen}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
@@ -197,19 +199,23 @@ function NavBar() {
 
         {/* Mobile menu dropdown – inside header so it sticks with nav */}
         {mobileMenuOpen && (
-          <div
-            className="lg:hidden px-4 py-4 flex flex-col gap-4 border-t border-black/10"
-            style={{ backgroundColor: isScrolled ? HEADER_BG : HEADER_BG_TOP }}
-            role="dialog"
-            aria-label="Mobile navigation"
-          >
-            {navLinks}
-            <div className="pt-2 border-t border-black/10">{authSection}</div>
+          <div className="lg:hidden px-4 pb-4">
+            <div
+              className="mt-2 rounded-2xl border border-[#e7ddd1] bg-[#fffaf6] p-4 flex flex-col gap-3 shadow-sm"
+              role="dialog"
+              aria-label="Mobile navigation"
+            >
+              <div className="flex flex-col gap-1">{navLinks}</div>
+              <div className="pt-3 border-t border-[#ebe1d5]">{authSection}</div>
+            </div>
           </div>
         )}
 
-        {/* Yellow accent on bottom edge of header */}
-        <div className="h-px w-full" style={{ backgroundColor: HEADER_BG }} aria-hidden />
+        <div
+          className="h-px w-full"
+          style={{ backgroundColor: "rgba(26, 20, 16, 0.08)" }}
+          aria-hidden
+        />
       </header>
 
       <main className="flex-1 flex flex-col min-h-0 bg-[rgb(253,252,250)] overflow-y-auto">

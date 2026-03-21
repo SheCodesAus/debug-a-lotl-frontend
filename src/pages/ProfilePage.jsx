@@ -14,8 +14,8 @@ import EditProfileModal from "../components/modals/EditProfileModal.jsx";
 
 const PAGE_BG = "#F8F6F1";
 const CARD_BG = "#FFFFFF";
-const AVATAR_BG = "#e07a5f";
-const STAT_NUMBER = "#e07a5f";
+const AVATAR_BG = "#C45D3E";
+const STAT_NUMBER = "#C45D3E";
 const TITLE_COLOR = "#333333";
 const EMAIL_JOIN_COLOR = "#666666";
 const DESCRIPTION_COLOR = "#777777";
@@ -99,7 +99,7 @@ function ProfilePage() {
             </p>
             <Link
               to="/login"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-semibold text-white bg-[#e07a5f] hover:opacity-90 transition-opacity"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-semibold text-white bg-[#C45D3E] hover:opacity-90 transition-opacity"
             >
               Log in
             </Link>
@@ -117,7 +117,7 @@ function ProfilePage() {
       >
         <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
           <div className="rounded-2xl bg-white shadow-sm p-9 sm:p-10 text-center space-y-4">
-            <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-gray-200 border-t-[#e07a5f]" />
+            <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-gray-200 border-t-[#C45D3E]" />
             <p className="text-base text-[#8c6b5c]">Loading your profile…</p>
           </div>
         </div>
@@ -179,6 +179,7 @@ function ProfilePage() {
 
         {/* Profile card, then stats row — visually separate blocks */}
         <div className="space-y-8">
+
           <section
             className="w-full rounded-2xl overflow-hidden flex flex-col sm:flex-row sm:items-stretch"
             style={{
@@ -316,6 +317,7 @@ function ProfilePage() {
               </ul>
             )}
           </section>
+
         </div>
 
         {showEditModal && (

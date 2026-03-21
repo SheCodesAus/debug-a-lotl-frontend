@@ -7,7 +7,7 @@ function RegisterPage() {
   return (
     <div
       className="min-h-full flex flex-col items-center justify-center px-4 py-12 font-source-sans"
-      style={{ backgroundColor: "#fffaf6" }}
+      style={{ backgroundColor: "rgb(253,252,250)" }}
     >
       <div
         className="w-full max-w-[520px] rounded-2xl bg-white flex flex-col items-center"
