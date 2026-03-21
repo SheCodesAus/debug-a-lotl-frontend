@@ -6,7 +6,7 @@ async function getGoogleBooks(query, token = null) {
   if (!trimmedQuery) return [];
 
   const baseUrl =
-    (import.meta.env.VITE_API_URL ?? "").trim() || "http://127.0.0.1:8000";
+    (import.meta.env.VITE_API_URL ?? "").trim() || "https://openbookapp.netlify.app";
   const encodedQuery = encodeURIComponent(trimmedQuery);
   const url = `${baseUrl.replace(/\/$/, "")}/books/search/?q=${encodedQuery}`;
 
