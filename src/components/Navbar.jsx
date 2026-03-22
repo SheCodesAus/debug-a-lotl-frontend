@@ -124,13 +124,15 @@ function NavBar() {
           >
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-              style={{ backgroundColor: PRIMARY }}
+              style={{ backgroundColor: PRIMARY, width: 40, height: 40 }}
               aria-hidden
             >
               <svg
                 className="w-5 h-5 text-white"
+                width="20"
+                height="20"
                 fill="none"
-                stroke="currentColor"
+                stroke="#ffffff"
                 viewBox="0 0 24 24"
                 aria-hidden
               >
