@@ -343,17 +343,16 @@ function ProfilePage() {
                 You haven&apos;t created any clubs yet.
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {clubsOwned.map((club) => (
                   <Link
                     key={club.id}
                     to={`/clubs/${club.id}`}
-                    className="block"
+                    className="block w-full min-w-0"
                   >
                     <BookClubCard
                       club={club}
                       compact
-                      dense
                       currentBook={currentBooksByClubId?.[club.id] ?? null}
                     />
                   </Link>
@@ -375,17 +374,16 @@ function ProfilePage() {
                 join.
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {clubsMemberOf.map((club) => (
                   <Link
                     key={club.id}
                     to={`/clubs/${club.id}`}
-                    className="block"
+                    className="block w-full min-w-0"
                   >
                     <BookClubCard
                       club={club}
                       compact
-                      dense
                       currentBook={currentBooksByClubId?.[club.id] ?? null}
                     />
                   </Link>

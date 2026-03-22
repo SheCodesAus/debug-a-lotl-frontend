@@ -283,7 +283,7 @@ function HomePage() {
                     <Link
                       key={club.id}
                       to={`/clubs/${club.id}`}
-                      className="block"
+                      className="block w-full min-w-0"
                     >
                       <BookClubCard
                         club={club}
