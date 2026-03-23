@@ -5,8 +5,8 @@
  *   text legibility), otherwise a gradient.
  * - Title: Club name as the main h1 (responsive type scale, white, truncates
  *   on narrow screens).
- * - Badge: Public/Private pill — hero-specific solid styling for contrast on the
- *   dark overlay (differs from translucent pills on BookClubCard).
+ * - Badge: Public/Private pill — outline/glass styling on the dark overlay so it
+ *   reads as status (not a button) next to the solid Edit club control.
  * - Subtitle: Optional "Created by {creatorName}" when creatorName is passed (beside the pill).
  * - Edit club (owners): primary accent button on the same row as the pill.
  *
@@ -22,6 +22,30 @@ import { IconPrivate, IconPublic } from "./ClubPillIcons.jsx";
 const ACCENT = "#C45D3E";
 
 const pillIconClass = "w-5 h-5 sm:w-5 sm:h-5";
+
+/** Shared non-interactive visibility styling (glass/outline — distinct from CTA button). */
+const visibilityPillBaseClass =
+  "inline-flex shrink-0 items-center gap-1 px-3 py-2 sm:px-4 sm:py-2 rounded-full border bg-white/10 backdrop-blur-sm text-white/90 text-sm sm:text-base font-nunito";
+
+function IconEditPencil({ className }) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M7 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1" />
+      <path d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97L9 12v3h3l8.385-8.415z" />
+    </svg>
+  );
+}
 
 function ClubHeader({
   club,
@@ -62,12 +86,18 @@ function ClubHeader({
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             {club.is_public ? (
-              <span className="inline-flex shrink-0 items-center gap-1 px-3 py-2 sm:px-4 sm:py-2 rounded-full bg-[rgb(107,123,92)] text-white text-sm sm:text-base font-nunito ring-1 ring-white/25">
+              <span
+                className={`${visibilityPillBaseClass} border-white/40`}
+                aria-label="This club is public"
+              >
                 Public
                 <IconPublic className={pillIconClass} />
               </span>
             ) : (
-              <span className="inline-flex shrink-0 items-center gap-1 px-3 py-2 sm:px-4 sm:py-2 rounded-full bg-[#e07a5f] text-white text-sm sm:text-base font-nunito ring-1 ring-white/25">
+              <span
+                className={`${visibilityPillBaseClass} border-red-400/75`}
+                aria-label="This club is private"
+              >
                 Private
                 <IconPrivate className={pillIconClass} />
               </span>
@@ -76,9 +106,10 @@ function ClubHeader({
               <button
                 type="button"
                 onClick={onEditClub}
-                className="shrink-0 rounded-lg text-white font-semibold font-nunito text-sm px-4 py-2 transition hover:opacity-90"
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg text-white font-semibold font-nunito text-sm px-4 py-2 transition hover:opacity-90"
                 style={{ backgroundColor: ACCENT }}
               >
+                <IconEditPencil className="shrink-0 opacity-95" />
                 Edit club
               </button>
             )}
