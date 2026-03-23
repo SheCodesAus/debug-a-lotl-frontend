@@ -161,16 +161,15 @@ function ClubListPage() {
             </p>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayedClubs.map((club) => (
                   <Link
                     key={club.id}
                     to={`/clubs/${club.id}`}
-                    className="block"
+                    className="block w-full min-w-0"
                   >
                     <BookClubCard
                       club={club}
-                      compact
                       currentBook={currentBooksByClubId?.[club.id] ?? null}
                     />
                   </Link>

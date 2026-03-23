@@ -49,9 +49,6 @@ function HomePage() {
   const [clubs, setClubs] = useState([]);
   const [clubsLoading, setClubsLoading] = useState(true);
   const [clubsError, setClubsError] = useState(null);
-  const [visibleClubCount, setVisibleClubCount] = useState(
-    INITIAL_CLUBS_VISIBLE,
-  );
 
   const { currentBooksByClubId } = useClubsCurrentBooks(
     clubs.map((c) => c?.id).filter(Boolean),
@@ -65,10 +62,6 @@ function HomePage() {
       .catch((err) => setClubsError(err.message || "Failed to load clubs"))
       .finally(() => setClubsLoading(false));
   }, [auth?.token]);
-
-  useEffect(() => {
-    setVisibleClubCount(Math.min(INITIAL_CLUBS_VISIBLE, clubs.length));
-  }, [clubs]);
 
   return (
     <div className="min-h-full flex flex-col bg-[rgb(253,252,250)]">
@@ -286,11 +279,11 @@ function HomePage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {clubs.slice(0, visibleClubCount).map((club) => (
+                  {clubs.slice(0, INITIAL_CLUBS_VISIBLE).map((club) => (
                     <Link
                       key={club.id}
                       to={`/clubs/${club.id}`}
-                      className="block"
+                      className="block w-full min-w-0"
                     >
                       <BookClubCard
                         club={club}
@@ -299,37 +292,15 @@ function HomePage() {
                     </Link>
                   ))}
                 </div>
-                {visibleClubCount < clubs.length ||
-                visibleClubCount > INITIAL_CLUBS_VISIBLE ? (
+                {clubs.length > INITIAL_CLUBS_VISIBLE ? (
                   <div className="flex flex-wrap justify-center gap-3 mt-8">
-                    {visibleClubCount < clubs.length ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setVisibleClubCount((n) =>
-                            Math.min(n + INITIAL_CLUBS_VISIBLE, clubs.length),
-                          )
-                        }
-                        className="px-6 py-3 rounded-lg font-semibold text-white transition-colors hover:opacity-90"
-                        style={{ backgroundColor: ACCENT }}
-                      >
-                        Show more
-                      </button>
-                    ) : null}
-                    {visibleClubCount > INITIAL_CLUBS_VISIBLE ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setVisibleClubCount(
-                            Math.min(INITIAL_CLUBS_VISIBLE, clubs.length),
-                          )
-                        }
-                        className="px-6 py-3 rounded-lg font-semibold border-2 transition-colors hover:bg-gray-100"
-                        style={{ color: DARK, borderColor: DARK }}
-                      >
-                        Show less
-                      </button>
-                    ) : null}
+                    <Link
+                      to="/clubs"
+                      className="px-6 py-3 rounded-lg font-semibold text-white transition-colors hover:opacity-90 inline-block text-center"
+                      style={{ backgroundColor: ACCENT }}
+                    >
+                      See all clubs
+                    </Link>
                   </div>
                 ) : null}
               </>
