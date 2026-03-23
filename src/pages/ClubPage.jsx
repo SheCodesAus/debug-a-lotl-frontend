@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import ClubHeader from "../components/clubs/ClubHeader";
 import BookSearchSection from "../components/clubs/BookSearchSection";
@@ -997,6 +997,39 @@ function ClubPage() {
                 </div>
               </div>
             </div>
+            {!isOwner && !auth?.token && !club.membership_status && (
+              <div className="mt-4 w-full font-source-sans text-left">
+                <div className="flex flex-col w-full" style={{ gap: 16 }}>
+                  {!club.is_public && (
+                    <p
+                      className="m-0 px-3 py-2.5 rounded-lg"
+                      style={{
+                        fontSize: 13,
+                        color: MUTED_COLOR,
+                        backgroundColor: "#FAF6F1",
+                        border: "1.5px solid #E8E0D8",
+                      }}
+                    >
+                      This is a private club. Your request will be reviewed by
+                      the owner before you can join.
+                    </p>
+                  )}
+                  <Link
+                    to="/register"
+                    className="block w-full rounded-lg text-white font-semibold text-center cursor-pointer transition hover:opacity-90 no-underline"
+                    style={{
+                      padding: 12,
+                      borderRadius: 8,
+                      backgroundColor: ACCENT,
+                      fontSize: 15,
+                      marginTop: 8,
+                    }}
+                  >
+                    {!club.is_public ? "Request to join" : "Join club"}
+                  </Link>
+                </div>
+              </div>
+            )}
             {!isOwner && auth?.token && !club.membership_status && (
               <div className="mt-4">
                 <JoinClubForm
