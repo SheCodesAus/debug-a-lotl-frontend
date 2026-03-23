@@ -257,8 +257,8 @@ function ProfilePage() {
             }}
           >
             <h3
-              className="text-xs font-semibold uppercase tracking-wider mb-4"
-              style={{ color: DESCRIPTION_COLOR }}
+              className="text-sm font-semibold uppercase tracking-wider mb-4"
+              style={{ color: "#1A1410" }}
             >
               Upcoming meetings you&apos;ve booked
             </h3>
@@ -333,8 +333,8 @@ function ProfilePage() {
         <div className="flex flex-col gap-10">
           <section>
             <h3
-              className="text-xs font-semibold uppercase tracking-wider mb-4"
-              style={{ color: DESCRIPTION_COLOR }}
+              className="text-sm font-semibold uppercase tracking-wider mb-4"
+              style={{ color: "#1A1410" }}
             >
               Book clubs you own
             </h3>
@@ -363,8 +363,8 @@ function ProfilePage() {
 
           <section>
             <h3
-              className="text-xs font-semibold uppercase tracking-wider mb-4"
-              style={{ color: DESCRIPTION_COLOR }}
+              className="text-sm font-semibold uppercase tracking-wider mb-4"
+              style={{ color: "#1A1410" }}
             >
               Book clubs you are a member of
             </h3>

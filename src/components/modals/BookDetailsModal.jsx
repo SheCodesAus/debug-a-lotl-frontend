@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 const ACCENT = "#C45D3E";
+const BRAND_GREEN = "#6b7b5c";
 const MUTED_COLOR = "#8A7E74";
 const BUTTON_YELLOW = "#eab308";
 const BUTTON_GREEN = "rgb(107, 123, 92)";
@@ -58,8 +59,8 @@ function BookDetailsModal({
       >
         <div className="flex items-center justify-between px-6 sm:px-[70px] pt-8 pb-5 border-b border-gray-100 shrink-0">
           <h2
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: MUTED_COLOR }}
+            className="text-sm font-semibold uppercase tracking-wider m-0"
+            style={{ color: "#1A1410", letterSpacing: "0.5px" }}
           >
             Book details
           </h2>
@@ -87,14 +88,14 @@ function BookDetailsModal({
               <img
                 src={book.cover_image}
                 alt={book.title}
-                className="w-40 h-56 sm:w-52 sm:h-72 rounded-xl object-cover shadow-sm"
+                className="w-full max-w-[260px] h-auto max-h-[min(360px,50vh)] rounded-lg object-cover shadow-sm block"
               />
             ) : (
               <div
-                className="w-40 h-56 sm:w-52 sm:h-72 rounded-xl flex items-end p-4 text-white shadow-sm"
+                className="w-full max-w-[260px] min-h-[200px] sm:min-h-[240px] rounded-lg flex items-end p-4 text-white shadow-sm"
                 style={{
                   background:
-                    "linear-gradient(145deg, #3d4f5c 0%, #2c3e3a 100%)",
+                    "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)",
                 }}
               >
                 <span className="text-sm font-semibold leading-tight line-clamp-4">
@@ -104,46 +105,48 @@ function BookDetailsModal({
             )}
           </div>
 
-          <div className="mt-6">
-            <h3 className="font-playfair font-bold text-2xl text-[#1A1410] m-0">
+          <div className="mt-6 min-w-0">
+            <h3 className="font-playfair font-bold text-xl sm:text-2xl text-[#1A1410] m-0 leading-tight">
               {book.title}
             </h3>
             {book.author && (
-              <p className="text-sm m-0 mt-2" style={{ color: MUTED_COLOR }}>
+              <p className="text-sm font-semibold m-0 mt-2" style={{ color: BRAND_GREEN }}>
                 {book.author}
               </p>
             )}
-
-            {(book.isbn || book.genre) && (
-              <p className="text-sm m-0 mt-2" style={{ color: MUTED_COLOR }}>
-                {book.isbn && <span>ISBN: {book.isbn}</span>}
-                {book.isbn && book.genre && " · "}
-                {book.genre && <span>Genre: {book.genre}</span>}
-              </p>
+            {book.genre && (
+              <span
+                className="inline-block px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide bg-white border border-solid mt-2"
+                style={{ borderColor: BRAND_GREEN, color: BRAND_GREEN }}
+              >
+                {String(book.genre).toUpperCase()}
+              </span>
             )}
 
-            <div className="mt-6">
-              <div
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
-              >
-                Description
-              </div>
-              {book.description ? (
-                <div className="mt-2 pr-1">
-                  <p
-                    className="text-sm m-0 leading-relaxed whitespace-pre-line"
-                    style={{ color: MUTED_COLOR }}
-                  >
-                    {book.description}
-                  </p>
+            {book.isbn && (
+              <div className="mt-4">
+                <div
+                  className="text-[10px] font-semibold uppercase tracking-wider m-0 mb-1"
+                  style={{ color: MUTED_COLOR }}
+                >
+                  ISBN
                 </div>
-              ) : (
-                <p className="text-sm m-0 mt-2" style={{ color: MUTED_COLOR }}>
-                  No description available.
-                </p>
-              )}
-            </div>
+                <p className="text-sm font-medium text-[#1A1410] m-0">{book.isbn}</p>
+              </div>
+            )}
+
+            {book.description ? (
+              <p
+                className="text-sm m-0 mt-4 leading-relaxed whitespace-pre-line"
+                style={{ color: MUTED_COLOR }}
+              >
+                {book.description}
+              </p>
+            ) : (
+              <p className="text-sm m-0 mt-4" style={{ color: MUTED_COLOR }}>
+                No description available.
+              </p>
+            )}
           </div>
         </div>
 

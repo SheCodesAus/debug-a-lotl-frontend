@@ -164,8 +164,8 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
       style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
     >
       <h2
-        className="text-xs font-semibold uppercase tracking-wider m-0 mb-4"
-        style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
+        className="text-sm font-semibold uppercase tracking-wider m-0 mb-4"
+        style={{ color: "#1A1410", letterSpacing: "0.5px" }}
       >
         Search &amp; add books
       </h2>

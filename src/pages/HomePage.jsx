@@ -99,7 +99,7 @@ function HomePage() {
           {/* Left: text and buttons */}
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl mx-auto lg:mx-0 mb-12 lg:mb-0">
             <p
-              className="text-xs font-semibold uppercase tracking-wider mb-3"
+              className="text-sm font-semibold uppercase tracking-wider mb-3"
               style={{ color: ACCENT }}
             >
               Your book club, simplified

@@ -135,8 +135,8 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
       onSubmit={handleSubmit}
     >
       <h2
-        className="text-xs font-semibold uppercase tracking-wider m-0 mb-2"
-        style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}
+        className="text-sm font-semibold uppercase tracking-wider m-0 mb-2"
+        style={{ color: "#1A1410", letterSpacing: "0.5px" }}
       >
         Edit club details
       </h2>
@@ -391,7 +391,7 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
       <div className="rounded-xl border border-gray-100 bg-[#fffaf6] px-5 py-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR }}>
+            <p className="text-sm font-semibold uppercase tracking-wider m-0" style={{ color: "#1A1410" }}>
               Club status
             </p>
             <p className="text-sm m-0 mt-1" style={{ color: TEXT_COLOR }}>
