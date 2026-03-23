@@ -5,8 +5,10 @@
  *   text legibility), otherwise a gradient.
  * - Title: Club name as the main h1 (responsive type scale, white, truncates
  *   on narrow screens).
- * - Badge: Public/Private pill (green for public, orange for private).
- * - Subtitle: Optional "Created by {creatorName}" when creatorName is passed.
+ * - Badge: Public/Private pill — hero-specific solid styling for contrast on the
+ *   dark overlay (differs from translucent pills on BookClubCard).
+ * - Subtitle: Optional "Created by {creatorName}" when creatorName is passed (beside the pill).
+ * - Edit club (owners): primary accent button on the same row as the pill.
  *
  * Layout uses the same horizontal padding and max-width as the page body
  * (px-4 sm:px-6 max-w-6xl) so the hero title lines up with the content cards
@@ -15,6 +17,12 @@
  * Props: club (object), creatorName (string | null), memberCount (number, optional),
  * isOwner (boolean, optional), onEditClub (function, optional).
  */
+import { IconPrivate, IconPublic } from "./ClubPillIcons.jsx";
+
+const ACCENT = "#C45D3E";
+
+const pillIconClass = "w-5 h-5 sm:w-5 sm:h-5";
+
 function ClubHeader({
   club,
   creatorName,
@@ -24,7 +32,6 @@ function ClubHeader({
 }) {
   if (!club) return null;
 
-  const visibility = club.is_public ? "Public" : "Private";
   const subtitleParts = [
     creatorName ? `Created by ${creatorName}` : null,
   ].filter(Boolean);
@@ -49,39 +56,38 @@ function ClubHeader({
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
       {/* Same content wrapper as body (px-4 sm:px-6 max-w-6xl w-full mx-auto) so hero title lines up with cards */}
       <div className="px-4 sm:px-6 max-w-6xl w-full mx-auto relative min-h-[220px] sm:min-h-[260px] flex items-center">
-        <div className="min-w-0 w-full flex items-start justify-between gap-4">
-          <div className="min-w-0">
+        <div className="min-w-0 w-full">
           <h1 className="font-lora font-bold text-3xl sm:text-4xl lg:text-5xl text-white m-0 truncate">
             {club.name}
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <span
-              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white"
-              style={{
-                backgroundColor: club.is_public
-                  ? "rgb(107, 123, 92)"
-                  : "rgb(196, 93, 62)",
-              }}
-            >
-              {visibility}
-            </span>
+            {club.is_public ? (
+              <span className="inline-flex shrink-0 items-center gap-1 px-3 py-2 sm:px-4 sm:py-2 rounded-full bg-[rgb(107,123,92)] text-white text-sm sm:text-base font-nunito ring-1 ring-white/25">
+                Public
+                <IconPublic className={pillIconClass} />
+              </span>
+            ) : (
+              <span className="inline-flex shrink-0 items-center gap-1 px-3 py-2 sm:px-4 sm:py-2 rounded-full bg-[#e07a5f] text-white text-sm sm:text-base font-nunito ring-1 ring-white/25">
+                Private
+                <IconPrivate className={pillIconClass} />
+              </span>
+            )}
+            {isOwner && (
+              <button
+                type="button"
+                onClick={onEditClub}
+                className="shrink-0 rounded-lg text-white font-semibold font-nunito text-sm px-4 py-2 transition hover:opacity-90"
+                style={{ backgroundColor: ACCENT }}
+              >
+                Edit club
+              </button>
+            )}
             {subtitleParts.length > 0 && (
               <p className="text-sm text-gray-200 m-0">
                 {subtitleParts.join(" · ")}
               </p>
             )}
           </div>
-          </div>
-
-          {isOwner && (
-            <button
-              type="button"
-              onClick={onEditClub}
-              className="shrink-0 rounded-lg bg-white/15 text-white font-semibold px-4 py-2 text-sm border border-white/25 backdrop-blur-sm hover:bg-white/20 transition"
-            >
-              Edit club
-            </button>
-          )}
         </div>
       </div>
     </header>

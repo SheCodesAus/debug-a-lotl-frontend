@@ -21,6 +21,7 @@ import ClubMemberContentPlaceholder from "../components/clubs/ClubMemberContentP
 import BookDetailsModal from "../components/modals/BookDetailsModal";
 
 const ACCENT = "#C45D3E";
+const BRAND_GREEN = "#6b7b5c";
 const MUTED_COLOR = "#8A7E74";
 const PAGE_BG = "#fffaf6";
 
@@ -33,7 +34,7 @@ function ScheduleMeetingModal({ clubId, onClose, onSuccess }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(26, 20, 16, 0.5)" }} onClick={handleBackdrop}>
       <div className="relative w-full max-w-md rounded-2xl bg-white shadow-xl overflow-y-auto" style={{ maxHeight: "90vh" }}>
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
-          <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED_COLOR }}>Schedule a meeting</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#1A1410" }}>Schedule a meeting</h2>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1 hover:bg-gray-100" aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M13.5 4.5L4.5 13.5M4.5 4.5l9 9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" /></svg>
           </button>
@@ -97,7 +98,7 @@ function EditMeetingModal({ clubId, meeting, token, onClose, onSuccess }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(26, 20, 16, 0.5)" }} onClick={handleBackdrop}>
       <div className="relative w-full max-w-md rounded-2xl bg-white shadow-xl overflow-y-auto" style={{ maxHeight: "90vh" }}>
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
-          <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED_COLOR }}>Edit meeting</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#1A1410" }}>Edit meeting</h2>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1 hover:bg-gray-100" aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M13.5 4.5L4.5 13.5M4.5 4.5l9 9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" /></svg>
           </button>
@@ -237,7 +238,7 @@ function EditClubModal({ club, token, onClose, onSuccess }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(26, 20, 16, 0.5)" }} onClick={handleBackdrop}>
       <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-y-auto" style={{ maxHeight: "90vh" }}>
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
-          <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED_COLOR }}>Edit club</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#1A1410" }}>Edit club</h2>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1 hover:bg-gray-100" aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M13.5 4.5L4.5 13.5M4.5 4.5l9 9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" /></svg>
           </button>
@@ -465,7 +466,7 @@ function ClubPage() {
         {/* Owner-only: Pending approvals */}
         {isOwner && (
           <section className="rounded-2xl bg-white p-10 shadow-sm" style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px", border: "2px solid #eab308" }}>
-            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>
+            <h2 className="text-sm font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: "#1A1410", letterSpacing: "0.5px" }}>
               Pending approvals {pendingMembers.length > 0 && `(${pendingMembers.length})`}
             </h2>
             {pendingMembers.length === 0 ? (
@@ -495,7 +496,7 @@ function ClubPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[auto_auto] gap-6">
           {/* About */}
           <section className="order-1 lg:col-span-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm" style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}>
-            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>About this club</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: "#1A1410", letterSpacing: "0.5px" }}>About this club</h2>
             <div className="flex items-start gap-4">
               <div className="w-16 h-16 rounded-lg flex items-center justify-center text-white text-lg font-semibold shrink-0" style={{ backgroundColor: "#6b7b5c" }}>
                 {(club.name || "Club").split(/\s+/).map((s) => s[0]).join("").toUpperCase().slice(0, 2)}
@@ -505,8 +506,6 @@ function ClubPage() {
                 {club.description && <p className="text-sm m-0 mt-1 line-clamp-2" style={{ color: MUTED_COLOR }}>{club.description}</p>}
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
                   <span className="px-2 py-0.5 rounded-full border border-gray-200" style={{ color: MUTED_COLOR }}>{memberCount} member{memberCount !== 1 ? "s" : ""}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#f5f0d9] text-[#5f574f]">Genre A</span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#f5f0d9] text-[#5f574f]">Genre B</span>
                 </div>
               </div>
             </div>
@@ -522,38 +521,94 @@ function ClubPage() {
 
           {/* Currently Reading */}
           <section className="order-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-2 rounded-2xl bg-white p-10 shadow-sm" style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}>
-            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>Currently Reading</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: "#1A1410", letterSpacing: "0.5px" }}>Currently Reading</h2>
             {currentBook ? (
-              <div className="space-y-3">
+              <div className="space-y-6">
                 {currentBook.cover_image ? (
-                  <img src={currentBook.cover_image} alt="" className="w-full `max-w-65` mx-auto h-auto object-cover rounded-lg" />
+                  <img
+                    src={currentBook.cover_image}
+                    alt={currentBook.title}
+                    className="w-full max-w-[260px] mx-auto h-auto object-cover rounded-lg block cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#1A1410]/20"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View details for ${currentBook.title}`}
+                    onClick={() => openHistoricBookModal(currentBook)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openHistoricBookModal(currentBook);
+                      }
+                    }}
+                  />
                 ) : (
-                  <div className="w-full `max-w-65` mx-auto rounded-lg overflow-hidden flex items-end text-white text-left p-3" style={{ minHeight: 280, background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}>
+                  <div
+                    className="w-full max-w-[260px] mx-auto rounded-lg overflow-hidden flex items-end text-white text-left p-3 cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#1A1410]/20"
+                    style={{ minHeight: 280, background: "linear-gradient(145deg, #2c3e50 0%, #3498db 100%)" }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View details for ${currentBook.title}`}
+                    onClick={() => openHistoricBookModal(currentBook)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openHistoricBookModal(currentBook);
+                      }
+                    }}
+                  >
                     <div><div className="font-semibold text-sm leading-tight">{currentBook.title}</div><div className="text-xs opacity-90">{currentBook.author}</div></div>
                   </div>
                 )}
+
                 <div className="min-w-0">
-                  <h3 className="font-playfair font-bold text-xl text-[#1A1410] m-0">{currentBook.title}</h3>
-                  {currentBook.author && <p className="text-sm m-0 mt-1" style={{ color: MUTED_COLOR }}>{currentBook.author}</p>}
-                  {(currentBook.isbn || currentBook.genre) && (
-                    <p className="text-sm m-0 mt-1" style={{ color: MUTED_COLOR }}>
-                      {currentBook.isbn && <span>ISBN: {currentBook.isbn}</span>}
-                      {currentBook.isbn && currentBook.genre && " · "}
-                      {currentBook.genre && <span>Genre: {currentBook.genre}</span>}
+                  <h3 className="font-playfair font-bold text-xl text-[#1A1410] m-0 leading-tight">{currentBook.title}</h3>
+                  {currentBook.author && (
+                    <p className="text-sm font-semibold m-0 mt-2" style={{ color: BRAND_GREEN }}>{currentBook.author}</p>
+                  )}
+                  {currentBook.genre && (
+                    <span
+                      className="inline-block px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide bg-white border border-solid mt-2"
+                      style={{ borderColor: BRAND_GREEN, color: BRAND_GREEN }}
+                    >
+                      {String(currentBook.genre).toUpperCase()}
+                    </span>
+                  )}
+
+                  {currentBook.description && (
+                    <p className="text-sm m-0 mt-4 leading-relaxed line-clamp-4" style={{ color: MUTED_COLOR }}>
+                      {currentBook.description}
                     </p>
                   )}
-                  {(currentBook.start_date || currentBook.finish_date || currentBook.added_at) && (
-                    <p className="text-xs m-0 mt-2" style={{ color: MUTED_COLOR }}>
-                      {[currentBook.start_date && `Started ${formatBookDate(currentBook.start_date)}`, currentBook.finish_date && `Finished ${formatBookDate(currentBook.finish_date)}`, currentBook.added_at && `Added ${formatBookDate(currentBook.added_at)}`].filter(Boolean).join(" · ")}
-                    </p>
-                  )}
-                  {currentBook.description && <p className="text-sm m-0 mt-3 leading-relaxed italic line-clamp-4" style={{ color: MUTED_COLOR }}>"{currentBook.description}"</p>}
-                  {isOwner && (
-                    <div className="mt-4">
-                      <button type="button" onClick={() => handleMarkAsRead(currentBook)} disabled={isMarkingRead || isSettingReading} className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 text-sm" style={{ backgroundColor: ACCENT }}>
-                        {isMarkingRead ? "Updating…" : "Mark as read"}
-                      </button>
+
+                  <div className={currentBook.description ? "mt-6" : "mt-4"}>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider m-0 mb-1" style={{ color: MUTED_COLOR }}>
+                      Added
                     </div>
+                    <p className="text-sm font-medium text-[#1A1410] m-0">
+                      {currentBook.added_at ? formatBookDate(currentBook.added_at) : "—"}
+                    </p>
+                  </div>
+
+                  {(currentBook.start_date || currentBook.finish_date) && (
+                    <p className="text-xs m-0 mt-2" style={{ color: MUTED_COLOR }}>
+                      {[currentBook.start_date && `Started ${formatBookDate(currentBook.start_date)}`, currentBook.finish_date && `Finished ${formatBookDate(currentBook.finish_date)}`].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => handleMarkAsRead(currentBook)}
+                      disabled={isMarkingRead || isSettingReading}
+                      className="mt-6 w-full flex items-center justify-center gap-2 rounded-lg border-0 py-3 px-4 text-sm font-semibold text-white cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: ACCENT }}
+                    >
+                      {isMarkingRead ? "Updating…" : "Mark as read"}
+                      {!isMarkingRead && (
+                        <svg className="shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M7 17L17 7M17 7H9M17 7V15" />
+                        </svg>
+                      )}
+                    </button>
                   )}
                 </div>
               </div>
@@ -566,7 +621,7 @@ function ClubPage() {
           <div className="order-3 lg:col-span-2 lg:row-start-2 flex flex-col space-y-6">
             {isOwner && (
               <section className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm" style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}>
-                <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>Members ({displayMemberCount})</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: "#1A1410", letterSpacing: "0.5px" }}>Members ({displayMemberCount})</h2>
                 <ul className="list-none p-0 m-0 flex flex-col gap-3">
                   {memberList.slice(0, 4).map((member, index) => (
                     <li key={member.id} className="flex items-center gap-3">
@@ -580,14 +635,13 @@ function ClubPage() {
                     </li>
                   ))}
                 </ul>
-                <button type="button" className="mt-4 text-sm font-semibold transition hover:opacity-80 text-left" style={{ color: ACCENT }}>View all {displayMemberCount} members →</button>
               </section>
             )}
 
             {/* ✅ Meetings — view/edit/delete for owner, view/book for members */}
             <section className={restrictMemberSections ? "rounded-2xl bg-white p-4 sm:p-5 shadow-sm flex-1 min-h-0" : "rounded-2xl bg-white p-6 sm:p-8 shadow-sm flex-1 min-h-0"} style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}>
-              <div className={`flex items-center justify-between ${restrictMemberSections ? "mb-2" : "mb-4"}`}>
-                <h2 className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>Meetings</h2>
+              <div className={`flex items-center justify-between ${restrictMemberSections ? "mb-4" : "mb-10"}`}>
+                <h2 className="text-sm font-semibold uppercase tracking-wider m-0" style={{ color: "#1A1410", letterSpacing: "0.5px" }}>Meetings</h2>
                 {isOwner && (
                   <button type="button" onClick={() => setShowScheduleModal(true)} className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90" style={{ backgroundColor: ACCENT }}>
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" /></svg>
@@ -601,7 +655,7 @@ function ClubPage() {
               ) : meetings.length === 0 ? (
                 <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No meetings scheduled yet.</p>
               ) : (
-                <div className="space-y-3">
+                <div className="divide-y divide-stone-200/80">
                   {meetings.map((meeting) => {
                     const bState = bookingState[meeting.id] ?? "idle";
                     const bookedFromApi = meeting.user_has_booked === true;
@@ -610,7 +664,7 @@ function ClubPage() {
                     const bookingError = bState !== "idle" && bState !== "loading" && bState !== "booked" ? bState : null;
 
                     return (
-                      <div key={meeting.id} className="flex items-start justify-between gap-3 text-sm">
+                      <div key={meeting.id} className="flex items-start justify-between gap-3 text-sm py-4 first:pt-0">
                         <div className="min-w-0 flex-1">
                           {/* ✅ Click title to view details */}
                           <button
@@ -662,7 +716,7 @@ function ClubPage() {
         {/* Historic reading */}
         <div className="flex flex-col gap-6">
           <section className="order-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm" style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}>
-            <h2 className="text-xs font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>Historic reading</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wider m-0 mb-4" style={{ color: "#1A1410", letterSpacing: "0.5px" }}>Historic reading</h2>
             {readBooks.length === 0 ? (
               <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>No finished books yet.</p>
             ) : (
@@ -681,7 +735,7 @@ function ClubPage() {
           {/* To Read */}
           <section className="order-1 rounded-2xl bg-white p-6 sm:p-8 shadow-sm" style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}>
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-xs font-semibold uppercase tracking-wider m-0" style={{ color: MUTED_COLOR, letterSpacing: "0.5px" }}>To Read</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider m-0" style={{ color: "#1A1410", letterSpacing: "0.5px" }}>To Read</h2>
               {toReadBooks.length > 0 && <span className="text-xs px-2 py-0.5 rounded-full border border-gray-200" style={{ color: MUTED_COLOR }}>{toReadBooks.length}</span>}
             </div>
             {toReadBooks.length === 0 ? (
