@@ -19,6 +19,7 @@ import deleteClubMeeting from "../api/delete-club-meeting.js";
 import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard.jsx";
 import ClubMemberContentPlaceholder from "../components/clubs/ClubMemberContentPlaceholder.jsx";
 import BookDetailsModal from "../components/modals/BookDetailsModal";
+import ScrollReveal from "../components/motion/ScrollReveal.jsx";
 
 const ACCENT = "#C45D3E";
 const BRAND_GREEN = "#6b7b5c";
@@ -885,7 +886,8 @@ function ClubPage() {
       <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
         {/* Owner-only: Pending approvals */}
         {isOwner && (
-          <section
+          <ScrollReveal
+            as="section"
             className="rounded-2xl bg-white p-10 shadow-sm"
             style={{
               boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px",
@@ -941,19 +943,24 @@ function ClubPage() {
                 ))}
               </ul>
             )}
-          </section>
+          </ScrollReveal>
         )}
 
-        <BookSearchSection
-          isOwner={isOwner}
-          clubBooks={books}
-          onAddBook={handleAddBook}
-          token={auth?.token ?? null}
-        />
+        {isOwner && (
+          <ScrollReveal as="div">
+            <BookSearchSection
+              isOwner={isOwner}
+              clubBooks={books}
+              onAddBook={handleAddBook}
+              token={auth?.token ?? null}
+            />
+          </ScrollReveal>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[auto_auto] gap-6">
           {/* About */}
-          <section
+          <ScrollReveal
+            as="section"
             className="order-1 lg:col-span-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
@@ -1055,10 +1062,11 @@ function ClubPage() {
                   Your request is pending approval from the owner.
                 </div>
               )}
-          </section>
+          </ScrollReveal>
 
           {/* Currently Reading — centred on mobile, left-aligned from lg (sidebar) */}
-          <section
+          <ScrollReveal
+            as="section"
             className="order-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-2 rounded-2xl bg-white p-10 shadow-sm text-center lg:text-left"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
@@ -1211,12 +1219,13 @@ function ClubPage() {
                 Reading.
               </p>
             )}
-          </section>
+          </ScrollReveal>
 
           {/* Members + Meetings */}
           <div className="order-3 lg:col-span-2 lg:row-start-2 flex flex-col space-y-6">
             {isOwner && (
-              <section
+              <ScrollReveal
+                as="section"
                 className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
                 style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
               >
@@ -1259,11 +1268,12 @@ function ClubPage() {
                     </li>
                   ))}
                 </ul>
-              </section>
+              </ScrollReveal>
             )}
 
             {/* ✅ Meetings — view/edit/delete for owner, view/book for members */}
-            <section
+            <ScrollReveal
+              as="section"
               className={
                 restrictMemberSections
                   ? "rounded-2xl bg-white p-4 sm:p-5 shadow-sm flex-1 min-h-0"
@@ -1397,13 +1407,14 @@ function ClubPage() {
                   })}
                 </div>
               )}
-            </section>
+            </ScrollReveal>
           </div>
         </div>
 
         {/* Historic reading */}
         <div className="flex flex-col gap-6">
-          <section
+          <ScrollReveal
+            as="section"
             className="order-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
@@ -1478,7 +1489,7 @@ function ClubPage() {
                 })}
               </div>
             )}
-          </section>
+          </ScrollReveal>
 
           <BookDetailsModal
             book={selectedHistoricBook}
@@ -1488,7 +1499,8 @@ function ClubPage() {
           />
 
           {/* To Read */}
-          <section
+          <ScrollReveal
+            as="section"
             className="order-1 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
@@ -1579,7 +1591,7 @@ function ClubPage() {
                 ))}
               </div>
             )}
-          </section>
+          </ScrollReveal>
 
           <BookDetailsModal
             book={selectedToReadBook}
@@ -1596,14 +1608,14 @@ function ClubPage() {
           />
         </div>
 
-        <div className="space-y-8">
+        <ScrollReveal as="div" className="space-y-8">
           <ClubAnnouncmentBoard
             clubId={clubId}
             isOwner={isOwner}
             token={auth?.token ?? null}
             restricted={restrictMemberSections}
           />
-        </div>
+        </ScrollReveal>
       </div>
 
       {showScheduleModal && (
