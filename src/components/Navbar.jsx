@@ -60,9 +60,7 @@ function NavBar() {
     <div className="flex items-center gap-3 text-base">
       {isLoggedIn ? (
         <>
-          <span
-            className="inline-flex items-center gap-2 font-nunito font-semibold cursor-default select-none text-[#C45D3E]"
-          >
+          <span className="inline-flex items-center gap-2 font-nunito font-semibold cursor-default select-none text-[#C45D3E]">
             <img
               src="/img/hand-wave.png"
               alt=""
@@ -106,7 +104,7 @@ function NavBar() {
     <div className="min-h-screen flex flex-col">
       {/* Sticky header: keep the same background and add depth on scroll */}
       <header
-        className="sticky top-0 z-10 shrink-0 transition-[background-color,box-shadow] duration-200"
+        className="sticky top-0 z-40 shrink-0 transition-[background-color,box-shadow] duration-200"
         style={{
           backgroundColor: HEADER_BG_TOP,
           boxShadow: isScrolled
@@ -208,7 +206,9 @@ function NavBar() {
               aria-label="Mobile navigation"
             >
               <div className="flex flex-col gap-1">{navLinks}</div>
-              <div className="pt-3 border-t border-[#ebe1d5]">{authSection}</div>
+              <div className="pt-3 border-t border-[#ebe1d5]">
+                {authSection}
+              </div>
             </div>
           </div>
         )}
