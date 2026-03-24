@@ -17,6 +17,7 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
     password: "",
   });
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (event) => {
     const { id, value } = event.target;
@@ -28,6 +29,8 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
     setError(null);
 
     if (!credentials.username || !credentials.password) return;
+
+    setIsLoading(true)
 
     postLogin(credentials.username, credentials.password)
       .then((response) => {
@@ -52,7 +55,10 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
       })
       .catch((err) => {
         setError(err.message || "Login failed. Please try again.");
-      });
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
   };
 
   return (
@@ -139,9 +145,10 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             fontSize: 15,
             marginTop: 8,
           }}
+          disabled={isLoading}
           type="submit"
         >
-          Sign In
+          {isLoading ? "Loading" : "Sign In"}
         </button>
 
         <p
