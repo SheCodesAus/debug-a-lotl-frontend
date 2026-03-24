@@ -158,6 +158,10 @@ function ProfilePage() {
 
   const displayName =
     getFirstNameFromProfile(profile) ?? profile?.username ?? "User";
+  const ownsAnyClubs = clubsOwned.length > 0;
+  const createClubButtonLabel = ownsAnyClubs
+    ? "Create another book club"
+    : "Create your first book club";
   const initials = displayName
     .split(/\s+/)
     .map((w) => w.charAt(0))
@@ -231,7 +235,7 @@ function ProfilePage() {
                   {profile.bio.trim()}
                 </p>
               ) : null}
-              <div className="mt-4 flex justify-center sm:justify-start">
+              <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(true)}
@@ -337,12 +341,32 @@ function ProfilePage() {
         {/* Book clubs: single column — owned first, then memberships */}
         <div className="flex flex-col gap-10">
           <ScrollReveal as="section">
-            <h3
-              className="text-sm font-semibold uppercase tracking-wider mb-4"
-              style={{ color: "#1A1410" }}
-            >
-              Book clubs you own
-            </h3>
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <h3
+                className="text-sm font-semibold uppercase tracking-wider m-0"
+                style={{ color: "#1A1410" }}
+              >
+                Book clubs you own
+              </h3>
+              {ownsAnyClubs ? (
+                <Link
+                  to="/clubs/create"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-semibold text-[#3f2a28] border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  {createClubButtonLabel} +
+                </Link>
+              ) : null}
+            </div>
+            {!ownsAnyClubs ? (
+              <div className="mb-4">
+                <Link
+                  to="/clubs/create"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-semibold text-[#3f2a28] border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  {createClubButtonLabel} +
+                </Link>
+              </div>
+            ) : null}
             {clubsOwned.length === 0 ? (
               <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
                 You haven&apos;t created any clubs yet.
