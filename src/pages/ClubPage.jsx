@@ -597,7 +597,10 @@ function ClubPage() {
   const memberCount = club?.member_count ?? 1;
 
   useEffect(() => {
-    if (!isOwner || !auth?.token) return;
+    if (!isOwner || !auth?.token || club?.is_public) {
+      setPendingMembers([]);
+      return;
+    }
     async function loadMembers() {
       try {
         const all = await getClubMembers(clubId, auth.token);
@@ -608,7 +611,7 @@ function ClubPage() {
       }
     }
     loadMembers();
-  }, [isOwner, clubId, auth?.token]);
+  }, [isOwner, clubId, auth?.token, club?.is_public]);
 
   useEffect(() => {
     if (!auth?.token || !club) return;
@@ -885,7 +888,7 @@ function ClubPage() {
 
       <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
         {/* Owner-only: Pending approvals */}
-        {isOwner && (
+        {isOwner && !club?.is_public && (
           <ScrollReveal
             as="section"
             className="rounded-2xl bg-white p-10 shadow-sm"

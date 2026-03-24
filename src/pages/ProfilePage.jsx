@@ -112,7 +112,9 @@ function ProfilePage() {
   }, [auth?.token, isLoggedIn, userId, clubsMemberOf, clubsOwned]);
 
   useEffect(() => {
-    if (!auth?.token || !isLoggedIn || clubsOwned.length === 0) {
+    const privateOwnedClubs = clubsOwned.filter((club) => club?.is_public === false);
+
+    if (!auth?.token || !isLoggedIn || privateOwnedClubs.length === 0) {
       setPendingApprovals([]);
       return;
     }
@@ -121,7 +123,7 @@ function ProfilePage() {
 
     async function loadPendingApprovals() {
       const results = await Promise.allSettled(
-        clubsOwned.map(async (club) => {
+        privateOwnedClubs.map(async (club) => {
           const members = await getClubMembers(club.id, auth.token);
           const pending = Array.isArray(members)
             ? members.filter((member) => member.status === "pending")
