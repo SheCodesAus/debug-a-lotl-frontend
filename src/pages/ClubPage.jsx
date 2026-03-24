@@ -776,7 +776,7 @@ function ClubPage() {
   const displayMemberCount = memberCount ?? 0;
   const memberList = [
     { id: "owner", name: club?.owner_username ?? "Owner", isOrganiser: true },
-    ...approvedMembers..filter((m) => m.user !== club?.owner)
+    ...approvedMembers.filter((m) => m.user !== club?.owner)
     .map((m) => ({ id: m.id, name: m.username })),
 ];
   const memberAvatarColors = [

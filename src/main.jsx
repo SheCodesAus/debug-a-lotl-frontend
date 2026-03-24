@@ -13,7 +13,7 @@ import ClubPage from "./pages/ClubPage.jsx";
 import ClubListPage from "./pages/ClubListPage.jsx";
 import CreateClubPage from "./pages/CreateClubPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
-import NotFound from "./pages/PageNotFound.jsx"; 
+import NotFound from "./pages/PageNotFound.jsx";
 
 const router = createBrowserRouter([
   {
@@ -28,7 +28,7 @@ const router = createBrowserRouter([
       { path: "clubs", element: <ClubListPage /> },
       { path: "clubs/create", element: <CreateClubPage /> },
       { path: "profile", element: <ProfilePage /> },
-      { path: "*", element: <PageNotFound /> }, 
+      { path: "*", element: <NotFound /> }, 
     ],
   },
 ]);
