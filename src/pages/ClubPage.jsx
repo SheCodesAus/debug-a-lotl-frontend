@@ -775,7 +775,7 @@ function ClubPage() {
   const currentBook = readingBooks[0] ?? null;
   const displayMemberCount = memberCount ?? 0;
   const memberList = [
-    { id: "owner", name: club?.owner_username ?? "Owner", isOrganiser: true },
+    { id: "owner", name: club?.owner_name ?? "Owner", isOrganiser: true },
     ...approvedMembers.filter((m) => m.user !== club?.owner)
     .map((m) => ({ id: m.id, name: m.username })),
 ];
