@@ -16,6 +16,7 @@ import getClubMeetings from "../api/get-club-meetings.js";
 import postAttendMeeting from "../api/post-attend-meeting.js";
 import patchClubMeeting from "../api/patch-club-meeting.js";
 import deleteClubMeeting from "../api/delete-club-meeting.js";
+import leaveClub from "../api/delete-leave-club.js";
 import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard.jsx";
 import ClubMemberContentPlaceholder from "../components/clubs/ClubMemberContentPlaceholder.jsx";
 import BookDetailsModal from "../components/modals/BookDetailsModal";
@@ -562,6 +563,8 @@ function ClubPage() {
   const [memberActionLoading, setMemberActionLoading] = useState(null);
   const [meetings, setMeetings] = useState([]);
   const [bookingState, setBookingState] = useState({});
+  const [isLeavingClub, setIsLeavingClub] = useState(false);
+
 
   // Meeting modals
   const [viewingMeeting, setViewingMeeting] = useState(null);
@@ -595,6 +598,7 @@ function ClubPage() {
   const isOwner = auth?.user_id === club?.owner;
   const creatorName = club?.owner_username ?? null;
   const memberCount = club?.member_count ?? 1;
+  const hasCapacityLimit = club?.max_members != null;
 
   useEffect(() => {
     if (!isOwner || !auth?.token || club?.is_public) {
@@ -681,6 +685,27 @@ function ClubPage() {
       setMemberActionLoading(null);
     }
   }
+
+  async function handleLeaveClub() {
+    if (!auth?.token) return;
+
+    setIsLeavingClub(true);
+    try {
+      await leaveClub(auth.token, clubId);
+
+      const updatedClub = await getClub(clubId, auth.token);
+      setClub(updatedClub);
+
+      setMeetings([]);
+      setApprovedMembers((prev) =>
+      prev.filter((m) => String(m.user) !== String(auth.user_id)),
+      );
+  } catch (err) {
+    console.error("Could not leave club:", err.message);
+  } finally {
+    setIsLeavingClub(false);
+  }
+}
 
   const [isMarkingRead, setIsMarkingRead] = useState(false);
   const [isSettingReading, setIsSettingReading] = useState(false);
@@ -776,7 +801,7 @@ function ClubPage() {
   const displayMemberCount = memberCount ?? 0;
   const memberList = [
     { id: "owner", name: club?.owner_name ?? "Owner", isOrganiser: true },
-    ...approvedMembers.filter((m) => m.user !== club?.owner)
+    ...approvedMembers.filter((m) => String(m.user) !== String(club?.owner))
     .map((m) => ({ id: m.id, name: m.username })),
 ];
   const memberAvatarColors = [
@@ -853,6 +878,9 @@ function ClubPage() {
         memberCount={memberCount}
         isOwner={isOwner}
         onEditClub={() => setShowEditModal(true)}
+        canLeaveClub={!isOwner && auth?.token && club?.membership_status === "approved"}
+        onLeaveClub={handleLeaveClub}
+        isLeavingClub={isLeavingClub}
       />
 
       {showEditModal && (
@@ -1005,6 +1033,23 @@ function ClubPage() {
                   >
                     {memberCount} member{memberCount !== 1 ? "s" : ""}
                   </span>
+                  {hasCapacityLimit && (
+                    <span
+                      className="px-2 py-0.5 rounded-full border border-gray-200"
+                      style={{ color: MUTED_COLOR }}
+                    >
+                      Max {club.max_members} members
+                    </span>
+                  )}
+                  {hasCapacityLimit && club?.spots_remaining != null && (
+                    <span
+                      className="px-2 py-0.5 rounded-full border border-gray-200"
+                      style={{ color: MUTED_COLOR }}
+                    >
+                      {club.spots_remaining} spot
+                      {club.spots_remaining !== 1 ? "s" : ""} left
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

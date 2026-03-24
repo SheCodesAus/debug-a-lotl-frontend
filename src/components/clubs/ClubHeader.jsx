@@ -53,12 +53,16 @@ function ClubHeader({
   memberCount = 0,
   isOwner = false,
   onEditClub,
+  canLeaveClub = false,
+  onLeaveClub,
+  isLeavingClub = false,
 }) {
   if (!club) return null;
 
   const subtitleParts = [
     creatorName ? `Created by ${creatorName}` : null,
   ].filter(Boolean);
+  const hasCapacityLimit = club.max_members != null;
 
   const headerStyle = club.banner_image
     ? {
@@ -102,6 +106,14 @@ function ClubHeader({
                 <IconPrivate className={pillIconClass} />
               </span>
             )}
+            {hasCapacityLimit && (
+              <span
+                className={`${visibilityPillBaseClass} border-white/30`}
+                aria-label={`This club has a maximum capacity of ${club.max_members} members`}
+              >
+                {memberCount}/{club.max_members} members
+              </span>
+            )}
             {isOwner && (
               <button
                 type="button"
@@ -112,7 +124,17 @@ function ClubHeader({
                 <IconEditPencil className="shrink-0 opacity-95" />
                 Edit club
               </button>
-            )}
+              )}
+              {canLeaveClub && (
+                <button
+                type="button"
+                onClick={onLeaveClub}
+                disabled={isLeavingClub}
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/40 bg-white/10 text-white font-semibold font-nunito text-sm px-4 py-2 backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                {isLeavingClub ? "Leaving..." : "Leave club"}
+                </button>
+                )}
             {subtitleParts.length > 0 && (
               <p className="text-sm text-gray-200 m-0">
                 {subtitleParts.join(" · ")}
