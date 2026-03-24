@@ -48,13 +48,6 @@ function Footer() {
               to="/clubs"
               className="font-nunito text-[15px] font-semibold text-[#5a534d] hover:text-[#2f2a26] transition-colors"
             >
-              How It Works
-            </Link>
-            <Link
-              to="/clubs/create"
-              className="font-nunito text-[15px] font-semibold transition-colors hover:opacity-90"
-              style={{ color: ACCENT }}
-            >
               Create Your Club
             </Link>
           </nav>
