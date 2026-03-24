@@ -11,6 +11,7 @@ import ProfileStats from "../components/ProfileStats.jsx";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books.js";
 import { formatMeetingDate } from "../utils/format-meeting-date.js";
 import EditProfileModal from "../components/modals/EditProfileModal.jsx";
+import ScrollReveal from "../components/motion/ScrollReveal.jsx";
 
 const PAGE_BG = "#F8F6F1";
 const CARD_BG = "#FFFFFF";
@@ -170,17 +171,19 @@ function ProfilePage() {
       style={{ backgroundColor: PAGE_BG }}
     >
       <div className="max-w-6xl w-full mx-auto px-4 py-8 sm:px-6 sm:py-10 space-y-8">
-        <h1
-          className="text-2xl sm:text-3xl font-lora font-bold"
-          style={{ color: TITLE_COLOR }}
-        >
-          Your Profile
-        </h1>
+        <ScrollReveal as="div">
+          <h1
+            className="text-2xl sm:text-3xl font-lora font-bold"
+            style={{ color: TITLE_COLOR }}
+          >
+            Your Profile
+          </h1>
+        </ScrollReveal>
 
         {/* Profile card, then stats row — visually separate blocks */}
         <div className="space-y-8">
-
-          <section
+          <ScrollReveal
+            as="section"
             className="w-full rounded-2xl overflow-hidden flex flex-col sm:flex-row sm:items-stretch"
             style={{
               backgroundColor: CARD_BG,
@@ -238,18 +241,21 @@ function ProfilePage() {
                 </button>
               </div>
             </div>
-          </section>
+          </ScrollReveal>
 
-          <ProfileStats
-            clubsCount={clubs.length}
-            upcomingMeetingsCount={bookedMeetings.length}
-            booksReadCount={totalHistoricReadCount}
-            cardBg={CARD_BG}
-            statNumberColor={STAT_NUMBER}
-            descriptionColor={DESCRIPTION_COLOR}
-          />
+          <ScrollReveal as="div">
+            <ProfileStats
+              clubsCount={clubs.length}
+              upcomingMeetingsCount={bookedMeetings.length}
+              booksReadCount={totalHistoricReadCount}
+              cardBg={CARD_BG}
+              statNumberColor={STAT_NUMBER}
+              descriptionColor={DESCRIPTION_COLOR}
+            />
+          </ScrollReveal>
 
-          <section
+          <ScrollReveal
+            as="section"
             className="rounded-2xl p-5 sm:p-6 md:p-8"
             style={{
               backgroundColor: CARD_BG,
@@ -257,8 +263,8 @@ function ProfilePage() {
             }}
           >
             <h3
-              className="text-xs font-semibold uppercase tracking-wider mb-4"
-              style={{ color: DESCRIPTION_COLOR }}
+              className="text-sm font-semibold uppercase tracking-wider mb-4"
+              style={{ color: "#1A1410" }}
             >
               Upcoming meetings you&apos;ve booked
             </h3>
@@ -316,8 +322,7 @@ function ProfilePage() {
                 })}
               </ul>
             )}
-          </section>
-
+          </ScrollReveal>
         </div>
 
         {showEditModal && (
@@ -331,10 +336,10 @@ function ProfilePage() {
 
         {/* Book clubs: single column — owned first, then memberships */}
         <div className="flex flex-col gap-10">
-          <section>
+          <ScrollReveal as="section">
             <h3
-              className="text-xs font-semibold uppercase tracking-wider mb-4"
-              style={{ color: DESCRIPTION_COLOR }}
+              className="text-sm font-semibold uppercase tracking-wider mb-4"
+              style={{ color: "#1A1410" }}
             >
               Book clubs you own
             </h3>
@@ -343,29 +348,28 @@ function ProfilePage() {
                 You haven&apos;t created any clubs yet.
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {clubsOwned.map((club) => (
                   <Link
                     key={club.id}
                     to={`/clubs/${club.id}`}
-                    className="block"
+                    className="block w-full min-w-0"
                   >
                     <BookClubCard
                       club={club}
                       compact
-                      dense
                       currentBook={currentBooksByClubId?.[club.id] ?? null}
                     />
                   </Link>
                 ))}
               </div>
             )}
-          </section>
+          </ScrollReveal>
 
-          <section>
+          <ScrollReveal as="section">
             <h3
-              className="text-xs font-semibold uppercase tracking-wider mb-4"
-              style={{ color: DESCRIPTION_COLOR }}
+              className="text-sm font-semibold uppercase tracking-wider mb-4"
+              style={{ color: "#1A1410" }}
             >
               Book clubs you are a member of
             </h3>
@@ -375,24 +379,23 @@ function ProfilePage() {
                 join.
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {clubsMemberOf.map((club) => (
                   <Link
                     key={club.id}
                     to={`/clubs/${club.id}`}
-                    className="block"
+                    className="block w-full min-w-0"
                   >
                     <BookClubCard
                       club={club}
                       compact
-                      dense
                       currentBook={currentBooksByClubId?.[club.id] ?? null}
                     />
                   </Link>
                 ))}
               </div>
             )}
-          </section>
+          </ScrollReveal>
         </div>
       </div>
     </div>

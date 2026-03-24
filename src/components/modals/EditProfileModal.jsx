@@ -23,8 +23,8 @@ function EditProfileModal({ profile, token, onClose, onSuccess }) {
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
           <h2
             id="edit-profile-modal-title"
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: MUTED_COLOR }}
+            className="text-sm font-semibold uppercase tracking-wider"
+            style={{ color: "#1A1410" }}
           >
             Edit profile
           </h2>

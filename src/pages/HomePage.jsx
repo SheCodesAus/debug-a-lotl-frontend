@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { motion, useReducedMotion } from "motion/react";
 import getClubs from "../api/get-clubs";
 import { useAuth } from "../hooks/use-auth";
 import BookClubCard from "../components/clubs/BookClubCard";
 import HomePageStats from "../components/HomePageStats";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books";
+import ScrollReveal from "../components/motion/ScrollReveal.jsx";
 
 const ACCENT = "#C45D3E";
 const DARK = "#303030";
@@ -19,8 +21,8 @@ const stripePattern = `repeating-linear-gradient(
   rgba(255,255,255,0.06) 16px
 )`;
 
-/* Mobile: 3 overlapping tilted cards */
-const mobileBooks = [
+/* Hero: 3 overlapping tilted cards (all breakpoints — decorative, not a grid) */
+const heroBooks = [
   {
     title: "Lessons in Chemistry",
     author: "B. Garmus",
@@ -36,22 +38,66 @@ const mobileBooks = [
   { title: "Piranesi", author: "S. Clarke", bg: "#7aaba1", rotation: "6" },
 ];
 
-/* Desktop: 4 cards in 2x2 grid */
-const desktopBooks = [
-  { title: "Lessons in Chemistry", author: "B. Garmus", bg: "#a18ead" },
-  { title: "Project Hail Mary", author: "A. Weir", bg: "#6d8396" },
-  { title: "Piranesi", author: "S. Clarke", bg: "#7aaba1" },
-  { title: "Midnight Library", author: "M. Haig", bg: "#e3bd74" },
-];
+const FAN_TUCK_X = 132;
+
+function HeroFanCards() {
+  const reduced = useReducedMotion();
+  const skip = reduced === true;
+  const transition = { duration: 1.75, ease: [0.22, 1, 0.36, 1] };
+
+  return (
+    <div
+      className="order-1 lg:order-2 flex items-end justify-center gap-0 mb-10 sm:mb-14 lg:mb-0 shrink-0 mx-auto lg:mx-0"
+      aria-hidden
+    >
+      {heroBooks.map((book, i) => {
+        const targetRotate = Number(book.rotation);
+        return (
+          <motion.div
+            key={book.title}
+            className="relative w-28 sm:w-36 lg:w-40 xl:w-44 flex-shrink-0 rounded-xl"
+            style={{
+              /* Keep below app chrome (nav z-40); only stack relative to sibling cards */
+              zIndex: i === 1 ? 3 : i === 0 ? 1 : 2,
+              marginLeft: i === 0 ? 0 : "-1.5rem",
+              marginRight: i === 2 ? 0 : "-1.5rem",
+              transformOrigin: "50% 100%",
+            }}
+            initial={
+              skip
+                ? { x: 0, rotate: targetRotate }
+                : {
+                    x: i === 0 ? FAN_TUCK_X : i === 2 ? -FAN_TUCK_X : 0,
+                    rotate: 0,
+                  }
+            }
+            animate={{ x: 0, rotate: targetRotate }}
+            transition={skip ? { duration: 0 } : transition}
+          >
+            <div
+              className="aspect-[3/4] rounded-xl overflow-hidden flex flex-col justify-end p-3.5 sm:p-4 lg:p-5 text-white select-none pointer-events-none shadow-[0_22px_40px_-8px_rgba(26,20,16,0.14),0_8px_16px_-6px_rgba(26,20,16,0.09)]"
+              style={{
+                backgroundColor: book.bg,
+                backgroundImage: stripePattern,
+              }}
+            >
+              <p className="font-lora font-bold text-sm sm:text-base lg:text-lg leading-tight">
+                {book.title}
+              </p>
+              <p className="text-xs sm:text-sm opacity-90">{book.author}</p>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
 
 function HomePage() {
   const { auth } = useAuth();
   const [clubs, setClubs] = useState([]);
   const [clubsLoading, setClubsLoading] = useState(true);
   const [clubsError, setClubsError] = useState(null);
-  const [visibleClubCount, setVisibleClubCount] = useState(
-    INITIAL_CLUBS_VISIBLE,
-  );
 
   const { currentBooksByClubId } = useClubsCurrentBooks(
     clubs.map((c) => c?.id).filter(Boolean),
@@ -66,47 +112,20 @@ function HomePage() {
       .finally(() => setClubsLoading(false));
   }, [auth?.token]);
 
-  useEffect(() => {
-    setVisibleClubCount(Math.min(INITIAL_CLUBS_VISIBLE, clubs.length));
-  }, [clubs]);
-
   return (
     <div className="min-h-full flex flex-col bg-[rgb(253,252,250)]">
-      <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-16">
-          {/* Mobile only: 3 overlapping tilted cards above content */}
-          <div className="flex items-end justify-center gap-0 mb-10 sm:mb-14 lg:hidden">
-            {mobileBooks.map((book, i) => (
-              <div
-                key={book.title}
-                className="relative w-28 sm:w-36 flex-shrink-0 rounded-lg shadow-lg"
-                style={{
-                  transform: `rotate(${book.rotation}deg)`,
-                  zIndex: i === 1 ? 10 : 5 - Math.abs(i - 1),
-                  marginLeft: i === 0 ? 0 : "-1.5rem",
-                  marginRight: i === 2 ? 0 : "-1.5rem",
-                }}
-              >
-                <div
-                  className="aspect-[3/4] rounded-lg overflow-hidden flex flex-col justify-end p-4 text-white"
-                  style={{
-                    backgroundColor: book.bg,
-                    backgroundImage: stripePattern,
-                  }}
-                >
-                  <p className="font-lora font-bold text-sm sm:text-base leading-tight">
-                    {book.title}
-                  </p>
-                  <p className="text-xs sm:text-sm opacity-90">{book.author}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Left: text and buttons */}
-          <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl mx-auto lg:mx-0 mb-12 lg:mb-0">
+      <div className="flex-1 px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-24 pb-12 sm:pb-16">
+        <section
+          className="max-w-6xl mx-auto flex w-full flex-col pb-10 sm:pb-14 lg:pb-16 lg:flex-row lg:items-center lg:justify-between lg:gap-12 xl:gap-16"
+          aria-label="Introduction"
+        >
+          {/* ScrollReveal on copy only so hero cards stay visible for the fan-out load animation */}
+          <ScrollReveal
+            as="div"
+            className="order-2 lg:order-1 flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl mx-auto lg:mx-0"
+          >
             <p
-              className="text-xs font-semibold uppercase tracking-wider mb-3"
+              className="text-sm font-semibold uppercase tracking-wider mb-3"
               style={{ color: ACCENT }}
             >
               Your book club, simplified
@@ -143,30 +162,16 @@ function HomePage() {
                 View clubs
               </a>
             </div>
-          </div>
+          </ScrollReveal>
 
-          {/* Desktop only: 2x2 book cards - placeholders, replace with Canva images later */}
-          <div className="hidden lg:grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-md mx-auto lg:max-w-sm">
-            {desktopBooks.map((book) => (
-              <div
-                key={book.title}
-                className="aspect-[3/4] rounded-lg overflow-hidden flex flex-col justify-end p-4 text-white shadow-md"
-                style={{
-                  backgroundColor: book.bg,
-                  backgroundImage: stripePattern,
-                }}
-              >
-                <p className="font-lora font-bold text-sm sm:text-base leading-tight">
-                  {book.title}
-                </p>
-                <p className="text-xs sm:text-sm opacity-90">{book.author}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+          <HeroFanCards />
+        </section>
 
         {/* About Section */}
-        <section className="mt-20 sm:mt-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[#f2ece4] py-16 sm:py-20 border-y border-[#e7ddd1]">
+        <ScrollReveal
+          as="section"
+          className="mt-20 sm:mt-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[#f2ece4] py-16 sm:py-20 border-y border-[#e7ddd1]"
+        >
           <div className="max-w-6xl mx-auto">
             <div className="max-w-3xl">
               <p
@@ -186,8 +191,10 @@ function HomePage() {
                 className="text-base sm:text-lg leading-8 max-w-2xl"
                 style={{ color: PARAGRAPH }}
               >
-                Create your own book club, discover others to join, and keep everything organised in one place. From choosing the next read
-                to scheduling meetings and sharing updates, our platform helps readers stay connected and enjoy the whole journey together.
+                Create your own book club, discover others to join, and keep
+                everything organised in one place. From choosing the next read
+                to scheduling meetings and sharing updates, our platform helps
+                readers stay connected and enjoy the whole journey together.
               </p>
             </div>
 
@@ -205,7 +212,10 @@ function HomePage() {
                 >
                   Create or join clubs
                 </h3>
-                <p className="text-sm sm:text-base m-0 leading-7" style={{ color: PARAGRAPH }}>
+                <p
+                  className="text-sm sm:text-base m-0 leading-7"
+                  style={{ color: PARAGRAPH }}
+                >
                   Start your own club or find one that matches your reading
                   style. Join public clubs instantly or request access to
                   private ones.
@@ -225,7 +235,10 @@ function HomePage() {
                 >
                   Organise books and meetings
                 </h3>
-                <p className="text-sm sm:text-base m-0 leading-7" style={{ color: PARAGRAPH }}>
+                <p
+                  className="text-sm sm:text-base m-0 leading-7"
+                  style={{ color: PARAGRAPH }}
+                >
                   Club owners can add books, track what the group is reading,
                   schedule meetings, and post announcements to keep everyone
                   updated.
@@ -245,25 +258,27 @@ function HomePage() {
                 >
                   Read together
                 </h3>
-                <p className="text-sm sm:text-base m-0 leading-7" style={{ color: PARAGRAPH }}>
+                <p
+                  className="text-sm sm:text-base m-0 leading-7"
+                  style={{ color: PARAGRAPH }}
+                >
                   Members can follow the club&apos;s reading journey, book into
-                  meetings, and stay involved in discussions along the way. 
+                  meetings, and stay involved in discussions along the way.
                 </p>
               </article>
             </div>
-
           </div>
-        </section>
+        </ScrollReveal>
 
-        <section className="mt-8 sm:mt-10 max-w-6xl mx-auto">
+        <ScrollReveal as="section" className="mt-8 sm:mt-10 max-w-6xl mx-auto">
           <div className="max-w-5xl mx-auto rounded-[2rem] bg-white px-6 py-12 sm:px-10 sm:py-14 shadow-sm border border-[#ece2d7]">
             <HomePageStats bookClubsCount={clubs.length} embedded />
           </div>
-        </section>
+        </ScrollReveal>
 
-        
         {/* Current book clubs section – full-width background band */}
-        <section
+        <ScrollReveal
+          as="section"
           id="current-book-clubs"
           className="mt-20 sm:mt-28 py-16 sm:py-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[rgb(247,244,240)] scroll-mt-20"
         >
@@ -286,11 +301,11 @@ function HomePage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {clubs.slice(0, visibleClubCount).map((club) => (
+                  {clubs.slice(0, INITIAL_CLUBS_VISIBLE).map((club) => (
                     <Link
                       key={club.id}
                       to={`/clubs/${club.id}`}
-                      className="block"
+                      className="block w-full min-w-0"
                     >
                       <BookClubCard
                         club={club}
@@ -299,43 +314,21 @@ function HomePage() {
                     </Link>
                   ))}
                 </div>
-                {visibleClubCount < clubs.length ||
-                visibleClubCount > INITIAL_CLUBS_VISIBLE ? (
+                {clubs.length > INITIAL_CLUBS_VISIBLE ? (
                   <div className="flex flex-wrap justify-center gap-3 mt-8">
-                    {visibleClubCount < clubs.length ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setVisibleClubCount((n) =>
-                            Math.min(n + INITIAL_CLUBS_VISIBLE, clubs.length),
-                          )
-                        }
-                        className="px-6 py-3 rounded-lg font-semibold text-white transition-colors hover:opacity-90"
-                        style={{ backgroundColor: ACCENT }}
-                      >
-                        Show more
-                      </button>
-                    ) : null}
-                    {visibleClubCount > INITIAL_CLUBS_VISIBLE ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setVisibleClubCount(
-                            Math.min(INITIAL_CLUBS_VISIBLE, clubs.length),
-                          )
-                        }
-                        className="px-6 py-3 rounded-lg font-semibold border-2 transition-colors hover:bg-gray-100"
-                        style={{ color: DARK, borderColor: DARK }}
-                      >
-                        Show less
-                      </button>
-                    ) : null}
+                    <Link
+                      to="/clubs"
+                      className="px-6 py-3 rounded-lg font-semibold text-white transition-colors hover:opacity-90 inline-block text-center"
+                      style={{ backgroundColor: ACCENT }}
+                    >
+                      See all clubs
+                    </Link>
                   </div>
                 ) : null}
               </>
             )}
           </div>
-        </section>
+        </ScrollReveal>
       </div>
     </div>
   );
