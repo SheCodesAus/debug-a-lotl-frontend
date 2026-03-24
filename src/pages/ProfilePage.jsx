@@ -6,6 +6,9 @@ import getCurrentUser from "../api/get-current-user.js";
 import getClubs from "../api/get-clubs.js";
 import getMyClubs from "../api/get-my-clubs.js";
 import getMyBookedMeetings from "../api/get-my-booked-meetings.js";
+import getClubMeetings from "../api/get-club-meetings.js";
+import getClubMembers from "../api/get-club-members.js";
+import patchClubMember from "../api/patch-club-member.js";
 import BookClubCard from "../components/clubs/BookClubCard.jsx";
 import ProfileStats from "../components/ProfileStats.jsx";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books.js";
@@ -21,6 +24,21 @@ const TITLE_COLOR = "#333333";
 const EMAIL_JOIN_COLOR = "#666666";
 const DESCRIPTION_COLOR = "#777777";
 
+function isUpcomingMeeting(meeting) {
+  if (!meeting?.meeting_date) return false;
+
+  const datePart = String(meeting.meeting_date).slice(0, 10);
+  if (!datePart) return false;
+
+  const timePart =
+    meeting?.start_time && String(meeting.start_time).length >= 5
+      ? String(meeting.start_time).slice(0, 5)
+      : "00:00";
+  const startsAt = new Date(`${datePart}T${timePart}:00`);
+  if (Number.isNaN(startsAt.getTime())) return false;
+  return startsAt.getTime() >= Date.now();
+}
+
 function ProfilePage() {
   const navigate = useNavigate();
   const { auth } = useAuth();
@@ -31,6 +49,9 @@ function ProfilePage() {
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [bookedMeetings, setBookedMeetings] = useState([]);
+  const [upcomingMeetingsCount, setUpcomingMeetingsCount] = useState(0);
+  const [pendingApprovals, setPendingApprovals] = useState([]);
+  const [memberActionLoading, setMemberActionLoading] = useState(null);
 
   const isLoggedIn = Boolean(auth?.token && auth?.username);
 
@@ -46,6 +67,105 @@ function ProfilePage() {
     [...clubsMemberOf, ...clubsOwned].map((c) => c?.id),
     auth?.token ?? null,
   );
+
+  useEffect(() => {
+    if (!auth?.token || !isLoggedIn || userId == null) {
+      setUpcomingMeetingsCount(0);
+      return;
+    }
+
+    const uniqueClubIds = [
+      ...new Set(
+        [...clubsMemberOf, ...clubsOwned].map((club) => club?.id).filter(Boolean),
+      ),
+    ];
+
+    if (uniqueClubIds.length === 0) {
+      setUpcomingMeetingsCount(0);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadUpcomingCount() {
+      const results = await Promise.allSettled(
+        uniqueClubIds.map((clubId) => getClubMeetings(clubId, auth.token)),
+      );
+
+      if (cancelled) return;
+
+      const count = results.reduce((total, result) => {
+        if (result.status !== "fulfilled" || !Array.isArray(result.value)) {
+          return total;
+        }
+        return total + result.value.filter(isUpcomingMeeting).length;
+      }, 0);
+
+      setUpcomingMeetingsCount(count);
+    }
+
+    loadUpcomingCount();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [auth?.token, isLoggedIn, userId, clubsMemberOf, clubsOwned]);
+
+  useEffect(() => {
+    const privateOwnedClubs = clubsOwned.filter((club) => club?.is_public === false);
+
+    if (!auth?.token || !isLoggedIn || privateOwnedClubs.length === 0) {
+      setPendingApprovals([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadPendingApprovals() {
+      const results = await Promise.allSettled(
+        privateOwnedClubs.map(async (club) => {
+          const members = await getClubMembers(club.id, auth.token);
+          const pending = Array.isArray(members)
+            ? members.filter((member) => member.status === "pending")
+            : [];
+          return pending.map((member) => ({
+            ...member,
+            clubId: club.id,
+            clubName: club.name ?? "Book club",
+          }));
+        }),
+      );
+
+      if (cancelled) return;
+
+      const flattenedPending = results.reduce((acc, result) => {
+        if (result.status === "fulfilled" && Array.isArray(result.value)) {
+          acc.push(...result.value);
+        }
+        return acc;
+      }, []);
+
+      setPendingApprovals(flattenedPending);
+    }
+
+    loadPendingApprovals();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [auth?.token, isLoggedIn, clubsOwned]);
+
+  async function handleMemberApproval(clubId, memberId, newStatus) {
+    setMemberActionLoading(memberId);
+    try {
+      await patchClubMember(clubId, memberId, newStatus, auth.token);
+      setPendingApprovals((prev) => prev.filter((item) => item.id !== memberId));
+    } catch (err) {
+      setError(err.message ?? "Could not update member status");
+    } finally {
+      setMemberActionLoading(null);
+    }
+  }
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -158,6 +278,20 @@ function ProfilePage() {
 
   const displayName =
     getFirstNameFromProfile(profile) ?? profile?.username ?? "User";
+  const ownsAnyClubs = clubsOwned.length > 0;
+  const clubFollowersCount = clubsOwned.reduce((total, club) => {
+    const rawCount = club?.member_count;
+    const count =
+      typeof rawCount === "number"
+        ? rawCount
+        : Array.isArray(club?.members)
+          ? club.members.length
+          : 0;
+    return total + Math.max(0, count);
+  }, 0);
+  const createClubButtonLabel = ownsAnyClubs
+    ? "Create another book club"
+    : "Create your first book club";
   const initials = displayName
     .split(/\s+/)
     .map((w) => w.charAt(0))
@@ -231,7 +365,7 @@ function ProfilePage() {
                   {profile.bio.trim()}
                 </p>
               ) : null}
-              <div className="mt-4 flex justify-center sm:justify-start">
+              <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(true)}
@@ -245,14 +379,89 @@ function ProfilePage() {
 
           <ScrollReveal as="div">
             <ProfileStats
-              clubsCount={clubs.length}
-              upcomingMeetingsCount={bookedMeetings.length}
+              clubFollowersCount={clubFollowersCount}
+              upcomingMeetingsCount={upcomingMeetingsCount}
               booksReadCount={totalHistoricReadCount}
               cardBg={CARD_BG}
               statNumberColor={STAT_NUMBER}
               descriptionColor={DESCRIPTION_COLOR}
             />
           </ScrollReveal>
+
+          {ownsAnyClubs && (
+            <ScrollReveal
+              as="section"
+              className="rounded-2xl p-5 sm:p-6 md:p-8"
+              style={{
+                backgroundColor: CARD_BG,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                border: "2px solid #eab308",
+              }}
+            >
+              <h3
+                className="text-sm font-semibold uppercase tracking-wider mb-4"
+                style={{ color: "#1A1410" }}
+              >
+                Pending approvals{" "}
+                {pendingApprovals.length > 0 && `(${pendingApprovals.length})`}
+              </h3>
+              {pendingApprovals.length === 0 ? (
+                <p className="text-sm m-0" style={{ color: DESCRIPTION_COLOR }}>
+                  No pending requests at the moment.
+                </p>
+              ) : (
+                <ul className="space-y-3 list-none m-0 p-0">
+                  {pendingApprovals.map((request) => (
+                    <li
+                      key={request.id}
+                      className="flex items-center justify-between gap-3"
+                    >
+                      <div>
+                        <p className="m-0 text-sm font-medium text-[#1A1410]">
+                          {request.username}
+                        </p>
+                        <p className="m-0 text-xs mt-1 text-[#606060]">
+                          {request.clubName}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          type="button"
+                          disabled={memberActionLoading === request.id}
+                          onClick={() =>
+                            handleMemberApproval(
+                              request.clubId,
+                              request.id,
+                              "approved",
+                            )
+                          }
+                          className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                          style={{ backgroundColor: "rgb(107, 123, 92)" }}
+                        >
+                          {memberActionLoading === request.id ? "..." : "accept"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={memberActionLoading === request.id}
+                          onClick={() =>
+                            handleMemberApproval(
+                              request.clubId,
+                              request.id,
+                              "rejected",
+                            )
+                          }
+                          className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                          style={{ backgroundColor: "rgb(196, 93, 62)" }}
+                        >
+                          {memberActionLoading === request.id ? "..." : "reject"}
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </ScrollReveal>
+          )}
 
           <ScrollReveal
             as="section"
@@ -323,6 +532,7 @@ function ProfilePage() {
               </ul>
             )}
           </ScrollReveal>
+
         </div>
 
         {showEditModal && (
@@ -337,12 +547,32 @@ function ProfilePage() {
         {/* Book clubs: single column — owned first, then memberships */}
         <div className="flex flex-col gap-10">
           <ScrollReveal as="section">
-            <h3
-              className="text-sm font-semibold uppercase tracking-wider mb-4"
-              style={{ color: "#1A1410" }}
-            >
-              Book clubs you own
-            </h3>
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <h3
+                className="text-sm font-semibold uppercase tracking-wider m-0"
+                style={{ color: "#1A1410" }}
+              >
+                Book clubs you own
+              </h3>
+              {ownsAnyClubs ? (
+                <Link
+                  to="/clubs/create"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-semibold text-[#3f2a28] border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  {createClubButtonLabel} +
+                </Link>
+              ) : null}
+            </div>
+            {!ownsAnyClubs ? (
+              <div className="mb-4">
+                <Link
+                  to="/clubs/create"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-semibold text-[#3f2a28] border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  {createClubButtonLabel} +
+                </Link>
+              </div>
+            ) : null}
             {clubsOwned.length === 0 ? (
               <p className="text-sm" style={{ color: DESCRIPTION_COLOR }}>
                 You haven&apos;t created any clubs yet.
