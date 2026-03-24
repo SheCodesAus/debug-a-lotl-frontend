@@ -1,5 +1,5 @@
 function ProfileStats({
-  clubsCount,
+  clubFollowersCount,
   upcomingMeetingsCount,
   booksReadCount,
   cardBg,
@@ -7,7 +7,7 @@ function ProfileStats({
   descriptionColor,
 }) {
   const stats = [
-    { value: clubsCount, label: "Clubs" },
+    { value: clubFollowersCount, label: "Club followers" },
     { value: upcomingMeetingsCount, label: "Upcoming meetings" },
     { value: booksReadCount, label: "Books read" },
   ];

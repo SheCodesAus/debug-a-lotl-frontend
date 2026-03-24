@@ -6,6 +6,7 @@ import getCurrentUser from "../api/get-current-user.js";
 import getClubs from "../api/get-clubs.js";
 import getMyClubs from "../api/get-my-clubs.js";
 import getMyBookedMeetings from "../api/get-my-booked-meetings.js";
+import getClubMeetings from "../api/get-club-meetings.js";
 import BookClubCard from "../components/clubs/BookClubCard.jsx";
 import ProfileStats from "../components/ProfileStats.jsx";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books.js";
@@ -21,6 +22,21 @@ const TITLE_COLOR = "#333333";
 const EMAIL_JOIN_COLOR = "#666666";
 const DESCRIPTION_COLOR = "#777777";
 
+function isUpcomingMeeting(meeting) {
+  if (!meeting?.meeting_date) return false;
+
+  const datePart = String(meeting.meeting_date).slice(0, 10);
+  if (!datePart) return false;
+
+  const timePart =
+    meeting?.start_time && String(meeting.start_time).length >= 5
+      ? String(meeting.start_time).slice(0, 5)
+      : "00:00";
+  const startsAt = new Date(`${datePart}T${timePart}:00`);
+  if (Number.isNaN(startsAt.getTime())) return false;
+  return startsAt.getTime() >= Date.now();
+}
+
 function ProfilePage() {
   const navigate = useNavigate();
   const { auth } = useAuth();
@@ -31,6 +47,7 @@ function ProfilePage() {
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [bookedMeetings, setBookedMeetings] = useState([]);
+  const [upcomingMeetingsCount, setUpcomingMeetingsCount] = useState(0);
 
   const isLoggedIn = Boolean(auth?.token && auth?.username);
 
@@ -46,6 +63,49 @@ function ProfilePage() {
     [...clubsMemberOf, ...clubsOwned].map((c) => c?.id),
     auth?.token ?? null,
   );
+
+  useEffect(() => {
+    if (!auth?.token || !isLoggedIn || userId == null) {
+      setUpcomingMeetingsCount(0);
+      return;
+    }
+
+    const uniqueClubIds = [
+      ...new Set(
+        [...clubsMemberOf, ...clubsOwned].map((club) => club?.id).filter(Boolean),
+      ),
+    ];
+
+    if (uniqueClubIds.length === 0) {
+      setUpcomingMeetingsCount(0);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadUpcomingCount() {
+      const results = await Promise.allSettled(
+        uniqueClubIds.map((clubId) => getClubMeetings(clubId, auth.token)),
+      );
+
+      if (cancelled) return;
+
+      const count = results.reduce((total, result) => {
+        if (result.status !== "fulfilled" || !Array.isArray(result.value)) {
+          return total;
+        }
+        return total + result.value.filter(isUpcomingMeeting).length;
+      }, 0);
+
+      setUpcomingMeetingsCount(count);
+    }
+
+    loadUpcomingCount();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [auth?.token, isLoggedIn, userId, clubsMemberOf, clubsOwned]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -159,6 +219,16 @@ function ProfilePage() {
   const displayName =
     getFirstNameFromProfile(profile) ?? profile?.username ?? "User";
   const ownsAnyClubs = clubsOwned.length > 0;
+  const clubFollowersCount = clubsOwned.reduce((total, club) => {
+    const rawCount = club?.member_count;
+    const count =
+      typeof rawCount === "number"
+        ? rawCount
+        : Array.isArray(club?.members)
+          ? club.members.length
+          : 0;
+    return total + Math.max(0, count);
+  }, 0);
   const createClubButtonLabel = ownsAnyClubs
     ? "Create another book club"
     : "Create your first book club";
@@ -249,8 +319,8 @@ function ProfilePage() {
 
           <ScrollReveal as="div">
             <ProfileStats
-              clubsCount={clubs.length}
-              upcomingMeetingsCount={bookedMeetings.length}
+              clubFollowersCount={clubFollowersCount}
+              upcomingMeetingsCount={upcomingMeetingsCount}
               booksReadCount={totalHistoricReadCount}
               cardBg={CARD_BG}
               statNumberColor={STAT_NUMBER}
