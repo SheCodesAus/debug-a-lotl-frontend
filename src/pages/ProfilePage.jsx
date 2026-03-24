@@ -7,6 +7,8 @@ import getClubs from "../api/get-clubs.js";
 import getMyClubs from "../api/get-my-clubs.js";
 import getMyBookedMeetings from "../api/get-my-booked-meetings.js";
 import getClubMeetings from "../api/get-club-meetings.js";
+import getClubMembers from "../api/get-club-members.js";
+import patchClubMember from "../api/patch-club-member.js";
 import BookClubCard from "../components/clubs/BookClubCard.jsx";
 import ProfileStats from "../components/ProfileStats.jsx";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books.js";
@@ -48,6 +50,8 @@ function ProfilePage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [bookedMeetings, setBookedMeetings] = useState([]);
   const [upcomingMeetingsCount, setUpcomingMeetingsCount] = useState(0);
+  const [pendingApprovals, setPendingApprovals] = useState([]);
+  const [memberActionLoading, setMemberActionLoading] = useState(null);
 
   const isLoggedIn = Boolean(auth?.token && auth?.username);
 
@@ -106,6 +110,60 @@ function ProfilePage() {
       cancelled = true;
     };
   }, [auth?.token, isLoggedIn, userId, clubsMemberOf, clubsOwned]);
+
+  useEffect(() => {
+    if (!auth?.token || !isLoggedIn || clubsOwned.length === 0) {
+      setPendingApprovals([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadPendingApprovals() {
+      const results = await Promise.allSettled(
+        clubsOwned.map(async (club) => {
+          const members = await getClubMembers(club.id, auth.token);
+          const pending = Array.isArray(members)
+            ? members.filter((member) => member.status === "pending")
+            : [];
+          return pending.map((member) => ({
+            ...member,
+            clubId: club.id,
+            clubName: club.name ?? "Book club",
+          }));
+        }),
+      );
+
+      if (cancelled) return;
+
+      const flattenedPending = results.reduce((acc, result) => {
+        if (result.status === "fulfilled" && Array.isArray(result.value)) {
+          acc.push(...result.value);
+        }
+        return acc;
+      }, []);
+
+      setPendingApprovals(flattenedPending);
+    }
+
+    loadPendingApprovals();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [auth?.token, isLoggedIn, clubsOwned]);
+
+  async function handleMemberApproval(clubId, memberId, newStatus) {
+    setMemberActionLoading(memberId);
+    try {
+      await patchClubMember(clubId, memberId, newStatus, auth.token);
+      setPendingApprovals((prev) => prev.filter((item) => item.id !== memberId));
+    } catch (err) {
+      setError(err.message ?? "Could not update member status");
+    } finally {
+      setMemberActionLoading(null);
+    }
+  }
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -328,6 +386,81 @@ function ProfilePage() {
             />
           </ScrollReveal>
 
+          {ownsAnyClubs && (
+            <ScrollReveal
+              as="section"
+              className="rounded-2xl p-5 sm:p-6 md:p-8"
+              style={{
+                backgroundColor: CARD_BG,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                border: "2px solid #eab308",
+              }}
+            >
+              <h3
+                className="text-sm font-semibold uppercase tracking-wider mb-4"
+                style={{ color: "#1A1410" }}
+              >
+                Pending approvals{" "}
+                {pendingApprovals.length > 0 && `(${pendingApprovals.length})`}
+              </h3>
+              {pendingApprovals.length === 0 ? (
+                <p className="text-sm m-0" style={{ color: DESCRIPTION_COLOR }}>
+                  No pending requests at the moment.
+                </p>
+              ) : (
+                <ul className="space-y-3 list-none m-0 p-0">
+                  {pendingApprovals.map((request) => (
+                    <li
+                      key={request.id}
+                      className="flex items-center justify-between gap-3"
+                    >
+                      <div>
+                        <p className="m-0 text-sm font-medium text-[#1A1410]">
+                          {request.username}
+                        </p>
+                        <p className="m-0 text-xs mt-1 text-[#606060]">
+                          {request.clubName}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          type="button"
+                          disabled={memberActionLoading === request.id}
+                          onClick={() =>
+                            handleMemberApproval(
+                              request.clubId,
+                              request.id,
+                              "approved",
+                            )
+                          }
+                          className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                          style={{ backgroundColor: "rgb(107, 123, 92)" }}
+                        >
+                          {memberActionLoading === request.id ? "..." : "accept"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={memberActionLoading === request.id}
+                          onClick={() =>
+                            handleMemberApproval(
+                              request.clubId,
+                              request.id,
+                              "rejected",
+                            )
+                          }
+                          className="text-xs px-3 py-1 rounded border-0 text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                          style={{ backgroundColor: "rgb(196, 93, 62)" }}
+                        >
+                          {memberActionLoading === request.id ? "..." : "reject"}
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </ScrollReveal>
+          )}
+
           <ScrollReveal
             as="section"
             className="rounded-2xl p-5 sm:p-6 md:p-8"
@@ -397,6 +530,7 @@ function ProfilePage() {
               </ul>
             )}
           </ScrollReveal>
+
         </div>
 
         {showEditModal && (
