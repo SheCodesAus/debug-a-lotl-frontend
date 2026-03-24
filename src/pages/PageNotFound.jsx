@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 const NotFound = () => {
   return (
     <div className="min-h-screen bg-[#446072] p-8 flex flex-col items-center overflow-hidden font-mono text-white">
-      /* Custom Styles for Animations */
+      {/* Custom Styles for Animations */}
       <style>{`
         @keyframes leftDoorOpen {
           60% { transform: rotateY(-115deg); }
@@ -23,14 +23,14 @@ const NotFound = () => {
         }
       `}</style>
 
-      <nav className="relative w-[30rem] h-[14rem] mx-auto border-[0.5rem] border-[#374d5b] rounded-lg bg-white/10 perspective-[130rem] shadow-inner">
+      <nav className="relative `w-120` `h-56` mx-auto `border-8` border-[#374d5b] rounded-lg bg-white/10 shadow-inner" style={{ perspective: '130rem' }}>
 
-        /* Books */
-        <Link to="/" className="absolute px-16 py-3 rounded bg-white/10 text-white uppercase tracking-widest text-sm hover:bg-white/20 transition-colors -rotate-90 -translate-x-[12.4rem] translate-y-[3rem] origin-left">
+        {/* Books */}
+        <Link to="/" className="absolute px-16 py-3 rounded bg-white/10 text-white uppercase tracking-widest text-sm hover:bg-white/20 transition-colors origin-left" style={{ transform: 'rotate(-90deg) translate(-12.4rem, 3rem)' }}>
           Home
         </Link>
 
-        <Link to="/clubs" className="absolute px-16 py-3 rounded bg-white/10 text-white uppercase tracking-widest text-sm hover:bg-white/20 transition-colors -rotate-[100deg] -translate-x-[13.4rem] translate-y-[6.1rem] origin-left">
+        <Link to="/clubs" className="absolute px-16 py-3 rounded bg-white/10 text-white uppercase tracking-widest text-sm hover:bg-white/20 transition-colors origin-left" style={{ transform: 'rotate(-100deg) translate(-13.4rem, 6.1rem)' }}>
           Clubs
         </Link>
 
@@ -38,17 +38,21 @@ const NotFound = () => {
           Profile
         </Link>
 
-        <Link to="/contact" className="absolute right-8 bottom-1 px-16 py-3 rounded-l bg-white/10 text-white uppercase tracking-widest text-sm hover:bg-white/20 transition-colors">
+        <Link to="/login" className="absolute right-8 bottom-1 px-16 py-3 rounded-l bg-white/10 text-white uppercase tracking-widest text-sm hover:bg-white/20 transition-colors">
           Login
         </Link>
 
-        /* The Missing Book Placeholder */
-        <span className="absolute w-[12rem] h-[3.5rem] border border-dashed border-white/30 -rotate-90 -translate-x-[12rem] translate-y-[13rem] origin-left opacity-30"></span>
+        {/* The Missing Book Placeholder */}
+        <span className="absolute `w-48` `h-14` border border-dashed border-white/30 origin-left opacity-30" style={{ transform: 'rotate(-90deg) translate(-12rem, 13rem)' }}></span>
 
-        /* Doors */
-        <span className="absolute w-[14.8rem] h-full bg-[#374d5b] shadow-md z-10 flex items-center p-4 rounded-r-xl animate-door-left after:content-[''] after:w-6 after:h-6 after:bg-black/10 after:rounded-full after:ml-auto"></span>
+        {/* Doors */}
+        <span className="animate-door-left absolute w-[14.8rem] h-full bg-[#374d5b] shadow-md z-10 flex items-center justify-end p-4 rounded-r-xl">
+          <span className="w-6 h-6 bg-black/10 rounded-full"></span>
+        </span>
 
-        <span className="absolute right-0 w-[14.8rem] h-full bg-[#374d5b] shadow-md z-10 flex items-center p-4 rounded-l-xl animate-door-right before:content-[''] before:w-6 before:h-6 before:bg-black/10 before:rounded-full"></span>
+        <span className="animate-door-right absolute right-0 w-[14.8rem] h-full bg-[#374d5b] shadow-md z-10 flex items-center p-4 rounded-l-xl">
+          <span className="w-6 h-6 bg-black/10 rounded-full"></span>
+        </span>
       </nav>
 
       <h1 className="mt-8 text-4xl font-bold text-center">Error 404</h1>
