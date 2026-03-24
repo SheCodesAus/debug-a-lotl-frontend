@@ -21,11 +21,16 @@ import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard.jsx";
 import ClubMemberContentPlaceholder from "../components/clubs/ClubMemberContentPlaceholder.jsx";
 import BookDetailsModal from "../components/modals/BookDetailsModal";
 import ScrollReveal from "../components/motion/ScrollReveal.jsx";
+import { IconInPerson, IconVirtual } from "../components/clubs/ClubPillIcons.jsx";
 
 const ACCENT = "#C45D3E";
 const BRAND_GREEN = "#6b7b5c";
 const MUTED_COLOR = "#8A7E74";
 const PAGE_BG = "#fffaf6";
+/** Meetings card — subtle border (reference-style card) */
+const MEETING_CARD_BORDER = "rgba(26, 20, 16, 0.1)";
+/** Same icon size as `BookClubCard` (non-compact) meeting-mode pill */
+const MEETING_TYPE_PILL_ICON_CLASS = "w-4 h-4 sm:w-4 sm:h-4";
 
 // ─── Schedule Meeting Modal ───────────────────────────────────────────────────
 function ScheduleMeetingModal({ clubId, onClose, onSuccess }) {
@@ -297,8 +302,152 @@ function EditMeetingModal({ clubId, meeting, token, onClose, onSuccess }) {
   );
 }
 
+/** Virtual / In person pill — matches `BookClubCard` meeting-mode styling */
+function MeetingTypePill({ isVirtual }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-0.5 px-2 py-1.5 sm:px-2.5 rounded-full bg-[rgb(247,244,240)] text-xs sm:text-[11px] text-[#606060] font-nunito">
+      {isVirtual ? "Virtual" : "In person"}
+      {isVirtual ? (
+        <IconVirtual className={MEETING_TYPE_PILL_ICON_CLASS} />
+      ) : (
+        <IconInPerson className={MEETING_TYPE_PILL_ICON_CLASS} />
+      )}
+    </span>
+  );
+}
+
+/** How many members booked this meeting (from API `attendance_count` only). */
+function meetingAttendeeCount(meeting) {
+  const n = Number(meeting?.attendance_count ?? 0);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+/** Active meetings first, then by date/time/id (aligned with API `order_by`). */
+function sortMeetingsLikeApi(meetings) {
+  return [...meetings].sort((a, b) => {
+    const aCancelled = Boolean(a.cancel_date);
+    const bCancelled = Boolean(b.cancel_date);
+    if (aCancelled !== bCancelled) return aCancelled ? 1 : -1;
+    const da = a.meeting_date || "";
+    const db = b.meeting_date || "";
+    if (da !== db) return da.localeCompare(db);
+    const ta = a.start_time || "";
+    const tb = b.start_time || "";
+    if (ta !== tb) return ta.localeCompare(tb);
+    return (a.id || 0) - (b.id || 0);
+  });
+}
+
+function isMeetingCancelled(meeting) {
+  return Boolean(meeting?.cancel_date);
+}
+
+function initialsFromName(name) {
+  if (!name) return "?";
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase();
+}
+
+const MEETING_ATTENDEE_AVATAR_COLORS = [
+  "#6b7b5c",
+  "#C45D3E",
+  "#7A5BA6",
+  "#8A7E54",
+  "#5C7387",
+];
+
+/** Red rounded-rect “Cancelled” label — same column as Edit/Cancel (right). */
+function MeetingCancelledBadge() {
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-lg border px-2.5 py-1.5 text-xs font-semibold shrink-0 sm:pt-0.5 sm:self-start"
+      style={{
+        backgroundColor: "rgba(196, 93, 62, 0.12)",
+        borderColor: "rgba(196, 93, 62, 0.5)",
+        color: "#9f2d1c",
+      }}
+    >
+      Cancelled
+    </span>
+  );
+}
+
+/** Stacked profile images + “N attendees” (matches club-page meeting rows). */
+function MeetingAttendeeRow({ previews, attendeeCount, muted = false }) {
+  const list = Array.isArray(previews) ? previews : [];
+  if (attendeeCount === 0) {
+    return (
+      <p
+        className="m-0 mt-2 text-xs"
+        style={{ color: MUTED_COLOR, opacity: muted ? 0.85 : 1 }}
+      >
+        No attendees yet
+      </p>
+    );
+  }
+  const overlap = 8;
+  const maxAvatars = 3;
+  const faces = list.slice(0, maxAvatars);
+  return (
+    <div className="flex items-center gap-2 mt-2 min-w-0">
+      <div
+        className="flex items-center shrink-0"
+        aria-label={`${attendeeCount} attendees`}
+      >
+        {faces.map((p, i) => (
+          <div
+            key={p.user_id ?? `${p.display_name}-${i}`}
+            className="relative rounded-full border-2 border-white overflow-hidden bg-stone-200 shrink-0"
+            style={{
+              width: 28,
+              height: 28,
+              marginLeft: i === 0 ? 0 : -overlap,
+              zIndex: maxAvatars - i,
+            }}
+            title={p.display_name}
+          >
+            {p.profile_picture ? (
+              <img
+                src={p.profile_picture}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-[9px] font-semibold text-white"
+                style={{
+                  backgroundColor:
+                    MEETING_ATTENDEE_AVATAR_COLORS[
+                      i % MEETING_ATTENDEE_AVATAR_COLORS.length
+                    ],
+                }}
+              >
+                {initialsFromName(p.display_name)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <span
+        className="text-xs font-semibold leading-tight"
+        style={{ color: muted ? MUTED_COLOR : "#1A1410" }}
+      >
+        {attendeeCount} {attendeeCount === 1 ? "attendee" : "attendees"}
+      </span>
+    </div>
+  );
+}
+
 // ─── Delete Meeting Confirm Modal ─────────────────────────────────────────────
 function DeleteMeetingModal({ meeting, onClose, onConfirm, loading }) {
+  const attendeeCount = meetingAttendeeCount(meeting);
+  const hasAttendees = attendeeCount > 0;
+
   function handleBackdrop(e) {
     if (e.target === e.currentTarget) onClose();
   }
@@ -310,11 +459,20 @@ function DeleteMeetingModal({ meeting, onClose, onConfirm, loading }) {
     >
       <div className="relative w-full max-w-sm rounded-2xl bg-white shadow-xl p-6">
         <h2 className="text-base font-semibold text-[#1A1410] mb-2">
-          Delete meeting
+          {hasAttendees ? "Cancel meeting" : "Delete meeting"}
         </h2>
         <p className="text-sm mb-6" style={{ color: MUTED_COLOR }}>
-          Are you sure you want to delete <strong>{meeting.title}</strong>? This
-          cannot be undone.
+          {hasAttendees ? (
+            <>
+              This meeting has attendees. Do you want to cancel{" "}
+              <strong>{meeting.title}</strong> now?
+            </>
+          ) : (
+            <>
+              Are you sure you want to delete <strong>{meeting.title}</strong>?
+              This cannot be undone.
+            </>
+          )}
         </p>
         <div className="flex gap-3 justify-end">
           <button
@@ -333,7 +491,13 @@ function DeleteMeetingModal({ meeting, onClose, onConfirm, loading }) {
             className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
             style={{ backgroundColor: "rgb(196, 93, 62)" }}
           >
-            {loading ? "Deleting…" : "Delete"}
+            {loading
+              ? hasAttendees
+                ? "Cancelling…"
+                : "Deleting…"
+              : hasAttendees
+                ? "Cancel now"
+                : "Delete"}
           </button>
         </div>
       </div>
@@ -357,6 +521,19 @@ function MeetingDetailModal({ meeting, onClose }) {
       year: "numeric",
     });
   }
+  function formatDateTime(isoString) {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    if (Number.isNaN(d.getTime())) return isoString;
+    return d.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+  const cancelled = isMeetingCancelled(meeting);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -364,8 +541,27 @@ function MeetingDetailModal({ meeting, onClose }) {
       onClick={handleBackdrop}
     >
       <div className="relative w-full max-w-sm rounded-2xl bg-white shadow-xl p-6">
+        {cancelled && (
+          <div
+            className="mb-4 rounded-lg px-3 py-2.5 text-sm font-medium border"
+            style={{
+              backgroundColor: "rgba(220, 38, 38, 0.06)",
+              borderColor: "rgba(220, 38, 38, 0.25)",
+              color: "#991b1b",
+            }}
+          >
+            This meeting was cancelled
+            {meeting.cancel_date && (
+              <span className="block text-xs font-normal mt-1 opacity-90">
+                {formatDateTime(meeting.cancel_date)}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex items-start justify-between gap-3 mb-4">
-          <h2 className="text-base font-semibold text-[#1A1410]">
+          <h2
+            className={`text-base font-semibold ${cancelled ? "text-[#6b6560]" : "text-[#1A1410]"}`}
+          >
             {meeting.title}
           </h2>
           <button
@@ -595,7 +791,11 @@ function ClubPage() {
     loadClub();
   }, [clubId, auth?.token]);
 
-  const isOwner = auth?.user_id === club?.owner;
+  // Coerce IDs: API may return owner as string; auth.user_id is stored as number.
+  const isOwner =
+    auth?.user_id != null &&
+    club?.owner != null &&
+    Number(auth.user_id) === Number(club.owner);
   const creatorName = club?.owner_username ?? null;
   const memberCount = club?.member_count ?? 1;
   const hasCapacityLimit = club?.max_members != null;
@@ -627,7 +827,9 @@ function ClubPage() {
     async function loadMeetings() {
       try {
         const data = await getClubMeetings(clubId, auth.token);
-        setMeetings(Array.isArray(data) ? data : []);
+        setMeetings(
+          sortMeetingsLikeApi(Array.isArray(data) ? data : []),
+        );
       } catch (err) {
         console.error("Could not load meetings:", err.message);
       }
@@ -652,8 +854,24 @@ function ClubPage() {
     if (!deletingMeeting) return;
     setIsDeletingMeeting(true);
     try {
-      await deleteClubMeeting(auth.token, clubId, deletingMeeting.id);
-      setMeetings((prev) => prev.filter((m) => m.id !== deletingMeeting.id));
+      const result = await deleteClubMeeting(
+        auth.token,
+        clubId,
+        deletingMeeting.id,
+      );
+      if (result.removed) {
+        setMeetings((prev) =>
+          prev.filter((m) => m.id !== deletingMeeting.id),
+        );
+      } else if (result.meeting) {
+        setMeetings((prev) =>
+          sortMeetingsLikeApi(
+            prev.map((m) =>
+              m.id === result.meeting.id ? result.meeting : m,
+            ),
+          ),
+        );
+      }
       setDeletingMeeting(null);
     } catch (err) {
       console.error("Could not delete meeting:", err.message);
@@ -663,7 +881,11 @@ function ClubPage() {
   }
 
   function handleMeetingUpdated(updated) {
-    setMeetings((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+    setMeetings((prev) =>
+      sortMeetingsLikeApi(
+        prev.map((m) => (m.id === updated.id ? updated : m)),
+      ),
+    );
   }
 
   async function handleMemberAction(memberId, newStatus) {
@@ -841,6 +1063,23 @@ function ClubPage() {
       month: "short",
       year: "numeric",
     });
+  }
+  /** e.g. "Fri 21 Mar 2026 · 12:30" for the meetings list */
+  function formatMeetingDateTimeLine(dateString, startTime) {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return dateString;
+    const datePart = d.toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const timePart =
+      startTime && String(startTime).length >= 5
+        ? String(startTime).slice(0, 5)
+        : "";
+    return timePart ? `${datePart} · ${timePart}` : datePart;
   }
   function openHistoricBookModal(book) {
     setSelectedHistoricBook(book);
@@ -1320,142 +1559,210 @@ function ClubPage() {
               </ScrollReveal>
             )}
 
-            {/* ✅ Meetings — view/edit/delete for owner, view/book for members */}
+            {/* Meetings — card layout (date line + title + avatars; outline actions) */}
             <ScrollReveal
               as="section"
               className={
                 restrictMemberSections
-                  ? "rounded-2xl bg-white p-4 sm:p-5 shadow-sm flex-1 min-h-0"
-                  : "rounded-2xl bg-white p-6 sm:p-8 shadow-sm flex-1 min-h-0"
+                  ? "rounded-2xl bg-white flex-1 min-h-0 border shadow-sm"
+                  : "rounded-2xl bg-white flex-1 min-h-0 border shadow-sm"
               }
-              style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
+              style={{
+                borderColor: MEETING_CARD_BORDER,
+                boxShadow: "rgba(26, 20, 16, 0.04) 0px 2px 12px",
+              }}
             >
               <div
-                className={`flex items-center justify-between ${restrictMemberSections ? "mb-4" : "mb-10"}`}
+                className={
+                  restrictMemberSections
+                    ? "p-4 sm:p-5"
+                    : "p-5 sm:p-6"
+                }
               >
-                <h2
-                  className="text-sm font-semibold uppercase tracking-wider m-0"
-                  style={{ color: "#1A1410", letterSpacing: "0.5px" }}
+                <div
+                  className={`flex items-start justify-between gap-4 ${restrictMemberSections ? "mb-4" : "mb-6"}`}
                 >
-                  Meetings
-                </h2>
-                {isOwner && (
-                  <button
-                    type="button"
-                    onClick={() => setShowScheduleModal(true)}
-                    className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
-                    style={{ backgroundColor: ACCENT }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path
-                        d="M6 1v10M1 6h10"
-                        stroke="currentColor"
-                        strokeWidth="1.75"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    Schedule
-                  </button>
-                )}
-              </div>
-
-              {restrictMemberSections ? (
-                <ClubMemberContentPlaceholder />
-              ) : meetings.length === 0 ? (
-                <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-                  No meetings scheduled yet.
-                </p>
-              ) : (
-                <div className="divide-y divide-stone-200/80">
-                  {meetings.map((meeting) => {
-                    const bState = bookingState[meeting.id] ?? "idle";
-                    const bookedFromApi = meeting.user_has_booked === true;
-                    const isBooked =
-                      bState === "booked" ||
-                      (bState === "idle" && bookedFromApi);
-                    const isBooking = bState === "loading";
-                    const bookingError =
-                      bState !== "idle" &&
-                      bState !== "loading" &&
-                      bState !== "booked"
-                        ? bState
-                        : null;
-
-                    return (
-                      <div
-                        key={meeting.id}
-                        className="flex items-start justify-between gap-3 text-sm py-4 first:pt-0"
+                  <div>
+                    <p
+                      className="m-0 text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: MUTED_COLOR, letterSpacing: "0.06em" }}
+                    >
+                      Meetings
+                    </p>
+                    <p className="m-0 mt-1 text-sm sm:text-base font-medium text-[#1A1410]">
+                      {
+                        meetings.filter((m) => !m.cancel_date).length
+                      }{" "}
+                      upcoming
+                    </p>
+                  </div>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => setShowScheduleModal(true)}
+                      className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border bg-white text-[#1A1410] transition hover:bg-stone-50 shrink-0"
+                      style={{ borderColor: "rgba(26, 20, 16, 0.15)" }}
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        aria-hidden
                       >
-                        <div className="min-w-0 flex-1">
-                          {/* ✅ Click title to view details */}
+                        <path
+                          d="M6 1v10M1 6h10"
+                          stroke="currentColor"
+                          strokeWidth="1.75"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      Schedule
+                    </button>
+                  )}
+                </div>
+
+                {restrictMemberSections ? (
+                  <ClubMemberContentPlaceholder />
+                ) : meetings.length === 0 ? (
+                  <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+                    No meetings scheduled yet.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-stone-200/90">
+                    {meetings.map((meeting) => {
+                      const attendeeCount = meetingAttendeeCount(meeting);
+                      const hasAttendees = attendeeCount > 0;
+                      const isCancelled = isMeetingCancelled(meeting);
+                      const isVirtual = meeting.meeting_type === "virtual";
+                      const bState = bookingState[meeting.id] ?? "idle";
+                      const bookedFromApi = meeting.user_has_booked === true;
+                      const isBooked =
+                        bState === "booked" ||
+                        (bState === "idle" && bookedFromApi);
+                      const isBooking = bState === "loading";
+                      const bookingError =
+                        bState !== "idle" &&
+                        bState !== "loading" &&
+                        bState !== "booked"
+                          ? bState
+                          : null;
+
+                      const meetingBody = (
+                        <>
+                          <div className="flex flex-wrap items-center gap-2 gap-y-1.5">
+                            <span
+                              className="text-xs sm:text-sm"
+                              style={{ color: MUTED_COLOR }}
+                            >
+                              {formatMeetingDateTimeLine(
+                                meeting.meeting_date,
+                                meeting.start_time,
+                              )}
+                            </span>
+                            <MeetingTypePill isVirtual={isVirtual} />
+                          </div>
                           <button
                             type="button"
                             onClick={() => setViewingMeeting(meeting)}
-                            className="m-0 font-medium text-[#1A1410] text-left hover:underline text-sm"
+                            className={`m-0 mt-2 block w-full text-left font-semibold text-base leading-snug hover:underline sm:w-auto ${
+                              isCancelled ? "" : "text-[#1A1410]"
+                            }`}
+                            style={
+                              isCancelled ? { color: "#6b6560" } : undefined
+                            }
                           >
                             {meeting.title}
                           </button>
-                          <p
-                            className="m-0 text-xs"
-                            style={{ color: MUTED_COLOR }}
-                          >
-                            {formatMeetingDate(meeting.meeting_date)}
-                            {meeting.start_time &&
-                              ` · ${meeting.start_time.slice(0, 5)}`}
-                            {meeting.meeting_type === "virtual"
-                              ? " · Virtual"
-                              : " · In person"}
-                          </p>
+                          <MeetingAttendeeRow
+                            previews={meeting.attendee_previews}
+                            attendeeCount={attendeeCount}
+                            muted={isCancelled}
+                          />
                           {bookingError && (
                             <p className="m-0 mt-1 text-xs text-red-600">
                               {bookingError}
                             </p>
                           )}
-                        </div>
+                        </>
+                      );
 
-                        {/* ✅ Owner: edit + delete buttons */}
-                        {isOwner ? (
-                          <div className="flex gap-1.5 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => setEditingMeeting(meeting)}
-                              className="text-xs px-2.5 py-1 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                              style={{ color: MUTED_COLOR }}
-                            >
-                              edit
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeletingMeeting(meeting)}
-                              className="text-xs px-2.5 py-1 rounded border-0 text-white hover:opacity-90 transition-opacity"
-                              style={{ backgroundColor: "rgb(196, 93, 62)" }}
-                            >
-                              delete
-                            </button>
-                          </div>
-                        ) : (
-                          /* ✅ Members: book button */
-                          <button
-                            type="button"
-                            disabled={isBooked || isBooking}
-                            onClick={() => handleBookMeeting(meeting.id)}
-                            className="text-xs px-3 py-1 rounded shrink-0 transition-colors disabled:cursor-not-allowed"
-                            style={{
-                              border: isBooked ? "none" : "1px solid #e5e7eb",
-                              backgroundColor: isBooked
-                                ? "rgb(107, 123, 92)"
-                                : "transparent",
-                              color: isBooked ? "white" : "#1A1410",
-                            }}
+                      return (
+                        <div key={meeting.id} className="py-5 first:pt-0">
+                          <div
+                            className={`flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6 ${
+                              isCancelled
+                                ? "rounded-xl bg-stone-100/40 py-3.5 sm:py-4"
+                                : ""
+                            }`}
                           >
-                            {isBooking ? "..." : isBooked ? "✓ Booked" : "book"}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                            <div className="min-w-0 flex-1">
+                              <div
+                                className={
+                                  isCancelled ? "min-w-0 opacity-[0.82]" : ""
+                                }
+                              >
+                                {meetingBody}
+                              </div>
+                            </div>
+                            {isCancelled ? (
+                              <MeetingCancelledBadge />
+                            ) : isOwner ? (
+                              <div className="flex flex-wrap gap-2 shrink-0 sm:pt-0.5 sm:justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingMeeting(meeting)}
+                                  className="text-xs font-semibold px-3 py-1.5 rounded-lg border bg-white text-[#1A1410] transition hover:bg-stone-50"
+                                  style={{
+                                    borderColor: "rgba(26, 20, 16, 0.15)",
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingMeeting(meeting)}
+                                  className="text-xs font-semibold px-3 py-1.5 rounded-lg border bg-white transition hover:bg-stone-50"
+                                  style={{
+                                    borderColor: hasAttendees
+                                      ? "rgba(26, 20, 16, 0.15)"
+                                      : "rgba(196, 93, 62, 0.45)",
+                                    color: hasAttendees ? "#1A1410" : ACCENT,
+                                  }}
+                                >
+                                  {hasAttendees ? "Cancel" : "Delete"}
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={isBooked || isBooking}
+                                onClick={() => handleBookMeeting(meeting.id)}
+                                className={`text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0 transition disabled:cursor-not-allowed sm:mt-0.5 ${
+                                  isBooked ? "border-0" : "border"
+                                }`}
+                                style={{
+                                  borderColor: "rgba(26, 20, 16, 0.15)",
+                                  backgroundColor: isBooked
+                                    ? BRAND_GREEN
+                                    : "white",
+                                  color: isBooked ? "white" : "#1A1410",
+                                }}
+                              >
+                                {isBooking
+                                  ? "…"
+                                  : isBooked
+                                    ? "✓ Booked"
+                                    : "Book"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </ScrollReveal>
           </div>
         </div>
@@ -1674,7 +1981,11 @@ function ClubPage() {
           onSuccess={() => {
             setShowScheduleModal(false);
             getClubMeetings(clubId, auth.token)
-              .then((data) => setMeetings(Array.isArray(data) ? data : []))
+              .then((data) =>
+                setMeetings(
+                  sortMeetingsLikeApi(Array.isArray(data) ? data : []),
+                ),
+              )
               .catch(console.error);
           }}
         />
