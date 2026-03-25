@@ -8,7 +8,7 @@ function ProfileStats({
 }) {
   const stats = [
     { value: clubFollowersCount, label: "Club followers" },
-    { value: upcomingMeetingsCount, label: "Upcoming meetings" },
+    { value: upcomingMeetingsCount, label: "Your Club Meetings" },
     { value: booksReadCount, label: "Books read" },
   ];
 
