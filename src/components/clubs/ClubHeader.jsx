@@ -18,6 +18,7 @@
  * isOwner (boolean, optional), onEditClub (function, optional).
  */
 import { IconPrivate, IconPublic } from "./ClubPillIcons.jsx";
+import InlineSpinner from "../ui/InlineSpinner.jsx";
 
 const ACCENT = "#C45D3E";
 
@@ -130,9 +131,11 @@ function ClubHeader({
                 type="button"
                 onClick={onLeaveClub}
                 disabled={isLeavingClub}
-                className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/40 bg-white/10 text-white font-semibold font-nunito text-sm px-4 py-2 backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                aria-busy={isLeavingClub}
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/40 bg-white/10 text-white font-semibold font-nunito text-sm px-4 py-2 backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed min-w-[6.5rem]"
                 >
-                {isLeavingClub ? "Leaving..." : "Leave club"}
+                {isLeavingClub ? <InlineSpinner size={16} className="text-white" /> : null}
+                Leave club
                 </button>
                 )}
             {subtitleParts.length > 0 && (

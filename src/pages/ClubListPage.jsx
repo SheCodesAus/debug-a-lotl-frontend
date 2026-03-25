@@ -8,6 +8,7 @@ import { useAuth } from "../hooks/use-auth";
 import getClubs from "../api/get-clubs";
 import BookClubCard from "../components/clubs/BookClubCard";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books";
+import { BookClubCardSkeleton } from "../components/loaders/PageSkeletons.jsx";
 
 const ACCENT = "#C45D3E";
 const DARK = "#303030";
@@ -60,16 +61,6 @@ function ClubListPage() {
   useEffect(() => {
     setPage(1);
   }, [searchQuery, visibilityFilter]);
-
-  if (loading) {
-    return (
-      <div className="min-h-full flex flex-col bg-[rgb(253,252,250)]">
-        <div className="flex-1 flex items-center justify-center py-24">
-          <p className="font-nunito text-[#606060]">Loading clubs…</p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -153,7 +144,9 @@ function ClubListPage() {
           </div>
 
           {/* Grid of book club tiles */}
-          {filteredClubs.length === 0 ? (
+          {loading ? (
+            <BookClubCardSkeleton count={PAGE_SIZE} />
+          ) : filteredClubs.length === 0 ? (
             <p className="font-nunito text-[#606060] text-center py-12">
               {searchQuery.trim() || visibilityFilter !== "all"
                 ? "No clubs match your filters. Try different keywords or show all clubs."

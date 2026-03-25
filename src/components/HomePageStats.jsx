@@ -4,6 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import getHomepageStats from "../api/get-homepage-stats";
+import { SkeletonBlock } from "./ui/Skeleton.jsx";
 
 const statConfig = [
   { key: "books_read_together", label: "Books Read Together", color: "#6d8396" },
@@ -11,15 +12,22 @@ const statConfig = [
   { key: "book_clubs", label: "Book Clubs", color: "#e3bd74", fromProp: true },
 ];
 
-function HomeStatsCard({ value, label, color }) {
+function HomeStatsCard({ value, label, color, valuePending = false }) {
   return (
     <div className="rounded-3xl border border-[#efe6dc] bg-[#fcfaf7] px-6 py-8 shadow-sm">
-      <p
-        className="font-lora text-4xl sm:text-5xl md:text-6xl font-bold m-0"
-        style={{ color }}
-      >
-        {value}
-      </p>
+      {valuePending ? (
+        <SkeletonBlock
+          className="h-12 sm:h-16 md:h-20 w-24 sm:w-28 mx-auto sm:mx-0 rounded-xl"
+          aria-hidden
+        />
+      ) : (
+        <p
+          className="font-lora text-4xl sm:text-5xl md:text-6xl font-bold m-0"
+          style={{ color }}
+        >
+          {value}
+        </p>
+      )}
       <p className="font-nunito mt-3 mb-0 text-base sm:text-lg font-semibold text-[#4f4a45]">
         {label}
       </p>
@@ -63,7 +71,6 @@ function HomePageStats({ bookClubsCount = 0, embedded = false }) {
 
   const getValue = (item) => {
     if (item.fromProp) return bookClubsCount;
-    if (loading) return "—";
     if (item.key === "active_readers") return stats.active_readers ?? 0;
     if (item.key === "books_read_together") return stats.total_books_read ?? 0;
     return 0;
@@ -113,6 +120,7 @@ function HomePageStats({ bookClubsCount = 0, embedded = false }) {
                 value={getValue(item)}
                 label={item.label}
                 color={item.color}
+                valuePending={!item.fromProp && loading}
               />
             ))}
           </div>

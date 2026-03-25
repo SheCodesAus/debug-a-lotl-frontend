@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/use-auth";
 import postJoinClub from "../../api/post-join-club";
+import InlineSpinner from "../ui/InlineSpinner.jsx";
 
 const MUTED_COLOR = "#8A7E74";
 const INPUT_BORDER = "#E8E0D8";
@@ -73,7 +74,7 @@ function JoinClubForm({ clubId, isPrivate, onSuccess, buttonColor = "#C45D3E" })
                     </p>
                 )}
                 <button
-                    className="w-full rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 min-h-[46px]"
                     style={{
                         padding: 12,
                         borderRadius: 8,
@@ -83,12 +84,10 @@ function JoinClubForm({ clubId, isPrivate, onSuccess, buttonColor = "#C45D3E" })
                     }}
                     onClick={handleJoin}
                     disabled={loading}
+                    aria-busy={loading}
                 >
-                    {loading
-                        ? "Sending request..."
-                        : isPrivate
-                        ? "Request to join"
-                        : "Join club"}
+                    {loading ? <InlineSpinner size={18} /> : null}
+                    {isPrivate ? "Request to join" : "Join club"}
                 </button>
             </div>
         </div>

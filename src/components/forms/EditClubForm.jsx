@@ -1,5 +1,6 @@
 import { useState } from "react";
 import patchClub from "../../api/patch-club";
+import InlineSpinner from "../ui/InlineSpinner.jsx";
 
 const MUTED_COLOR = "#8A7E74";
 const INPUT_BORDER = "#E8E0D8";
@@ -444,11 +445,13 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
         )}
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-2 min-w-[8.5rem] px-4 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           style={{ backgroundColor: ACCENT }}
           disabled={isSaving || isTogglingStatus}
+          aria-busy={isSaving}
         >
-          {isSaving ? "Saving…" : "Save changes"}
+          {isSaving ? <InlineSpinner size={16} /> : null}
+          Save changes
         </button>
       </div>
     </form>
