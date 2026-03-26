@@ -21,6 +21,7 @@ async function postCreateClub(token, payload) {
       payload.club_meeting_mode === "in_person" ? "in_person" : "virtual",
     // Required by backend when club_meeting_mode is "in_person"; empty string otherwise
     club_location: payload.club_location?.trim() ?? "",
+    genres: Array.isArray(payload.genres) ? payload.genres : [],
   };
 
   const response = await fetch(url, {
