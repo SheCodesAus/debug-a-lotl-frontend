@@ -35,32 +35,40 @@ function NavBar() {
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
-  const navLinks = (
-    <>
-      <Link
-        to="/clubs"
-        onClick={closeMobileMenu}
-        className="px-3 py-2 rounded-lg font-nunito font-semibold text-[15px] tracking-[0.01em] text-[#4f4a45] transition-colors hover:bg-black/5 hover:text-[#2f2a26] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+  const discoverClubsLink = (
+    <Link
+      to="/clubs"
+      onClick={closeMobileMenu}
+      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg font-nunito font-semibold text-[15px] tracking-[0.01em] text-[#4f4a45] transition-colors hover:bg-black/5 hover:text-[#2f2a26] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+    >
+      <svg
+        className="h-4 w-4 shrink-0 text-current"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden
       >
-        Discover Clubs
-      </Link>
-      {isLoggedIn && (
-        <Link
-          to="/profile"
-          onClick={closeMobileMenu}
-          className="px-3 py-2 rounded-lg font-nunito font-semibold text-[15px] tracking-[0.01em] text-[#4f4a45] transition-colors hover:bg-black/5 hover:text-[#2f2a26] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
-        >
-          Profile
-        </Link>
-      )}
-    </>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
+      Discover Clubs
+    </Link>
   );
 
   const authSection = (
     <div className="flex items-center gap-3 text-base">
       {isLoggedIn ? (
         <>
-          <span className="inline-flex items-center gap-2 font-nunito font-semibold cursor-default select-none text-[#C45D3E]">
+          <Link
+            to="/profile"
+            onClick={closeMobileMenu}
+            className="inline-flex items-center gap-2 rounded-lg px-1 py-1 font-nunito font-semibold text-[#C45D3E] transition-colors hover:bg-[#C45D3E]/10 hover:text-[#a84d32] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C45D3E]/40"
+            aria-label="Your profile"
+          >
             <img
               src="/img/hand-wave.png"
               alt=""
@@ -68,12 +76,11 @@ function NavBar() {
               aria-hidden="true"
             />
             Hi, {firstName}
-          </span>
+          </Link>
           <button
             type="button"
             onClick={handleLogout}
-            className="px-4 py-2 rounded-xl font-nunito font-semibold text-white text-[15px] transition-colors hover:opacity-90"
-            style={{ backgroundColor: PRIMARY }}
+            className="px-4 py-2 rounded-xl font-nunito font-semibold text-[15px] text-[#3d3732] border border-[#ddd2c5] bg-white hover:bg-[#faf7f2] transition-colors"
           >
             Logout
           </button>
@@ -147,11 +154,9 @@ function NavBar() {
             </span>
           </Link>
 
-          {/* Desktop: center nav + right auth (lg and up) */}
-          <div className="hidden lg:flex lg:items-center lg:gap-5 lg:flex-1 lg:justify-center lg:mr-6">
-            {navLinks}
-          </div>
-          <div className="hidden lg:flex lg:items-center lg:ml-auto">
+          {/* Desktop: Discover Clubs + auth grouped on the right (lg and up) */}
+          <div className="hidden lg:flex lg:items-center lg:gap-4 lg:ml-auto">
+            {discoverClubsLink}
             {authSection}
           </div>
 
@@ -205,7 +210,7 @@ function NavBar() {
               role="dialog"
               aria-label="Mobile navigation"
             >
-              <div className="flex flex-col gap-1">{navLinks}</div>
+              <div className="flex flex-col gap-1">{discoverClubsLink}</div>
               <div className="pt-3 border-t border-[#ebe1d5]">
                 {authSection}
               </div>
