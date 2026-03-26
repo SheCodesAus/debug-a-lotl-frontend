@@ -1290,22 +1290,33 @@ function ClubPage() {
                       {club.spots_remaining !== 1 ? "s" : ""} left
                     </span>
                   )}
-                  {Array.isArray(club.genres) &&
-                    club.genres.length > 0 &&
-                    club.genres.map((genre) => (
-                      <span
-                        key={genre}
-                        className="px-2 py-0.5 rounded-full border text-left"
-                        style={{
-                          color: "#1A1410",
-                          borderColor: "rgba(107, 123, 92, 0.35)",
-                          backgroundColor: "rgba(107, 123, 92, 0.08)",
-                        }}
-                      >
-                        {genre}
-                      </span>
-                    ))}
                 </div>
+
+                {Array.isArray(club.genres) && club.genres.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <p
+                      className="text-[11px] font-semibold uppercase tracking-wider m-0 mb-2"
+                      style={{ color: MUTED_COLOR, letterSpacing: "0.6px" }}
+                    >
+                      Genres
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {club.genres.map((genre) => (
+                        <span
+                          key={genre}
+                          className="px-3 py-1 rounded-full border text-xs"
+                          style={{
+                            color: "#1A1410",
+                            borderColor: "#E8E0D8",
+                            backgroundColor: "#FAF6F1",
+                          }}
+                        >
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             {!isOwner && !auth?.token && !club.membership_status && (
