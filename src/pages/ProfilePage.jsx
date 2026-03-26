@@ -475,11 +475,11 @@ function ProfilePage() {
               className="text-sm font-semibold uppercase tracking-wider mb-4"
               style={{ color: "#1A1410" }}
             >
-              Upcoming meetings you&apos;ve booked
+              Meetings you will be attending
             </h3>
             {bookedMeetings.length === 0 ? (
               <p className="text-sm m-0" style={{ color: DESCRIPTION_COLOR }}>
-                You don&apos;t have any upcoming booked meetings. Visit a club
+                You aren&apos;t attending any upcoming meetings yet. Visit a club
                 you&apos;re a member of to book a slot.
               </p>
             ) : (
