@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import patchClub from "../../api/patch-club";
 import InlineSpinner from "../ui/InlineSpinner.jsx";
+import getBookCategories from "../../api/get-book-categories";
 
 const MUTED_COLOR = "#8A7E74";
 const INPUT_BORDER = "#E8E0D8";
@@ -19,9 +20,58 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
     club_location: club?.club_location ?? "",
     is_active: club?.is_active ?? true,
   });
+  const [bookCategories, setBookCategories] = useState([]);
+  const [maxGenreSelect, setMaxGenreSelect] = useState(10);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(null);
+  const [selectedGenres, setSelectedGenres] = useState(
+    Array.isArray(club?.genres) ? club.genres : []
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Keep selection in sync if the form is reopened for a different club.
+    setSelectedGenres(Array.isArray(club?.genres) ? club.genres : []);
+  }, [club?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+    getBookCategories()
+      .then(({ categories, maxSelect }) => {
+        if (!cancelled) {
+          setBookCategories(categories);
+          setMaxGenreSelect(maxSelect);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setCategoriesError(err.message || "Could not load genres.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCategoriesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function toggleGenre(label) {
+    setSelectedGenres((prev) => {
+      if (prev.includes(label)) {
+        return prev.filter((g) => g !== label);
+      }
+      if (prev.length >= maxGenreSelect) {
+        return prev;
+      }
+      return [...prev, label];
+    });
+  }
 
   const handleChange = (event) => {
     const { id, value } = event.target;
@@ -62,6 +112,7 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
       description: fields.description.trim(),
       banner_image: fields.banner_image.trim(),
       is_public: Boolean(fields.is_public),
+      genres: Array.isArray(selectedGenres) ? selectedGenres : [],
       // Public clubs have no member cap (UI disables; backend enforces too)
       max_members: fields.is_public
         ? null
@@ -191,6 +242,74 @@ function EditClubForm({ club, token, onSuccess, onCancel }) {
             placeholder="What this club is about, how often you meet..."
             rows={3}
           />
+        </div>
+
+        <div className="w-full">
+          <span
+            className="block uppercase font-semibold w-full"
+            style={labelStyle}
+          >
+            Select some genres for your club
+          </span>
+          {categoriesLoading && (
+            <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+              Loading genres…
+            </p>
+          )}
+          {categoriesError && (
+            <p className="text-sm m-0 text-amber-800" role="status">
+              {categoriesError} You can still save the club without changing
+              genres.
+            </p>
+          )}
+          {!categoriesLoading && !categoriesError && bookCategories.length > 0 && (
+            <>
+              <p className="text-xs m-0 mb-2" style={{ color: MUTED_COLOR }}>
+                Choose up to {maxGenreSelect}{" "}
+                {selectedGenres.length > 0
+                  ? `(${selectedGenres.length} selected)`
+                  : ""}
+              </p>
+              <div
+                className="rounded-lg overflow-y-auto border box-border"
+                style={{
+                  maxHeight: 220,
+                  borderColor: INPUT_BORDER,
+                  backgroundColor: INPUT_BG,
+                }}
+                role="group"
+                aria-label="Club genres"
+              >
+                <ul className="list-none m-0 p-2 flex flex-col gap-0.5">
+                  {bookCategories.map((label) => {
+                    const checked = selectedGenres.includes(label);
+                    const atCap =
+                      !checked && selectedGenres.length >= maxGenreSelect;
+                    return (
+                      <li key={label}>
+                        <label
+                          className="flex items-center gap-2 cursor-pointer text-sm py-1.5 px-2 rounded-md hover:bg-white/60"
+                          style={{
+                            color: TEXT_COLOR,
+                            opacity: atCap ? 0.45 : 1,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            className="shrink-0 rounded border-gray-300"
+                            checked={checked}
+                            disabled={atCap}
+                            onChange={() => toggleGenre(label)}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </>
+          )}
         </div>
 
         <div>
