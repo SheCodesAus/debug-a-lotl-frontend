@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import InlineSpinner from "../ui/InlineSpinner.jsx";
 
 const ACCENT = "#C45D3E";
 const BRAND_GREEN = "#6b7b5c";
@@ -205,10 +206,12 @@ function BookDetailsModal({
                 type="button"
                 onClick={onStartReading}
                 disabled={startReadingDisabled}
-                className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-6 py-2 text-sm w-full sm:w-auto"
+                aria-busy={startReadingDisabled}
+                className="inline-flex items-center justify-center gap-2 rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-6 py-2 text-sm w-full sm:w-auto min-w-[9rem]"
                 style={{ backgroundColor: ACCENT }}
               >
-                {startReadingDisabled ? "Updating…" : "Start reading"}
+                {startReadingDisabled ? <InlineSpinner size={16} /> : null}
+                Start reading
               </button>
             </div>
           </div>

@@ -1,6 +1,8 @@
 import getGoogleBooks from "../../api/get-google-books";
 import { useEffect, useRef, useState } from "react";
 import BookDetailsModal from "../modals/BookDetailsModal";
+import { SkeletonBlock, SkeletonLine } from "../ui/Skeleton.jsx";
+import InlineSpinner from "../ui/InlineSpinner.jsx";
 
 const ACCENT = "#C45D3E";
 const MUTED_COLOR = "#8A7E74";
@@ -9,6 +11,32 @@ const INPUT_BG = "#FAF6F1";
 const TEXT_COLOR = "#1A1410";
 const BUTTON_YELLOW = "#eab308";
 const BUTTON_GREEN = "rgb(107, 123, 92)";
+
+function BookSearchResultsSkeleton() {
+  return (
+    <div
+      className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      aria-busy="true"
+    >
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-xl border border-gray-100 bg-white p-6 flex gap-3"
+        >
+          <SkeletonBlock className="w-16 shrink-0 self-stretch rounded-md min-h-[96px]" />
+          <div className="min-w-0 flex-1 space-y-2 pt-0.5">
+            <SkeletonLine className="w-4/5 h-4" />
+            <SkeletonLine className="w-1/2 h-3" />
+            <div className="flex flex-wrap gap-2 mt-3">
+              <SkeletonBlock className="h-7 w-28 rounded-md" />
+              <SkeletonBlock className="h-7 w-36 rounded-md" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /* This BookSearch Section is for:
 -Shows search UI for owner only
@@ -22,7 +50,6 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
   const [query, setQuery] = useState("");
   //Results we receive from Google Books
   const [results, setResults] = useState([]);
-  //Loading state while waiting for API result
   const [isLoading, setIsLoading] = useState(false);
   //Error message if something fails
   const [error, setError] = useState("");
@@ -182,7 +209,8 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
         <button
           type="submit"
           disabled={isLoading}
-          className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+          aria-busy={isLoading}
+          className="inline-flex items-center justify-center gap-2 rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
           style={{
             padding: "12px 16px",
             borderRadius: 8,
@@ -191,7 +219,8 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
             minWidth: 120,
           }}
         >
-          {isLoading ? "Searching..." : "Search"}
+          {isLoading ? <InlineSpinner size={16} /> : null}
+          Search
         </button>
       </form>
 
@@ -201,13 +230,9 @@ function BookSearchSection({ isOwner, clubBooks, onAddBook, token }) {
         </div>
       )}
 
-      {isResultsOpen && isLoading && (
-        <p className="mt-4 text-sm m-0" style={{ color: MUTED_COLOR }}>
-          Searching…
-        </p>
-      )}
+      {isResultsOpen && isLoading && <BookSearchResultsSkeleton />}
 
-      {isResultsOpen && results.length > 0 && (
+      {isResultsOpen && !isLoading && results.length > 0 && (
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {results.map((book) => {
             const alreadyAdded = isAlreadyAdded(book.google_books_id);

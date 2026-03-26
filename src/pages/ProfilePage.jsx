@@ -15,6 +15,7 @@ import useClubsCurrentBooks from "../hooks/use-clubs-current-books.js";
 import { formatMeetingDate } from "../utils/format-meeting-date.js";
 import EditProfileModal from "../components/modals/EditProfileModal.jsx";
 import ScrollReveal from "../components/motion/ScrollReveal.jsx";
+import { ProfilePageSkeleton } from "../components/loaders/PageSkeletons.jsx";
 
 const PAGE_BG = "#F8F6F1";
 const CARD_BG = "#FFFFFF";
@@ -231,19 +232,7 @@ function ProfilePage() {
   }
 
   if (loading) {
-    return (
-      <div
-        className="min-h-full font-nunito"
-        style={{ backgroundColor: PAGE_BG }}
-      >
-        <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
-          <div className="rounded-2xl bg-white shadow-sm p-9 sm:p-10 text-center space-y-4">
-            <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-gray-200 border-t-[#C45D3E]" />
-            <p className="text-base text-[#8c6b5c]">Loading your profile…</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <ProfilePageSkeleton pageBg={PAGE_BG} />;
   }
 
   if (error) {

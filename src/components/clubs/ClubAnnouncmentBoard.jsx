@@ -3,6 +3,8 @@ import getClubAnnouncements from "../../api/get-club-announcements";
 import postClubAnnouncement from "../../api/post-club-announcement";
 import patchClubAnnouncement from "../../api/patch-club-announcement";
 import ClubMemberContentPlaceholder from "./ClubMemberContentPlaceholder.jsx";
+import { AnnouncementBoardSkeleton } from "../loaders/PageSkeletons.jsx";
+import InlineSpinner from "../ui/InlineSpinner.jsx";
 
 const MUTED_COLOR = "#8A7E74";
 const BORDER_GREEN = "#6b7b5c"; // site green used on ClubPage (current book card, avatars)
@@ -181,9 +183,11 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token, restricted = false }) {
           <button
             type="submit"
             disabled={isSubmitting || !message.trim()}
-            className="text-sm font-semibold px-4 py-2 rounded bg-[#C45D3E] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-busy={isSubmitting}
+            className="inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded bg-[#C45D3E] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed min-w-[10.5rem]"
           >
-            {isSubmitting ? "Posting…" : "Post announcement"}
+            {isSubmitting ? <InlineSpinner size={16} /> : null}
+            Post announcement
           </button>
         </form>
       )}
@@ -195,9 +199,7 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token, restricted = false }) {
       )}
 
       {isLoading ? (
-        <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
-          Loading announcements…
-        </p>
+        <AnnouncementBoardSkeleton />
       ) : announcements.length === 0 ? (
         <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
           No announcements yet.{" "}
@@ -294,9 +296,11 @@ function ClubAnnouncmentBoard({ clubId, isOwner, token, restricted = false }) {
                             isSaving ||
                             (!draftTitle.trim() && !draftMessage.trim())
                           }
-                          className="text-sm font-semibold px-4 py-2 rounded bg-[#C45D3E] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-busy={isSaving}
+                          className="inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded bg-[#C45D3E] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed min-w-[5rem]"
                         >
-                          {isSaving ? "Saving…" : "Save"}
+                          {isSaving ? <InlineSpinner size={16} /> : null}
+                          Save
                         </button>
                         <button
                           type="button"

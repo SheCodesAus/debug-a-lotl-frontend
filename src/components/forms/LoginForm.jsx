@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/use-auth";
 import postLogin from "../../api/post-login";
+import InlineSpinner from "../ui/InlineSpinner.jsx";
 
 const MUTED_COLOR = "#8A7E74";
 const INPUT_BORDER = "#E8E0D8";
@@ -137,7 +138,7 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
         </div>
 
         <button
-          className="w-full rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 min-h-[46px]"
           style={{
             padding: 12,
             borderRadius: 8,
@@ -146,9 +147,11 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
             marginTop: 8,
           }}
           disabled={isLoading}
+          aria-busy={isLoading}
           type="submit"
         >
-          {isLoading ? "Loading" : "Sign In"}
+          {isLoading ? <InlineSpinner size={18} /> : null}
+          Sign In
         </button>
 
         <p

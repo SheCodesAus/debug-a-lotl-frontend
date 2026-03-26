@@ -7,6 +7,7 @@ import BookClubCard from "../components/clubs/BookClubCard";
 import HomePageStats from "../components/HomePageStats";
 import useClubsCurrentBooks from "../hooks/use-clubs-current-books";
 import ScrollReveal from "../components/motion/ScrollReveal.jsx";
+import { BookClubCardSkeleton } from "../components/loaders/PageSkeletons.jsx";
 
 const ACCENT = "#C45D3E";
 const DARK = "#303030";
@@ -291,7 +292,7 @@ function HomePage() {
             </p>
 
             {clubsLoading ? (
-              <p className="text-center text-[#606060] py-12">Loading clubs…</p>
+              <BookClubCardSkeleton count={INITIAL_CLUBS_VISIBLE} />
             ) : clubsError ? (
               <p className="text-center text-red-600 py-12">{clubsError}</p>
             ) : clubs.length === 0 ? (

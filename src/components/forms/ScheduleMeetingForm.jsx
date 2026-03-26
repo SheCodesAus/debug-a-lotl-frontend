@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/use-auth";
 import postScheduleMeeting from "../../api/post-schedule-meeting";
+import InlineSpinner from "../ui/InlineSpinner.jsx";
 
 const MUTED_COLOR = "#8A7E74";
 const INPUT_BORDER = "#E8E0D8";
@@ -186,7 +187,7 @@ function ScheduleMeetingForm({ clubId, onSuccess, buttonColor = "#C45D3E" }) {
                 )}
 
                 <button
-                    className="w-full rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 min-h-[46px]"
                     style={{
                         padding: 12,
                         borderRadius: 8,
@@ -196,8 +197,10 @@ function ScheduleMeetingForm({ clubId, onSuccess, buttonColor = "#C45D3E" }) {
                     }}
                     type="submit"
                     disabled={loading}
+                    aria-busy={loading}
                 >
-                    {loading ? "Scheduling..." : "Schedule meeting"}
+                    {loading ? <InlineSpinner size={18} /> : null}
+                    Schedule meeting
                 </button>
             </form>
         </div>

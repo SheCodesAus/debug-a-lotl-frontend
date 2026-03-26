@@ -22,6 +22,8 @@ import ClubMemberContentPlaceholder from "../components/clubs/ClubMemberContentP
 import BookDetailsModal from "../components/modals/BookDetailsModal";
 import ScrollReveal from "../components/motion/ScrollReveal.jsx";
 import { IconInPerson, IconVirtual } from "../components/clubs/ClubPillIcons.jsx";
+import { ClubPageSkeleton } from "../components/loaders/PageSkeletons.jsx";
+import InlineSpinner from "../components/ui/InlineSpinner.jsx";
 
 const ACCENT = "#C45D3E";
 const BRAND_GREEN = "#6b7b5c";
@@ -291,10 +293,12 @@ function EditMeetingModal({ clubId, meeting, token, onClose, onSuccess }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg text-white font-semibold transition hover:opacity-90 disabled:opacity-60 px-4 py-3 mt-2"
+            aria-busy={loading}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-lg text-white font-semibold transition hover:opacity-90 disabled:opacity-60 px-4 py-3 mt-2 min-h-[48px]"
             style={{ backgroundColor: loading ? MUTED_COLOR : ACCENT }}
           >
-            {loading ? "Saving…" : "Save changes"}
+            {loading ? <InlineSpinner size={18} /> : null}
+            Save changes
           </button>
         </form>
       </div>
@@ -488,16 +492,12 @@ function DeleteMeetingModal({ meeting, onClose, onConfirm, loading }) {
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+            aria-busy={loading}
+            className="inline-flex items-center justify-center gap-2 min-w-[7.5rem] px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
             style={{ backgroundColor: "rgb(196, 93, 62)" }}
           >
-            {loading
-              ? hasAttendees
-                ? "Cancelling…"
-                : "Deleting…"
-              : hasAttendees
-                ? "Cancel now"
-                : "Delete"}
+            {loading ? <InlineSpinner size={16} /> : null}
+            {hasAttendees ? "Cancel now" : "Delete"}
           </button>
         </div>
       </div>
@@ -1098,7 +1098,8 @@ function ClubPage() {
     setSelectedToReadBook(null);
   }
 
-  if (isLoadingClub || isLoadingBooks) return <p className="p-6">Loading...</p>;
+  if (isLoadingClub || isLoadingBooks)
+    return <ClubPageSkeleton pageBg={PAGE_BG} />;
   if (clubError) return <p className="p-6 text-red-600">{clubError}</p>;
   if (booksError) return <p className="p-6 text-red-600">{booksError}</p>;
   if (!club) return <p className="p-6">Club not found.</p>;
@@ -1477,10 +1478,12 @@ function ClubPage() {
                       type="button"
                       onClick={() => handleMarkAsRead(currentBook)}
                       disabled={isMarkingRead || isSettingReading}
+                      aria-busy={isMarkingRead}
                       className="mt-6 w-full flex items-center justify-center gap-2 rounded-lg border-0 py-3 px-4 text-sm font-semibold text-white cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
                       style={{ backgroundColor: ACCENT }}
                     >
-                      {isMarkingRead ? "Updating…" : "Mark as read"}
+                      {isMarkingRead ? <InlineSpinner size={16} /> : null}
+                      Mark as read
                       {!isMarkingRead && (
                         <svg
                           className="shrink-0"
@@ -1737,8 +1740,9 @@ function ClubPage() {
                               <button
                                 type="button"
                                 disabled={isBooked || isBooking}
+                                aria-busy={isBooking}
                                 onClick={() => handleBookMeeting(meeting.id)}
-                                className={`text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0 transition disabled:cursor-not-allowed sm:mt-0.5 ${
+                                className={`inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0 transition disabled:cursor-not-allowed sm:mt-0.5 min-w-[4.5rem] ${
                                   isBooked ? "border-0" : "border"
                                 }`}
                                 style={{
@@ -1749,11 +1753,13 @@ function ClubPage() {
                                   color: isBooked ? "white" : "#1A1410",
                                 }}
                               >
-                                {isBooking
-                                  ? "…"
-                                  : isBooked
-                                    ? "✓ Booked"
-                                    : "Book"}
+                                {isBooking ? (
+                                  <InlineSpinner size={14} />
+                                ) : isBooked ? (
+                                  "✓ Booked"
+                                ) : (
+                                  "Book"
+                                )}
                               </button>
                             )}
                           </div>
@@ -1935,10 +1941,12 @@ function ClubPage() {
                               handleStartReading(book);
                             }}
                             disabled={isSettingReading}
-                            className="rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 text-sm"
+                            aria-busy={isSettingReading}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 text-sm min-w-[9rem]"
                             style={{ backgroundColor: ACCENT }}
                           >
-                            {isSettingReading ? "Updating…" : "Start reading"}
+                            {isSettingReading ? <InlineSpinner size={16} /> : null}
+                            Start reading
                           </button>
                         </div>
                       )}
