@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import postCreateClub from "../api/post-create-club";
+import getBookCategories from "../api/get-book-categories";
 
 const ACCENT = "#C45D3E";
 const MUTED_COLOR = "#8A7E74";
@@ -22,6 +23,11 @@ function CreateClubPage() {
     club_location: "",
   });
   const [error, setError] = useState(null);
+  const [bookCategories, setBookCategories] = useState([]);
+  const [maxGenreSelect, setMaxGenreSelect] = useState(10);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(null);
+  const [selectedGenres, setSelectedGenres] = useState([]);
 
   const handleChange = (event) => {
     const { id, value, type, checked } = event.target;
@@ -63,7 +69,7 @@ function CreateClubPage() {
       return;
     }
 
-    postCreateClub(auth.token, formData)
+    postCreateClub(auth.token, { ...formData, genres: selectedGenres })
       .then(() => {
         navigate("/clubs");
       })
@@ -79,6 +85,42 @@ function CreateClubPage() {
       navigate("/register", { replace: true });
     }
   }, [isLoggedIn, navigate]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+    getBookCategories()
+      .then(({ categories, maxSelect }) => {
+        if (!cancelled) {
+          setBookCategories(categories);
+          setMaxGenreSelect(maxSelect);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setCategoriesError(err.message || "Could not load genres.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCategoriesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function toggleGenre(label) {
+    setSelectedGenres((prev) => {
+      if (prev.includes(label)) {
+        return prev.filter((g) => g !== label);
+      }
+      if (prev.length >= maxGenreSelect) {
+        return prev;
+      }
+      return [...prev, label];
+    });
+  }
 
   const labelStyle = {
     fontSize: 13,
@@ -178,6 +220,76 @@ function CreateClubPage() {
               rows={4}
               required
             />
+          </div>
+
+          <div className="w-full">
+            <span
+              className="block uppercase font-semibold w-full"
+              style={labelStyle}
+            >
+              Select some genres for your club
+            </span>
+            {categoriesLoading && (
+              <p className="text-sm m-0" style={{ color: MUTED_COLOR }}>
+                Loading genres…
+              </p>
+            )}
+            {categoriesError && (
+              <p className="text-sm m-0 text-amber-800" role="status">
+                {categoriesError} You can still create the club without genres.
+              </p>
+            )}
+            {!categoriesLoading && !categoriesError && bookCategories.length > 0 && (
+              <>
+                <p
+                  className="text-xs m-0 mb-2"
+                  style={{ color: MUTED_COLOR }}
+                >
+                  Choose up to {maxGenreSelect}{" "}
+                  {selectedGenres.length > 0
+                    ? `(${selectedGenres.length} selected)`
+                    : ""}
+                </p>
+                <div
+                  className="rounded-lg overflow-y-auto border box-border"
+                  style={{
+                    maxHeight: 220,
+                    borderColor: INPUT_BORDER,
+                    backgroundColor: INPUT_BG,
+                  }}
+                  role="group"
+                  aria-label="Club genres"
+                >
+                  <ul className="list-none m-0 p-2 flex flex-col gap-0.5">
+                    {bookCategories.map((label) => {
+                      const checked = selectedGenres.includes(label);
+                      const atCap =
+                        !checked && selectedGenres.length >= maxGenreSelect;
+                      return (
+                        <li key={label}>
+                          <label
+                            className="flex items-center gap-2 cursor-pointer text-sm py-1.5 px-2 rounded-md hover:bg-white/60"
+                            style={{
+                              color: TEXT_COLOR,
+                              opacity: atCap ? 0.45 : 1,
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              className="shrink-0 rounded border-gray-300"
+                              checked={checked}
+                              disabled={atCap}
+                              onChange={() => toggleGenre(label)}
+                            />
+                            <span>{label}</span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="w-full">

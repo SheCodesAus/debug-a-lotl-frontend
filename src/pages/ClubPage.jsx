@@ -1290,6 +1290,21 @@ function ClubPage() {
                       {club.spots_remaining !== 1 ? "s" : ""} left
                     </span>
                   )}
+                  {Array.isArray(club.genres) &&
+                    club.genres.length > 0 &&
+                    club.genres.map((genre) => (
+                      <span
+                        key={genre}
+                        className="px-2 py-0.5 rounded-full border text-left"
+                        style={{
+                          color: "#1A1410",
+                          borderColor: "rgba(107, 123, 92, 0.35)",
+                          backgroundColor: "rgba(107, 123, 92, 0.08)",
+                        }}
+                      >
+                        {genre}
+                      </span>
+                    ))}
                 </div>
               </div>
             </div>
