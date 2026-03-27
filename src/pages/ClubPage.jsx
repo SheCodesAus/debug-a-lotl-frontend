@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import ClubHeader from "../components/clubs/ClubHeader";
+import ClubSectionNav from "../components/clubs/ClubSectionNav";
 import BookSearchSection from "../components/clubs/BookSearchSection";
 import getClub from "../api/get-club.js";
 import postClubBook from "../api/post-club-book";
@@ -1107,6 +1108,17 @@ function ClubPage() {
   const restrictMemberSections =
     !isOwner && club.membership_status !== "approved";
 
+  const sectionNavItems = [{ id: "club-about", label: "About" }];
+  if (isOwner) {
+    sectionNavItems.push({ id: "club-members", label: "Members" });
+  }
+  sectionNavItems.push(
+    { id: "club-meetings", label: "Meetings" },
+    { id: "club-to-read", label: "To read" },
+    { id: "club-historic", label: "Past reads" },
+    { id: "club-announcements", label: "Announcements" },
+  );
+
   return (
     <main
       className="min-h-full flex flex-col"
@@ -1122,6 +1134,8 @@ function ClubPage() {
         onLeaveClub={handleLeaveClub}
         isLeavingClub={isLeavingClub}
       />
+
+      <ClubSectionNav items={sectionNavItems} />
 
       {showEditModal && (
         <EditClubModal
@@ -1155,12 +1169,13 @@ function ClubPage() {
         />
       )}
 
-      <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
+      <div className="flex-1 px-5 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
         {/* Owner-only: Pending approvals */}
         {isOwner && !club?.is_public && (
           <ScrollReveal
             as="section"
-            className="rounded-2xl bg-white p-10 shadow-sm"
+            id="club-pending"
+            className="scroll-mt-28 rounded-2xl bg-white p-10 shadow-sm"
             style={{
               boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px",
               border: "2px solid #eab308",
@@ -1219,7 +1234,7 @@ function ClubPage() {
         )}
 
         {isOwner && (
-          <ScrollReveal as="div">
+          <ScrollReveal as="div" id="club-add-book" className="scroll-mt-28">
             <BookSearchSection
               isOwner={isOwner}
               clubBooks={books}
@@ -1233,7 +1248,8 @@ function ClubPage() {
           {/* About */}
           <ScrollReveal
             as="section"
-            className="order-1 lg:col-span-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+            id="club-about"
+            className="scroll-mt-28 order-1 lg:col-span-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2
@@ -1244,7 +1260,7 @@ function ClubPage() {
             </h2>
             <div className="flex items-start gap-4">
               <div
-                className="w-16 h-16 rounded-lg flex items-center justify-center text-white text-lg font-semibold shrink-0"
+                className="hidden sm:flex w-16 h-16 rounded-lg items-center justify-center text-white text-lg font-semibold shrink-0"
                 style={{ backgroundColor: "#6b7b5c" }}
               >
                 {(club.name || "Club")
@@ -1254,13 +1270,13 @@ function ClubPage() {
                   .toUpperCase()
                   .slice(0, 2)}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-[#1A1410] text-base m-0">
                   {club.name}
                 </h3>
                 {club.description && (
                   <p
-                    className="text-sm m-0 mt-1 line-clamp-2"
+                    className="text-sm m-0 mt-1 leading-relaxed break-words"
                     style={{ color: MUTED_COLOR }}
                   >
                     {club.description}
@@ -1291,34 +1307,33 @@ function ClubPage() {
                     </span>
                   )}
                 </div>
-
-                {Array.isArray(club.genres) && club.genres.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-gray-100">
-                    <p
-                      className="text-[11px] font-semibold uppercase tracking-wider m-0 mb-2"
-                      style={{ color: MUTED_COLOR, letterSpacing: "0.6px" }}
-                    >
-                      Genres
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {club.genres.map((genre) => (
-                        <span
-                          key={genre}
-                          className="px-3 py-1 rounded-full border text-xs"
-                          style={{
-                            color: "#1A1410",
-                            borderColor: "#E8E0D8",
-                            backgroundColor: "#FAF6F1",
-                          }}
-                        >
-                          {genre}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
+            {Array.isArray(club.genres) && club.genres.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <p
+                  className="text-[11px] font-semibold uppercase tracking-wider m-0 mb-2"
+                  style={{ color: MUTED_COLOR, letterSpacing: "0.6px" }}
+                >
+                  Genres
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {club.genres.map((genre) => (
+                    <span
+                      key={genre}
+                      className="px-3 py-1 rounded-full border text-xs"
+                      style={{
+                        color: "#1A1410",
+                        borderColor: "#E8E0D8",
+                        backgroundColor: "#FAF6F1",
+                      }}
+                    >
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             {!isOwner && !auth?.token && !club.membership_status && (
               <div className="mt-4 w-full font-source-sans text-left">
                 <div className="flex flex-col w-full" style={{ gap: 16 }}>
@@ -1382,7 +1397,8 @@ function ClubPage() {
           {/* Currently Reading — centred on mobile, left-aligned from lg (sidebar) */}
           <ScrollReveal
             as="section"
-            className="order-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-2 rounded-2xl bg-white p-10 shadow-sm text-center lg:text-left"
+            id="club-reading"
+            className="scroll-mt-28 order-2 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-2 rounded-2xl bg-white p-10 shadow-sm text-center lg:text-left"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2
@@ -1543,7 +1559,8 @@ function ClubPage() {
             {isOwner && (
               <ScrollReveal
                 as="section"
-                className="rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+                id="club-members"
+                className="scroll-mt-28 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
                 style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
               >
                 <h2
@@ -1591,11 +1608,8 @@ function ClubPage() {
             {/* Meetings — card layout (date line + title + avatars; outline actions) */}
             <ScrollReveal
               as="section"
-              className={
-                restrictMemberSections
-                  ? "rounded-2xl bg-white flex-1 min-h-0 border shadow-sm"
-                  : "rounded-2xl bg-white flex-1 min-h-0 border shadow-sm"
-              }
+              id="club-meetings"
+              className="scroll-mt-28 rounded-2xl bg-white flex-1 min-h-0 border shadow-sm"
               style={{
                 borderColor: MEETING_CARD_BORDER,
                 boxShadow: "rgba(26, 20, 16, 0.04) 0px 2px 12px",
@@ -1803,7 +1817,8 @@ function ClubPage() {
         <div className="flex flex-col gap-6">
           <ScrollReveal
             as="section"
-            className="order-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+            id="club-historic"
+            className="scroll-mt-28 order-2 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <h2
@@ -1889,7 +1904,8 @@ function ClubPage() {
           {/* To Read */}
           <ScrollReveal
             as="section"
-            className="order-1 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
+            id="club-to-read"
+            className="scroll-mt-28 order-1 rounded-2xl bg-white p-6 sm:p-8 shadow-sm"
             style={{ boxShadow: "rgba(26, 20, 16, 0.06) 0px 4px 20px" }}
           >
             <div className="flex items-center justify-between gap-3 mb-4">
@@ -1998,7 +2014,11 @@ function ClubPage() {
           />
         </div>
 
-        <ScrollReveal as="div" className="space-y-8">
+        <ScrollReveal
+          as="div"
+          id="club-announcements"
+          className="scroll-mt-28 space-y-8"
+        >
           <ClubAnnouncmentBoard
             clubId={clubId}
             isOwner={isOwner}

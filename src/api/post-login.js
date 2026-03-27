@@ -1,3 +1,34 @@
+const FALLBACK_LOGIN_ERROR = "Error trying to login";
+
+/**
+ * Pull a human-readable message from DRF / API error JSON bodies.
+ */
+function messageFromErrorBody(data) {
+  if (!data || typeof data !== "object") return null;
+
+  const { detail, non_field_errors: nfe } = data;
+
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (Array.isArray(detail)) {
+    const first = detail.find((x) => typeof x === "string" && x.trim());
+    if (first) return first;
+  }
+
+  if (Array.isArray(nfe) && nfe.length) {
+    const first = nfe.find((x) => typeof x === "string" && x.trim());
+    if (first) return first;
+  }
+
+  for (const value of Object.values(data)) {
+    if (Array.isArray(value) && value.length) {
+      const first = value.find((x) => typeof x === "string" && x.trim());
+      if (first) return first;
+    }
+  }
+
+  return null;
+}
+
 // Makes a POST request to your backend login endpoint and
 // returns either the parsed JSON response or throws a helpful error.
 async function postLogin(username, password) {
@@ -25,11 +56,9 @@ async function postLogin(username, password) {
   }
 
   if (!response.ok) {
-    const fallbackError = `Error trying to login`;
-    const data = await response.json().catch(() => {
-      throw new Error(fallbackError);
-    });
-    const errorMessage = data?.detail ?? fallbackError;
+    const data = await response.json().catch(() => null);
+    const errorMessage =
+      messageFromErrorBody(data) ?? FALLBACK_LOGIN_ERROR;
     throw new Error(errorMessage);
   }
 

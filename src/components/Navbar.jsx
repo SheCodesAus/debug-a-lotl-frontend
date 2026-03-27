@@ -70,9 +70,9 @@ function NavBar() {
             aria-label="Your profile"
           >
             <img
-              src="/img/hand-wave.png"
+              src="/img/wave.png"
               alt=""
-              className="h-5 w-auto object-contain"
+              className="h-5 w-auto shrink-0 object-contain"
               aria-hidden="true"
             />
             Hi, {firstName}
@@ -120,7 +120,7 @@ function NavBar() {
           backdropFilter: "blur(12px)",
         }}
       >
-        <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 text-lg">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4 px-5 sm:px-6 lg:px-8 py-4 text-lg">
           {/* Logo + title */}
           <Link
             to="/"
@@ -204,7 +204,7 @@ function NavBar() {
 
         {/* Mobile menu dropdown – inside header so it sticks with nav */}
         {mobileMenuOpen && (
-          <div className="lg:hidden px-4 pb-4">
+          <div className="lg:hidden px-5 pb-4">
             <div
               className="mt-2 rounded-2xl border border-[#e7ddd1] bg-[#fffaf6] p-4 flex flex-col gap-3 shadow-sm"
               role="dialog"
@@ -225,7 +225,7 @@ function NavBar() {
         />
       </header>
 
-      <main className="flex-1 flex flex-col min-h-0 bg-[rgb(253,252,250)] overflow-y-auto">
+      <main className="flex-1 flex flex-col min-h-0 bg-[rgb(253,252,250)] overflow-y-auto overflow-x-hidden">
         <Outlet />
       </main>
       <Footer />

@@ -40,7 +40,7 @@ export function ClubPageSkeleton({ pageBg = "#fffaf6" }) {
       {SR_ONLY}
       <SkeletonBlock className="w-full min-h-[220px] sm:min-h-[260px] rounded-none py-10" />
 
-      <div className="flex-1 px-4 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
+      <div className="flex-1 px-5 sm:px-6 py-8 max-w-6xl w-full mx-auto space-y-8">
         <div className="rounded-2xl bg-white p-8 shadow-sm space-y-4" style={cardShadow}>
           <SkeletonLine className="w-40 h-4" />
           <div className="flex flex-col sm:flex-row gap-3">
@@ -125,7 +125,7 @@ export function ProfilePageSkeleton({ pageBg = "#fffaf6" }) {
       aria-busy="true"
     >
       {SR_ONLY}
-      <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
+      <div className="max-w-2xl mx-auto px-5 py-6 sm:px-8">
         <div className="rounded-2xl bg-white shadow-sm p-9 sm:p-10 space-y-6">
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <SkeletonCircle size={96} />

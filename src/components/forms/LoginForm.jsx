@@ -18,7 +18,8 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
     password: "",
   });
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (event) => {
     const { id, value } = event.target;
@@ -119,22 +120,60 @@ function LoginForm({ linkColor = "#C45D3E", buttonColor = "#C45D3E" }) {
           >
             Password
           </label>
-          <input
-            className="w-full rounded-lg outline-none box-border transition focus:border-[#1A1410]/40 focus:ring-1 focus:ring-[#1A1410]/20 text-left"
-            style={{
-              padding: "12px 16px",
-              borderRadius: 8,
-              border: `1.5px solid ${INPUT_BORDER}`,
-              backgroundColor: INPUT_BG,
-              fontSize: 14,
-              color: TEXT_COLOR,
-            }}
-            type="password"
-            id="password"
-            placeholder="••••••••"
-            value={credentials.password}
-            onChange={handleChange}
-          />
+          <div className="relative w-full">
+            <input
+              className="w-full rounded-lg outline-none box-border transition focus:border-[#1A1410]/40 focus:ring-1 focus:ring-[#1A1410]/20 text-left"
+              style={{
+                padding: "12px 44px 12px 16px",
+                borderRadius: 8,
+                border: `1.5px solid ${INPUT_BORDER}`,
+                backgroundColor: INPUT_BG,
+                fontSize: 14,
+                color: TEXT_COLOR,
+              }}
+              type={showPassword ? "text" : "password"}
+              id="password"
+              placeholder="••••••••"
+              value={credentials.password}
+              onChange={handleChange}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="absolute top-1/2 -translate-y-1/2 right-2 flex items-center justify-center rounded-md p-1.5 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#1A1410]/25"
+              style={{ color: MUTED_COLOR }}
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <path d="M3 3l18 18M10.5 10.677a2 2 0 002.655 2.983M9.88 9.88a3 3 0 104.243 4.242M7.362 7.561C5.68 8.74 4.279 10.42 3 12c1.889 2.991 5.282 6 9 6 1.55 0 3.031-.523 4.382-1.56M12 6c4.008 0 6.701 3.009 8 4.5-.375.533-1.297 1.656-2.832 2.786" />
+                </svg>
+              ) : (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
         <button

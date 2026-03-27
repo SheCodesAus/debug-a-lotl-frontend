@@ -211,7 +211,7 @@ function ProfilePage() {
         className="min-h-full font-nunito"
         style={{ backgroundColor: PAGE_BG }}
       >
-        <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
+        <div className="max-w-2xl mx-auto px-5 py-6 sm:px-8">
           <div className="rounded-2xl bg-white shadow-sm p-8 sm:p-10 text-center space-y-5">
             <h1 className="text-3xl sm:text-4xl font-lora text-[#3f2a28]">
               Profile
@@ -241,7 +241,7 @@ function ProfilePage() {
         className="min-h-full font-nunito"
         style={{ backgroundColor: PAGE_BG }}
       >
-        <div className="max-w-2xl mx-auto px-4 py-6 sm:px-8">
+        <div className="max-w-2xl mx-auto px-5 py-6 sm:px-8">
           <div className="rounded-2xl bg-white shadow-sm p-8 sm:p-10 text-center space-y-5">
             <h1 className="text-3xl font-lora text-[#3f2a28]">Profile</h1>
             <p className="text-base text-red-600">{error}</p>
@@ -293,7 +293,7 @@ function ProfilePage() {
       className="min-h-full font-nunito"
       style={{ backgroundColor: PAGE_BG }}
     >
-      <div className="max-w-6xl w-full mx-auto px-4 py-8 sm:px-6 sm:py-10 space-y-8">
+      <div className="max-w-6xl w-full mx-auto px-5 py-8 sm:px-6 sm:py-10 space-y-8">
         <ScrollReveal as="div">
           <h1
             className="text-2xl sm:text-3xl font-lora font-bold"
