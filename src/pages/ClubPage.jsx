@@ -1260,7 +1260,7 @@ function ClubPage() {
             </h2>
             <div className="flex items-start gap-4">
               <div
-                className="w-16 h-16 rounded-lg flex items-center justify-center text-white text-lg font-semibold shrink-0"
+                className="hidden sm:flex w-16 h-16 rounded-lg items-center justify-center text-white text-lg font-semibold shrink-0"
                 style={{ backgroundColor: "#6b7b5c" }}
               >
                 {(club.name || "Club")
