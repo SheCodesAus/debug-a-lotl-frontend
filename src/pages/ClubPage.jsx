@@ -805,15 +805,18 @@ function ClubPage() {
   const hasCapacityLimit = club?.max_members != null;
 
   useEffect(() => {
-    if (!isOwner || !auth?.token || club?.is_public) {
+    if (!isOwner || !auth?.token) {
       setPendingMembers([]);
+      setApprovedMembers([]);
       return;
     }
     async function loadMembers() {
       try {
         const all = await getClubMembers(clubId, auth.token);
-        setPendingMembers(all.filter((m) => m.status === "pending"));
         setApprovedMembers(all.filter((m) => m.status === "approved"));
+        setPendingMembers(
+          club?.is_public ? [] : all.filter((m) => m.status === "pending"),
+        );
       } catch (err) {
         console.error("Could not load members:", err.message);
       }
@@ -1055,13 +1058,13 @@ function ClubPage() {
     },
   );
   const currentBook = readingBooks[0] ?? null;
-  const displayMemberCount = memberCount ?? 0;
   const memberList = [
     { id: "owner", name: club?.owner_name ?? "Owner", isOrganiser: true },
     ...approvedMembers
       .filter((m) => String(m.user) !== String(club?.owner))
       .map((m) => ({ id: m.id, name: m.username })),
   ];
+  const displayMemberCount = memberList.length;
   const memberAvatarColors = [
     "#6b7b5c",
     "#C45D3E",
