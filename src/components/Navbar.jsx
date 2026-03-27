@@ -70,11 +70,9 @@ function NavBar() {
             aria-label="Your profile"
           >
             <img
-              src="/img/hand-wave.png"
+              src="/img/wave.png"
               alt=""
-              width={20}
-              height={20}
-              className="h-5 w-auto max-h-5 max-w-5 shrink-0 object-contain"
+              className="h-5 w-auto shrink-0 object-contain"
               aria-hidden="true"
             />
             Hi, {firstName}
