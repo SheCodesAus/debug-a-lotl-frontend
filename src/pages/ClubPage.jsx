@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import confetti from "canvas-confetti";
 import { useAuth } from "../hooks/use-auth";
 import ClubHeader from "../components/clubs/ClubHeader";
 import ClubSectionNav from "../components/clubs/ClubSectionNav";
@@ -22,7 +23,10 @@ import ClubAnnouncmentBoard from "../components/clubs/ClubAnnouncmentBoard.jsx";
 import ClubMemberContentPlaceholder from "../components/clubs/ClubMemberContentPlaceholder.jsx";
 import BookDetailsModal from "../components/modals/BookDetailsModal";
 import ScrollReveal from "../components/motion/ScrollReveal.jsx";
-import { IconInPerson, IconVirtual } from "../components/clubs/ClubPillIcons.jsx";
+import {
+  IconInPerson,
+  IconVirtual,
+} from "../components/clubs/ClubPillIcons.jsx";
 import { ClubPageSkeleton } from "../components/loaders/PageSkeletons.jsx";
 import InlineSpinner from "../components/ui/InlineSpinner.jsx";
 
@@ -762,7 +766,6 @@ function ClubPage() {
   const [bookingState, setBookingState] = useState({});
   const [isLeavingClub, setIsLeavingClub] = useState(false);
 
-
   // Meeting modals
   const [viewingMeeting, setViewingMeeting] = useState(null);
   const [editingMeeting, setEditingMeeting] = useState(null);
@@ -828,9 +831,7 @@ function ClubPage() {
     async function loadMeetings() {
       try {
         const data = await getClubMeetings(clubId, auth.token);
-        setMeetings(
-          sortMeetingsLikeApi(Array.isArray(data) ? data : []),
-        );
+        setMeetings(sortMeetingsLikeApi(Array.isArray(data) ? data : []));
       } catch (err) {
         console.error("Could not load meetings:", err.message);
       }
@@ -861,15 +862,11 @@ function ClubPage() {
         deletingMeeting.id,
       );
       if (result.removed) {
-        setMeetings((prev) =>
-          prev.filter((m) => m.id !== deletingMeeting.id),
-        );
+        setMeetings((prev) => prev.filter((m) => m.id !== deletingMeeting.id));
       } else if (result.meeting) {
         setMeetings((prev) =>
           sortMeetingsLikeApi(
-            prev.map((m) =>
-              m.id === result.meeting.id ? result.meeting : m,
-            ),
+            prev.map((m) => (m.id === result.meeting.id ? result.meeting : m)),
           ),
         );
       }
@@ -883,9 +880,7 @@ function ClubPage() {
 
   function handleMeetingUpdated(updated) {
     setMeetings((prev) =>
-      sortMeetingsLikeApi(
-        prev.map((m) => (m.id === updated.id ? updated : m)),
-      ),
+      sortMeetingsLikeApi(prev.map((m) => (m.id === updated.id ? updated : m))),
     );
   }
 
@@ -921,17 +916,55 @@ function ClubPage() {
 
       setMeetings([]);
       setApprovedMembers((prev) =>
-      prev.filter((m) => String(m.user) !== String(auth.user_id)),
+        prev.filter((m) => String(m.user) !== String(auth.user_id)),
       );
-  } catch (err) {
-    console.error("Could not leave club:", err.message);
-  } finally {
-    setIsLeavingClub(false);
+    } catch (err) {
+      console.error("Could not leave club:", err.message);
+    } finally {
+      setIsLeavingClub(false);
+    }
   }
-}
 
   const [isMarkingRead, setIsMarkingRead] = useState(false);
   const [isSettingReading, setIsSettingReading] = useState(false);
+  const celebratedReadBookIdsRef = useRef(new Set());
+
+  function launchReadingConfetti(bookId) {
+    if (!bookId || celebratedReadBookIdsRef.current.has(bookId)) return;
+    const section = document.getElementById("club-reading");
+    if (!section) return;
+
+    const bounds = section.getBoundingClientRect();
+    const viewportW = window.innerWidth || 1;
+    const viewportH = window.innerHeight || 1;
+
+    celebratedReadBookIdsRef.current.add(bookId);
+
+    // Fire two bursts targeted at the currently reading card bounds.
+    const centerX = Math.min(
+      0.95,
+      Math.max(0.05, (bounds.left + bounds.width / 2) / viewportW),
+    );
+    const centerY = Math.min(
+      0.9,
+      Math.max(0.05, (bounds.top + bounds.height * 0.35) / viewportH),
+    );
+
+    confetti({
+      particleCount: 100,
+      spread: 80,
+      startVelocity: 40,
+      scalar: 0.9,
+      origin: { x: centerX, y: centerY },
+    });
+    confetti({
+      particleCount: 70,
+      spread: 110,
+      startVelocity: 30,
+      scalar: 0.75,
+      origin: { x: centerX, y: Math.min(0.95, centerY + 0.05) },
+    });
+  }
 
   async function moveCurrentReadingToHistoric() {
     if (!currentBook?.id || !auth?.token) return;
@@ -998,6 +1031,7 @@ function ClubPage() {
       await patchClubBookStatus(auth.token, clubId, book.id, {
         status: "read",
       });
+      launchReadingConfetti(String(book.id));
       await refetchClubBooks();
     } finally {
       setIsMarkingRead(false);
@@ -1024,9 +1058,10 @@ function ClubPage() {
   const displayMemberCount = memberCount ?? 0;
   const memberList = [
     { id: "owner", name: club?.owner_name ?? "Owner", isOrganiser: true },
-    ...approvedMembers.filter((m) => String(m.user) !== String(club?.owner))
-    .map((m) => ({ id: m.id, name: m.username })),
-];
+    ...approvedMembers
+      .filter((m) => String(m.user) !== String(club?.owner))
+      .map((m) => ({ id: m.id, name: m.username })),
+  ];
   const memberAvatarColors = [
     "#6b7b5c",
     "#C45D3E",
@@ -1130,7 +1165,9 @@ function ClubPage() {
         memberCount={memberCount}
         isOwner={isOwner}
         onEditClub={() => setShowEditModal(true)}
-        canLeaveClub={!isOwner && auth?.token && club?.membership_status === "approved"}
+        canLeaveClub={
+          !isOwner && auth?.token && club?.membership_status === "approved"
+        }
         onLeaveClub={handleLeaveClub}
         isLeavingClub={isLeavingClub}
       />
@@ -1616,11 +1653,7 @@ function ClubPage() {
               }}
             >
               <div
-                className={
-                  restrictMemberSections
-                    ? "p-4 sm:p-5"
-                    : "p-5 sm:p-6"
-                }
+                className={restrictMemberSections ? "p-4 sm:p-5" : "p-5 sm:p-6"}
               >
                 <div
                   className={`flex items-start justify-between gap-4 ${restrictMemberSections ? "mb-4" : "mb-6"}`}
@@ -1633,10 +1666,7 @@ function ClubPage() {
                       Meetings
                     </p>
                     <p className="m-0 mt-1 text-sm sm:text-base font-medium text-[#1A1410]">
-                      {
-                        meetings.filter((m) => !m.cancel_date).length
-                      }{" "}
-                      upcoming
+                      {meetings.filter((m) => !m.cancel_date).length} upcoming
                     </p>
                   </div>
                   {isOwner && (
@@ -1987,7 +2017,9 @@ function ClubPage() {
                             className="inline-flex items-center justify-center gap-2 rounded-lg text-white font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 text-sm min-w-[9rem]"
                             style={{ backgroundColor: ACCENT }}
                           >
-                            {isSettingReading ? <InlineSpinner size={16} /> : null}
+                            {isSettingReading ? (
+                              <InlineSpinner size={16} />
+                            ) : null}
                             Start reading
                           </button>
                         </div>
