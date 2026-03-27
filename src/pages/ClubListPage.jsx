@@ -172,14 +172,14 @@ function ClubListPage() {
           style={{ backgroundImage: "url(/img/book-club.jpg)" }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-          <div className="absolute inset-0 flex items-center justify-center px-4">
+          <div className="absolute inset-0 flex items-center justify-center px-5">
             <h1 className="font-lora text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-md text-center">
               Discover book clubs
             </h1>
           </div>
         </section>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-10">
           {/* Search + filters bar (Fable-style) */}
           <form
             onSubmit={handleSearchSubmit}

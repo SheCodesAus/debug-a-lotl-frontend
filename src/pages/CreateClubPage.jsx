@@ -147,7 +147,7 @@ function CreateClubPage() {
 
   return (
     <div
-      className="min-h-full flex flex-col items-center px-4 py-12 font-source-sans"
+      className="min-h-full flex flex-col items-center px-5 py-12 font-source-sans"
       style={{ backgroundColor: "#fffaf6" }}
     >
       <div className="w-full max-w-[520px] flex flex-col">

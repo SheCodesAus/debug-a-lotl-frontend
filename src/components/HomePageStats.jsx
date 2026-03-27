@@ -81,11 +81,11 @@ function HomePageStats({ bookClubsCount = 0, embedded = false }) {
       className={
         embedded
           ? "pt-0 pb-0"
-          : "pt-0 pb-16 sm:pb-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[rgb(253,252,250)]"
+          : "pt-0 pb-16 sm:pb-20 -mx-5 sm:-mx-6 lg:-mx-8 px-5 sm:px-6 lg:px-8 bg-[rgb(253,252,250)]"
       }
     >
       {!embedded && (
-        <div className="relative -mx-4 sm:-mx-6 lg:-mx-8" aria-hidden>
+        <div className="relative -mx-5 sm:-mx-6 lg:-mx-8" aria-hidden>
           <svg
             viewBox="0 0 1440 180"
             fill="none"

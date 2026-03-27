@@ -3,15 +3,15 @@
  *
  * - Background: Uses the club's banner_image if set (with a dark overlay for
  *   text legibility), otherwise a gradient.
- * - Title: Club name as the main h1 (responsive type scale, white, truncates
- *   on narrow screens).
+ * - Title: Club name as the main h1 (responsive type scale, white, wraps with
+ *   break-words on narrow screens).
  * - Badge: Public/Private pill — outline/glass styling on the dark overlay so it
  *   reads as status (not a button) next to the solid Edit club control.
  * - Subtitle: Optional "Created by {creatorName}" when creatorName is passed (beside the pill).
  * - Edit club (owners): primary accent button on the same row as the pill.
  *
  * Layout uses the same horizontal padding and max-width as the page body
- * (px-4 sm:px-6 max-w-6xl) so the hero title lines up with the content cards
+ * (px-5 sm:px-6 max-w-6xl) so the hero title lines up with the content cards
  * below on all breakpoints.
  *
  * Props: club (object), creatorName (string | null), memberCount (number, optional),
@@ -83,10 +83,10 @@ function ClubHeader({
     >
       {/* Dark overlay to keep text legible on banner images */}
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
-      {/* Same content wrapper as body (px-4 sm:px-6 max-w-6xl w-full mx-auto) so hero title lines up with cards */}
-      <div className="px-4 sm:px-6 max-w-6xl w-full mx-auto relative min-h-[220px] sm:min-h-[260px] flex items-center">
+      {/* Same content wrapper as body (px-5 sm:px-6 max-w-6xl w-full mx-auto) so hero title lines up with cards */}
+      <div className="px-5 sm:px-6 max-w-6xl w-full mx-auto relative min-h-[220px] sm:min-h-[260px] flex items-center">
         <div className="min-w-0 w-full">
-          <h1 className="font-lora font-bold text-3xl sm:text-4xl lg:text-5xl text-white m-0 truncate">
+          <h1 className="font-lora font-bold text-3xl sm:text-4xl lg:text-5xl text-white m-0 break-words">
             {club.name}
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-3">

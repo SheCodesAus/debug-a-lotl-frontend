@@ -115,7 +115,7 @@ function HomePage() {
 
   return (
     <div className="min-h-full flex flex-col bg-[rgb(253,252,250)]">
-      <div className="flex-1 px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-24 pb-12 sm:pb-16">
+      <div className="flex-1 px-5 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-24 pb-12 sm:pb-16">
         <section
           className="max-w-6xl mx-auto flex w-full flex-col pb-10 sm:pb-14 lg:pb-16 lg:flex-row lg:items-center lg:justify-between lg:gap-12 xl:gap-16"
           aria-label="Introduction"
@@ -171,7 +171,7 @@ function HomePage() {
         {/* About Section */}
         <ScrollReveal
           as="section"
-          className="mt-20 sm:mt-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[#f2ece4] py-16 sm:py-20 border-y border-[#e7ddd1]"
+          className="mt-20 sm:mt-24 -mx-5 sm:-mx-6 lg:-mx-8 px-5 sm:px-6 lg:px-8 bg-[#f2ece4] py-16 sm:py-20 border-y border-[#e7ddd1]"
         >
           <div className="max-w-6xl mx-auto">
             <div className="max-w-3xl">
@@ -281,7 +281,7 @@ function HomePage() {
         <ScrollReveal
           as="section"
           id="current-book-clubs"
-          className="mt-20 sm:mt-28 py-16 sm:py-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-[rgb(247,244,240)] scroll-mt-20"
+          className="mt-20 sm:mt-28 py-16 sm:py-20 -mx-5 sm:-mx-6 lg:-mx-8 px-5 sm:px-6 lg:px-8 bg-[rgb(247,244,240)] scroll-mt-20"
         >
           <div className="max-w-6xl mx-auto">
             <h2 className="font-lora text-3xl sm:text-4xl md:text-5xl font-bold text-center text-[#303030] mb-3">

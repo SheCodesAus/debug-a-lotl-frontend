@@ -6,7 +6,7 @@ const ACCENT = "#C45D3E"; // match login design
 function RegisterPage() {
   return (
     <div
-      className="min-h-full flex flex-col items-center justify-center px-4 py-12 font-source-sans"
+      className="min-h-full flex flex-col items-center justify-center px-5 py-12 font-source-sans"
       style={{ backgroundColor: "rgb(253,252,250)" }}
     >
       <div
