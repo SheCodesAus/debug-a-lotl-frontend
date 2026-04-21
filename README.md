@@ -138,9 +138,38 @@ Open Book allows users to create or join book clubs, search books through Google
 
 - Google Books API for searching and importing book metadata
 
-### Development Setup
+### Routing
 
-Create a `.env` file in the frontend root:
+The current frontend routes include:
 
-```env
-VITE_API_URL=http://127.0.0.1:8000
+/ — Home page
+/login — Login page
+/register — Register page
+/clubs — Club discovery page
+/clubs/:clubId — Individual club page
+/clubs/create — Create club page
+/profile — User profile page
+
+### Front End Architecture
+
+src/
+  api/                API helper files for backend and external requests
+  components/         Shared and feature-specific UI components
+    clubs/            Club page components
+    forms/            Form components
+    modals/           Modal components
+    motion/           Scroll and animation helpers
+  hooks/              Custom hooks such as auth and club-book loaders
+  pages/              Route-level page components
+  utils/              Helper functions
+  main.jsx            App entry point and router setup
+
+**Key Frontend Patterns**
+AuthProvider stores auth state globally across the app
+Route-level pages live in src/pages
+Feature UI is split into reusable components
+API logic is separated into src/api
+Conditional rendering is used heavily for owner/member/guest permissions
+Club pages combine backend data with Google Books search for owner workflows
+
+
