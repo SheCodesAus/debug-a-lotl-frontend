@@ -97,6 +97,17 @@ Open Book allows users to create or join book clubs, search books through Google
 | View announcements | Members, Owner | Club-only content. |
 | Post announcement | Owner | Used for updates, reminders, and links. |
 
+### Profile and Dashboard Features
+
+| Feature | Access | Notes |
+|---------|--------|-------|
+| View personal profile | Authenticated user | Includes user details and activity summary |
+| Edit profile | Authenticated user | Update profile information |
+| View owned clubs | Authenticated user | Clubs created by the user |
+| View joined clubs | Authenticated user | Clubs the user belongs to |
+| View pending approvals | Owner | Shows pending join requests for private clubs |
+| View booked meetings | Authenticated user | Displays upcoming meetings the user has joined |
+
 ### Pages
 
 | Page | Functionality | Access |
