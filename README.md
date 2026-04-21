@@ -39,7 +39,6 @@ Open Book is an all-in-one platform designed to simplify and enrich the book clu
 
 Whether it is a small group of friends or a larger reading community, Open Book gives both organisers and members the tools to keep their club active, structured, and engaging without the usual coordination headaches.
 
-#### Currently in MVP stage
 
 ## Target Users
 
