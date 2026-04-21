@@ -138,38 +138,46 @@ Open Book allows users to create or join book clubs, search books through Google
 
 - Google Books API for searching and importing book metadata
 
-### Routing
+## Routing
 
-The current frontend routes include:
+The frontend uses `React Router` to manage navigation across the application.
 
-/ — Home page
-/login — Login page
-/register — Register page
-/clubs — Club discovery page
-/clubs/:clubId — Individual club page
-/clubs/create — Create club page
-/profile — User profile page
+### Current Routes
 
-### Front End Architecture
+| Route | Page | Purpose |
+|------|------|---------|
+| `/` | Home Page | Landing page with hero section, stats, feature overview, and featured clubs |
+| `/login` | Login Page | Allows existing users to sign in |
+| `/register` | Register Page | Allows new users to create an account |
+| `/clubs` | Club List Page | Displays all discoverable clubs with search and visibility filters |
+| `/clubs/:clubId` | Club Page | Displays a single club's dashboard, including books, meetings, announcements, and member-related actions |
+| `/clubs/create` | Create Club Page | Allows authenticated users to create a new book club |
+| `/profile` | Profile Page | Displays the logged-in user’s profile, clubs, approvals, and booked meetings |
+| `*` | Not Found Page | Fallback page for invalid routes |
 
+### Routing Notes
+
+- Routing is configured in `src/main.jsx`.
+- The app uses a shared navigation layout through the `NavBar` component.
+- Some pages render different content depending on whether the user is a guest, member, or owner.
+- The club detail route uses a dynamic `clubId` parameter so each club can be loaded individually.
+
+## Front-End Architecture
+
+The frontend is organised by responsibility, with route-level pages, reusable UI components, API helper functions, and custom hooks separated into clear folders.
+
+### Folder Structure
+
+```text
 src/
   api/                API helper files for backend and external requests
   components/         Shared and feature-specific UI components
-    clubs/            Club page components
+    clubs/            Club-related UI components
     forms/            Form components
     modals/           Modal components
-    motion/           Scroll and animation helpers
-  hooks/              Custom hooks such as auth and club-book loaders
+    motion/           Animation and scroll-reveal helpers
+  hooks/              Custom hooks for shared state and data loading
   pages/              Route-level page components
   utils/              Helper functions
-  main.jsx            App entry point and router setup
-
-**Key Frontend Patterns**
-AuthProvider stores auth state globally across the app
-Route-level pages live in src/pages
-Feature UI is split into reusable components
-API logic is separated into src/api
-Conditional rendering is used heavily for owner/member/guest permissions
-Club pages combine backend data with Google Books search for owner workflows
-
+  main.jsx            App entry point and router configuration
 
